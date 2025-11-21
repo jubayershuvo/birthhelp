@@ -9,6 +9,7 @@ import {
   Wallet,
   ShoppingBag,
   BriefcaseBusiness,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -311,9 +312,31 @@ export default function Nav({ children }: { children: React.ReactNode }) {
           className="flex-1 overflow-auto 
             text-gray-900 dark:text-gray-100 
             bg-gradient-to-b from-white to-slate-50 
-            dark:from-slate-950 dark:to-slate-900"
+            dark:from-slate-950 dark:to-slate-900 relative"
         >
           {children}
+
+          {/* Fixed Support Button */}
+          {pathname !== "/support" && (
+            <Link
+              href="/support"
+              className="fixed bottom-6 right-6 z-50 flex items-center justify-center 
+              w-14 h-14 rounded-full shadow-lg 
+              bg-gradient-to-r from-indigo-500 to-teal-500 
+              hover:from-indigo-600 hover:to-teal-600 
+              dark:from-indigo-600 dark:to-teal-600 
+              dark:hover:from-indigo-700 dark:hover:to-teal-700 
+              text-white transition-all duration-300 ease-in-out 
+              hover:scale-110 hover:shadow-xl 
+              group"
+            >
+              <MessageCircle
+                size={24}
+                className="group-hover:scale-110 transition-transform"
+              />
+              <span className="sr-only">Support</span>
+            </Link>
+          )}
         </main>
       </div>
     </div>

@@ -136,7 +136,7 @@ export default function ServicesPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">Current Fee:</span>
                     <span className="text-lg font-bold">
-                      {formatCurrency(item.fee)}
+                      {formatCurrency(item.fee + item.service.fee)}
                     </span>
                   </div>
                 </div>

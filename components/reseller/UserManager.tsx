@@ -25,12 +25,10 @@ interface Service {
 }
 
 interface ServiceAccess {
-  serviceId: string;
-  service: string;
-  fee: number;
-  serviceName?: string;
-  officialFee?: number;
+  service: string; // service ID
+  fee: number; // reseller fee
   _id?: string;
+  serviceName?: string;
 }
 
 interface User {
@@ -158,12 +156,10 @@ const UserManagement = () => {
         services: user.services.map((service) => {
           const fullService = services.find((s: Service) => s._id === service.service);
           return {
-            serviceId: service.service,
             service: service.service,
-            fee: service.fee,
+            fee: service.fee, // This is the reseller fee
             _id: service._id,
             serviceName: fullService?.name || `Service ${service.service.substring(0, 8)}...`,
-            officialFee: fullService?.fee || 0
           };
         })
       }));
@@ -204,7 +200,6 @@ const UserManagement = () => {
           return {
             ...service,
             serviceName: fullService?.name || `Service ${service.service.substring(0, 8)}...`,
-            officialFee: fullService?.fee || 0
           };
         })
       }));
@@ -240,9 +235,15 @@ const UserManagement = () => {
     return services.find((s) => s._id === serviceId);
   };
 
+  // Calculate total fee (official + reseller)
+  const calculateTotalFee = (serviceId: string, resellerFee: number): number => {
+    const officialFee = getOfficialFee(serviceId);
+    return officialFee + resellerFee;
+  };
+
   // Validate service data before submission
   const validateServices = (services: ServiceAccess[]): boolean => {
-    const serviceIds = services.map((s) => s.serviceId);
+    const serviceIds = services.map((s) => s.service);
     const uniqueServiceIds = new Set(serviceIds);
 
     if (serviceIds.length !== uniqueServiceIds.size) {
@@ -252,18 +253,8 @@ const UserManagement = () => {
       return false;
     }
 
-    for (const service of services) {
-      const officialFee = getOfficialFee(service.serviceId);
-      if (service.fee < officialFee) {
-        toast.error(
-          `Service fee cannot be less than the official fee of ${formatCurrency(officialFee)}.`
-        );
-        return false;
-      }
-    }
-
     if (services.some((s) => s.fee < 0)) {
-      toast.error("Service fees cannot be negative.");
+      toast.error("Reseller fees cannot be negative.");
       return false;
     }
 
@@ -318,25 +309,21 @@ const UserManagement = () => {
         services: [],
       });
     } else if (mode === "edit" && user) {
-      const enhancedServices: ServiceAccess[] = user.services.map((service) => {
-        const fullService = getFullServiceDetails(service.serviceId);
-        return {
-          ...service,
-          serviceName: fullService?.name || `Service ${service.serviceId.substring(0, 8)}...`,
-          officialFee: fullService?.fee || 0
-        };
-      });
-
       setFormData({
         name: user.name,
         username: user.username,
         email: user.email,
-        password: "",
+        password: "", // Don't show password in edit mode
         balance: user.balance,
         isActive: user.isActive,
         isBanned: user.isBanned,
         isEmailVerified: user.isEmailVerified,
-        services: enhancedServices,
+        services: user.services.map(service => ({
+          service: service.service,
+          fee: service.fee, // This is the reseller fee
+          _id: service._id,
+          serviceName: service.serviceName,
+        })),
       });
     }
     setShowModal(true);
@@ -369,12 +356,21 @@ const UserManagement = () => {
             : `/api/reseller/users/${selectedUser?._id}`;
         const method = modalMode === "create" ? "POST" : "PUT";
 
+        // Prepare the data for API submission
         const submitData = {
-          ...formData,
-          services: formData.services
-            .filter((service) => service.serviceId !== "")
-            .map(({ officialFee, serviceName, ...service }) => service),
+          name: formData.name,
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          isBanned: formData.isBanned,
+          isEmailVerified: formData.isEmailVerified,
+          services: formData.services.map(service => ({
+            service: service.service,
+            fee: service.fee, // reseller fee
+          })),
         };
+
+
 
         const response = await fetch(url, {
           method,
@@ -470,7 +466,7 @@ const UserManagement = () => {
 
   const addService = () => {
     const availableServices = services.filter(
-      (service) => !formData.services.some((s) => s.serviceId === service._id)
+      (service) => !formData.services.some((s) => s.service === service._id)
     );
 
     if (availableServices.length === 0) {
@@ -479,15 +475,14 @@ const UserManagement = () => {
     }
 
     const firstAvailableService = availableServices[0];
+    
     setFormData((prev) => ({
       ...prev,
       services: [
         ...prev.services,
         {
-          serviceId: firstAvailableService._id,
           service: firstAvailableService._id,
-          fee: firstAvailableService.fee,
-          officialFee: firstAvailableService.fee,
+          fee: 0, // Default reseller fee
           serviceName: firstAvailableService.name
         },
       ],
@@ -504,16 +499,11 @@ const UserManagement = () => {
     setFormData((prev) => {
       const updatedServices = prev.services.map((service, i) => {
         if (i === index) {
-          if (field === "serviceId" && typeof value === "string") {
-            const officialFee = getOfficialFee(value);
+          if (field === "service" && typeof value === "string") {
             const selectedService = getFullServiceDetails(value);
-
             return {
               ...service,
-              serviceId: value,
               service: value,
-              fee: officialFee,
-              officialFee,
               serviceName: selectedService?.name
             };
           }
@@ -545,7 +535,7 @@ const UserManagement = () => {
   const getAvailableServices = (currentServiceId: string = ""): Service[] => {
     return services.filter(
       (service) =>
-        !formData.services.some((s) => s.serviceId === service._id) ||
+        !formData.services.some((s) => s.service === service._id) ||
         service._id === currentServiceId
     );
   };
@@ -633,15 +623,22 @@ const UserManagement = () => {
           
           <div className="space-y-2">
             {user.services.slice(0, 3).map((service, index) => {
-              const fullService = getFullServiceDetails(service.serviceId);
+              const officialFee = getOfficialFee(service.service);
+              const totalFee = officialFee + service.fee;
+              
               return (
                 <div key={index} className="flex items-center justify-between text-sm">
                   <span className="text-gray-900 dark:text-white truncate flex-1 mr-2">
                     {service.serviceName || `Service ${index + 1}`}
                   </span>
-                  <span className="text-green-600 dark:text-green-400 font-medium whitespace-nowrap">
-                    ৳{service.fee}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-green-600 dark:text-green-400 font-medium whitespace-nowrap">
+                      ৳{totalFee}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      (Admin: ৳{officialFee} + Reseller: ৳{service.fee})
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -853,19 +850,26 @@ const UserManagement = () => {
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-1">
                               {user.services.map((service, index) => {
-                                const fullService = getFullServiceDetails(service.serviceId);
+                                const officialFee = getOfficialFee(service.service);
+                                const totalFee = officialFee + service.fee;
+                                
                                 return (
                                   <div
                                     key={index}
-                                    className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700"
-                                    title={`${service.serviceName} - ৳${service.fee} (Official: ৳${fullService?.fee || 0})`}
+                                    className="inline-flex flex-col px-3 py-1 rounded-lg text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700"
+                                    title={`${service.serviceName} - Total: ৳${totalFee} (Admin: ৳${officialFee} + Reseller: ৳${service.fee})`}
                                   >
-                                    <span className="truncate max-w-20">
-                                      {service.serviceName || `Service ${index + 1}`}
-                                    </span>
-                                    <span className="ml-1 text-green-600 dark:text-green-400 font-medium">
-                                      ৳{service.fee}
-                                    </span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="truncate max-w-20">
+                                        {service.serviceName || `Service ${index + 1}`}
+                                      </span>
+                                      <span className="text-green-600 dark:text-green-400 font-medium">
+                                        ৳{totalFee}
+                                      </span>
+                                    </div>
+                                    <div className="text-[10px] text-gray-600 dark:text-gray-400">
+                                      (A:৳{officialFee} + R:৳{service.fee})
+                                    </div>
                                   </div>
                                 );
                               })}
@@ -1032,6 +1036,24 @@ const UserManagement = () => {
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
+                    Balance
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">৳</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.balance}
+                      onChange={(e) =>
+                        setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })
+                      }
+                      className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
                 {/* Enhanced Services Section */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                   <div className="flex items-center justify-between mb-4">
@@ -1050,89 +1072,97 @@ const UserManagement = () => {
 
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
                     {formData.services.map((service, index) => {
-                      const officialFee =
-                        service.officialFee ||
-                        getOfficialFee(service.serviceId);
-                      const isBelowOfficial = service.fee < officialFee;
-                      const fullService = getFullServiceDetails(service.serviceId);
+                      const fullService = getFullServiceDetails(service.service);
+                      const officialFee = getOfficialFee(service.service);
+                      const totalFee = officialFee + service.fee;
 
                       return (
                         <div
                           key={index}
                           className="flex gap-3 items-start p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
                         >
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
                               <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
                                 Service
                               </label>
                               <select
-                                value={service.serviceId}
+                                value={service.service}
                                 onChange={(e) =>
                                   updateService(
                                     index,
-                                    "serviceId",
+                                    "service",
                                     e.target.value
                                   )
                                 }
                                 className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               >
                                 <option value="">Select a Service</option>
-                                {getAvailableServices(service.serviceId).map(
+                                {getAvailableServices(service.service).map(
                                   (svc) => (
                                     <option key={svc._id} value={svc._id}>
-                                      {svc.name} (Official: ৳{svc.fee})
+                                      {svc.name} (Admin: ৳{svc.fee})
                                     </option>
                                   )
                                 )}
                               </select>
                               {fullService && (
                                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                  Official: ৳{fullService.fee}
+                                  Current Admin Fee: ৳{officialFee}
                                 </div>
                               )}
                             </div>
+                            
                             <div>
                               <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-                                Reseller Fee (৳)
-                                {officialFee > 0 && (
-                                  <span className="text-yellow-600 dark:text-yellow-400 ml-1">
-                                    Min: ৳{officialFee}
-                                  </span>
-                                )}
+                                Admin Fee (৳)
+                                <span className="text-blue-600 dark:text-blue-400 ml-1">
+                                  Inner Fee
+                                </span>
                               </label>
                               <div className="relative">
                                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">৳</span>
                                 <input
                                   type="number"
                                   step="1"
-                                  min={officialFee}
-                                  placeholder={officialFee.toString()}
+                                  value={officialFee}
+                                  readOnly
+                                  className="w-full pl-10 pr-3 py-2 bg-gray-100 dark:bg-gray-500 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none cursor-not-allowed"
+                                />
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Set by admin (read-only)
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                Reseller Fee (৳)
+                                <span className="text-green-600 dark:text-green-400 ml-1">
+                                  Outer Fee
+                                </span>
+                              </label>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">৳</span>
+                                <input
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  placeholder="0"
                                   value={service.fee}
                                   onChange={(e) =>
                                     updateService(
                                       index,
                                       "fee",
-                                      parseFloat(e.target.value) || officialFee
+                                      parseFloat(e.target.value) || 0
                                     )
                                   }
-                                  className={`w-full pl-10 pr-3 py-2 bg-white dark:bg-gray-600 border ${
-                                    isBelowOfficial
-                                      ? "border-red-500"
-                                      : "border-gray-300 dark:border-gray-500"
-                                  } rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                                  className="w-full pl-10 pr-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
-                                {isBelowOfficial && (
-                                  <XCircle className="absolute right-10 top-1/2 transform -translate-y-1/2 text-red-500 w-4 h-4" />
-                                )}
                               </div>
-                              {isBelowOfficial && (
-                                <div className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                                  <XCircle className="w-3 h-3" />
-                                  Fee cannot be less than official price (৳
-                                  {officialFee})
-                                </div>
-                              )}
+                              <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                Total: ৳{totalFee}
+                              </div>
                             </div>
                           </div>
                           <button
@@ -1168,6 +1198,17 @@ const UserManagement = () => {
                       className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
                     />
                     <span className="text-gray-700 dark:text-gray-300">Banned</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isEmailVerified}
+                      onChange={(e) =>
+                        setFormData({ ...formData, isEmailVerified: e.target.checked })
+                      }
+                      className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300">Email Verified</span>
                   </label>
                 </div>
 

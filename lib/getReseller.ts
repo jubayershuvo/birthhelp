@@ -38,7 +38,7 @@ export async function getReseller() {
 
     // 5️⃣ Fetch user
     const reseller = await Reseller.findById(decoded.userId).select(
-      "+password"
+      "+password +_id"
     );
     return reseller;
   } catch (err) {

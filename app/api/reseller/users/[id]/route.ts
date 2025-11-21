@@ -4,9 +4,10 @@ import User from "@/models/User";
 import { connectDB } from "@/lib/mongodb";
 import { Types } from "mongoose";
 import Services from "@/models/Services";
+import { getReseller } from "@/lib/getReseller";
 
 interface ServiceInput {
-  serviceId: string;
+  service: string;
   fee: number;
 }
 
@@ -54,11 +55,23 @@ export async function PUT(
       balance?: number;
       services: ServiceInput[];
     }>;
+    const reseller = await getReseller();
+
+    if (!reseller || !reseller._id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Check if user exists
     const user = await User.findById(id);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (user.reseller !== reseller._id) {
+      return NextResponse.json(
+        { error: "You are not authorized to update this user" },
+        { status: 402 }
+      );
     }
 
     // Check for duplicates (excluding current user)
@@ -75,15 +88,13 @@ export async function PUT(
       }
     }
 
-
-
     // Remove password if not provided or empty
     if (!body.password || body.password === "") {
       delete body.password;
     }
 
-    if (body.balance){
-      delete body.balance
+    if (body.balance) {
+      delete body.balance;
     }
 
     // Transform services data
@@ -93,52 +104,9 @@ export async function PUT(
 
     if (body.services) {
       updateData.services = body.services.map((service: ServiceInput) => ({
-        service: service.serviceId,
+        service: service.service,
         fee: service.fee,
       }));
-    }
-    if (body.services) {
-      // Fetch all official services using IDs from the request
-      const existingServices = await Services.find({
-        _id: {
-          $in: body.services.map(
-            (service: { serviceId: string; fee: number }) => service.serviceId
-          ),
-        },
-      });
-
-      // Check: all provided service IDs must exist
-      if (existingServices.length !== body.services.length) {
-        return NextResponse.json(
-          { message: "One or more services not found" },
-          { status: 404 }
-        );
-      }
-
-
-
-      // Validate each requested fee with official fee
-      const invalidFee = body.services.some(
-        (serviceBody: { serviceId: string; fee: number }) => {
-          const official = existingServices.find(
-            (s) => s._id.toString() === serviceBody.serviceId
-          );
-
-          // console.log("official", official);
-          // console.log("boby", serviceBody);
-          if (!official) return true;
-          console.log(serviceBody.fee, official.fee);
-          // ❌ Reject if new fee > official fee
-          return serviceBody.fee < official.fee;
-        }
-      );
-
-      if (invalidFee) {
-        return NextResponse.json(
-          { message: "Service fee cannot be laser than official fee" },
-          { status: 400 }
-        );
-      }
     }
 
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {

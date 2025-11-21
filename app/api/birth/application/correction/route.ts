@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee;
+    const serviceCost = userService.fee + service.fee;
 
     if (user.balace < serviceCost) {
       return NextResponse.json(
@@ -589,7 +589,7 @@ export async function POST(request: NextRequest) {
     currection.printLink = result.printLink;
     currection.cost = serviceCost
     user.balace = user.balace - serviceCost;
-    reseller.balance = reseller.balance + (serviceCost - service.fee);
+    reseller.balance = reseller.balance + userService.fee;
     await user.save();
     await currection.save();
 
