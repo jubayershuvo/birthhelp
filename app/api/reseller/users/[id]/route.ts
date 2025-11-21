@@ -67,10 +67,10 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (user.reseller !== reseller._id) {
+    if (user.reseller.toString() !== reseller._id.toString()) {
       return NextResponse.json(
         { error: "You are not authorized to update this user" },
-        { status: 402 }
+        { status: 401 }
       );
     }
 

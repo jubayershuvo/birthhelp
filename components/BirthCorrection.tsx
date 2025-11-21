@@ -1171,6 +1171,7 @@ const validatePassport = (
 };
 
 export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
+  console.log(InitData)
   /* ── Basic states ─────────────────────────────────────────────────────── */
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [correctionInfos, setCorrectionInfos] = useState<CorrectionInfo[]>([

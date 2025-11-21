@@ -1,43 +1,52 @@
 // app/birth-correction/page.tsx
 import BirthCorrectionForm from "@/components/BirthCorrection";
-import puppeteer from "puppeteer";
-
-export const runtime = "nodejs"; 
 
 export default async function BirthCorrectionPage() {
   const url = "https://bdris.gov.bd/br/correction";
-  let browser;
 
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    // Fetch the HTML page
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
     });
 
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "networkidle2" });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-    // Wait for captcha and CSRF
-    await page.waitForSelector("#captcha", { timeout: 10000 });
+    const html = await response.text();
 
-    const captchaSrc = await page.$eval("#captcha", (el) =>
-      el.getAttribute("src")
-    );
+    // Extract cookies from response
+    const cookies = response.headers.get("set-cookie");
+    const cookiesStr: string = cookies ?? "";
 
-    const csrf = await page.$eval('meta[name="_csrf"]', (el) =>
-      el.getAttribute("content")
-    );
+    const cookiesArr: string[] = [];
 
-    const cookies = await browser.cookies();
-    const sessionCookies = cookies.map((c) => `${c.name}=${c.value}`);
+    // Regex to capture all "key=value" before first semicolon of each cookie
+    const cookieRegex = /([^\s,=]+=[^;,\s]+)/g;
 
-    await browser.close();
+    let match: RegExpExecArray | null;
+    while ((match = cookieRegex.exec(cookiesStr)) !== null) {
+      cookiesArr.push(match[1]);
+    }
+
+ 
+
+    // Parse HTML to extract required data
+    const csrfMatch = html.match(/<meta name="_csrf" content="([^"]*)"/);
+    const csrf = csrfMatch ? csrfMatch[1] : null;
+
+    const captchaMatch = html.match(/<img[^>]*id="captcha"[^>]*src="([^"]*)"/);
+    const captchaSrc = captchaMatch ? captchaMatch[1] : null;
 
     return (
       <BirthCorrectionForm
         InitData={{
           url,
-          cookies: sessionCookies,
+          cookies: cookiesArr,
           csrf: csrf || "",
           captcha: { src: captchaSrc || "" },
         }}
@@ -46,7 +55,5 @@ export default async function BirthCorrectionPage() {
   } catch (error) {
     console.error("Scrape error:", error);
     return <div>BDRIS main server issue</div>;
-  } finally {
-    if (browser) await browser.close();
   }
 }
