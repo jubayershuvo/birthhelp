@@ -5,6 +5,7 @@ import User from "@/models/User";
 import puppeteer from "puppeteer";
 
 export const runtime = "nodejs"; // Required for Puppeteer
+export const dynamic = "force-dynamic";
 
 export default async function BirthCorrectionPage() {
   try {
@@ -15,7 +16,7 @@ export default async function BirthCorrectionPage() {
       return (
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900">User Not Found</h1>
+            <p className="text-2xl font-bold text-gray-900">User Not Found</p>
             <p className="text-gray-600 mt-2">Please log in to continue.</p>
           </div>
         </div>

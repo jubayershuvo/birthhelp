@@ -25,9 +25,9 @@ export async function POST(request: Request) {
     };
 
     const body = await request.json();
-    const { amount, number, method } = body;
+    const { amount, number, method, accountType } = body;
 
-    if (!amount || !number || !method) {
+    if (!amount || !number || !method || !accountType) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 }
@@ -47,6 +47,7 @@ export async function POST(request: Request) {
       fee,
       method,
       number,
+      accountType,
       status: "pending",
       note: "Withdrawal request.",
     });

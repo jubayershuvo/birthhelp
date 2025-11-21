@@ -8,6 +8,7 @@ import {
   History,
   ArrowDownCircle,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { updateUser } from "@/lib/userSlice";
@@ -110,12 +111,12 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full blur-3xl opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500 rounded-full blur-3xl opacity-10 animate-pulse delay-500"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-200 dark:bg-purple-900 rounded-full blur-3xl opacity-40 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 dark:bg-blue-900 rounded-full blur-3xl opacity-40 animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-200 dark:bg-pink-900 rounded-full blur-3xl opacity-20 animate-pulse delay-500"></div>
       </div>
 
       {/* Header */}
@@ -123,17 +124,17 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
         <div className="flex items-center gap-3 mb-8">
           <div className="relative">
             <div className="absolute inset-0 bg-purple-500 rounded-full blur-md opacity-50"></div>
-            <Wallet className="w-8 h-8 text-purple-300 relative" />
+            <Wallet className="w-8 h-8 text-purple-600 dark:text-purple-400 relative" />
           </div>
-          <h1 className="text-3xl font-bold text-white drop-shadow-lg">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white drop-shadow-lg">
             আমার ওয়ালেট
           </h1>
         </div>
 
-        {/* Balance Card */}
+        {/* Balance Card - Matched to withdraw page */}
         <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl blur-md opacity-75 group-hover:opacity-100 transition duration-1000"></div>
-          <div className="relative bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl p-8 shadow-2xl mb-6 transform group-hover:scale-105 transition duration-300 border border-purple-400/30">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl blur-md opacity-75 group-hover:opacity-100 transition duration-1000"></div>
+          <div className="relative bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl p-8 shadow-2xl mb-6 transform group-hover:scale-105 transition duration-300 border border-purple-400/30">
             <p className="text-purple-100 text-sm mb-2 font-medium">
               মোট ব্যালেন্স
             </p>
@@ -150,11 +151,11 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
           </div>
         </div>
 
-        {/* Deposit Button */}
+        {/* Deposit Button - Green theme like withdraw page */}
         {bkashNumber && (
           <button
             onClick={() => setShowDepositModal(true)}
-            className="w-full relative group overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 shadow-2xl hover:shadow-green-500/25 hover:scale-105"
+            className="w-full relative group overflow-hidden bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 shadow-2xl hover:shadow-green-500/25 hover:scale-105 dark:shadow-green-500/10"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition duration-1000"></div>
             <ArrowDownCircle className="w-6 h-6 relative z-10" />
@@ -163,14 +164,14 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
         )}
       </div>
 
-      {/* Enhanced Deposit Modal */}
+      {/* Enhanced Deposit Modal - Matched to withdraw modal */}
       {showDepositModal && (
-        <div className="fixed inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-md flex items-start justify-center p-4 z-50 overflow-y-auto pt-20">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-md flex items-start justify-center p-4 z-50 overflow-y-auto pt-20">
           <div className="relative max-w-lg w-full">
             {/* Modal Background Glow */}
             <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-600/20 rounded-4xl blur-xl transform -translate-y-2 scale-105"></div>
 
-            <div className="relative bg-slate-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-green-500/30 overflow-hidden">
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-green-500/30 dark:border-green-500/20 overflow-hidden">
               {/* Modal Header */}
               <div className="relative bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
@@ -193,7 +194,7 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
               <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
                 {/* Enhanced Steps */}
                 <div className="space-y-4">
-                  <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                  <h3 className="text-gray-900 dark:text-white font-bold text-lg flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     ধাপসমূহ:
                   </h3>
@@ -228,16 +229,16 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
                     ].map((item, index) => (
                       <div
                         key={index}
-                        className="flex gap-4 bg-slate-700/50 backdrop-blur-sm p-4 rounded-xl border border-slate-600/50 hover:border-green-500/30 transition duration-300 group"
+                        className="flex gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-green-500/30 dark:hover:border-green-500/30 transition duration-300 group"
                       >
                         <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold flex-shrink-0 shadow-lg group-hover:scale-110 transition duration-300">
                           {item.step}
                         </div>
                         <div className="flex-1">
-                          <p className="text-white font-semibold text-sm">
+                          <p className="text-gray-900 dark:text-white font-semibold text-sm">
                             {item.title}
                           </p>
-                          <p className="text-slate-300 text-xs mt-1">
+                          <p className="text-gray-600 dark:text-gray-300 text-xs mt-1">
                             {item.desc}
                           </p>
                         </div>
@@ -250,7 +251,7 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
                 <div className="relative group/copy">
                   <div className="absolute inset-0 bg-gradient-to-r from-green-600/30 to-emerald-600/30 rounded-2xl blur-md group-hover/copy:blur-lg transition duration-500"></div>
                   <div className="relative bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/50 rounded-2xl p-5 backdrop-blur-sm">
-                    <p className="text-slate-300 text-sm mb-3 font-medium">
+                    <p className="text-white text-sm mb-3 font-medium">
                       আমাদের bKash নম্বর:
                     </p>
                     <button
@@ -298,7 +299,7 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
                     },
                   ].map((field, index) => (
                     <div key={field.name} className="group">
-                      <label className="block text-slate-300 text-sm font-semibold mb-2">
+                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                         {field.label}
                       </label>
                       <input
@@ -307,22 +308,41 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
                         value={formData[field.name as keyof FormData]}
                         onChange={handleInputChange}
                         placeholder={field.placeholder}
-                        className="w-full bg-slate-700/80 backdrop-blur-sm text-white px-4 py-4 rounded-xl border border-slate-600 focus:border-green-500 outline-none transition duration-300 focus:bg-slate-700 focus:shadow-lg focus:shadow-green-500/10 group-hover:border-slate-500"
+                        className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-4 rounded-xl border border-gray-300 dark:border-gray-600 focus:border-green-500 outline-none transition duration-300 focus:bg-white dark:focus:bg-gray-700 focus:shadow-lg focus:shadow-green-500/10 group-hover:border-gray-400 dark:group-hover:border-gray-500"
                       />
                     </div>
                   ))}
 
+                  {/* Validation Warnings */}
+                  {formData.amount && (
+                    <div className="space-y-2">
+                      {parseFloat(formData.amount) < 50 && (
+                        <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>ন্যূনতম জমার পরিমাণ ৫০ টাকা</span>
+                        </div>
+                      )}
+                      {parseFloat(formData.amount) >= 50 && (
+                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>জমা দেওয়ার জন্য প্রস্তুত</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex gap-3 pt-4">
                     <button
                       onClick={handleSubmit}
-                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-4 rounded-xl transition duration-300 transform hover:scale-105 shadow-lg relative overflow-hidden group"
+                      disabled={!formData.amount || !formData.trxId || !formData.number || parseFloat(formData.amount) < 50}
+                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition duration-300 transform hover:scale-105 disabled:hover:scale-100 shadow-lg relative overflow-hidden group"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition duration-1000"></div>
                       <span className="relative z-10">জমা দিন</span>
                     </button>
                     <button
                       onClick={() => setShowDepositModal(false)}
-                      className="flex-1 bg-slate-700/80 backdrop-blur-sm hover:bg-slate-600/80 text-white font-bold py-4 rounded-xl transition duration-300 border border-slate-600 hover:border-slate-500"
+                      className="flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-bold py-4 rounded-xl transition duration-300 border border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400"
                     >
                       বাতিল
                     </button>
@@ -334,14 +354,14 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
         </div>
       )}
 
-      {/* Enhanced Transactions Section */}
+      {/* Enhanced Transactions Section - Matched to withdraw history */}
       <div className="max-w-2xl mx-auto relative z-10">
         <div className="flex items-center gap-3 mb-6">
           <div className="relative">
             <div className="absolute inset-0 bg-purple-500 rounded-full blur opacity-50"></div>
-            <History className="w-6 h-6 text-purple-300 relative" />
+            <History className="w-6 h-6 text-purple-600 dark:text-purple-400 relative" />
           </div>
-          <h2 className="text-2xl font-bold text-white drop-shadow-lg">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white drop-shadow-lg">
             লেনদেনের ইতিহাস
           </h2>
         </div>
@@ -349,9 +369,9 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
         {transactions.length > 0 ? (
           <div className="space-y-4">
             {transactions.map((trx) => (
-              <div key={trx._id} className="group relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                <div className="relative bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 group-hover:border-purple-500/30 rounded-2xl p-5 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-purple-500/10">
+              <div key={trx._id} className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                <div className="relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 group-hover:border-green-500/30 dark:group-hover:border-green-500/30 rounded-2xl p-5 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-green-500/10">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="relative">
@@ -361,24 +381,28 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
                         </div>
                       </div>
                       <div>
-                        <p className="text-white font-semibold">{trx.method}</p>
-                        <p className="text-slate-400 text-xs font-medium">
+                        <p className="text-gray-900 dark:text-white font-semibold">{trx.method}</p>
+                        <p className="text-gray-600 dark:text-gray-300 text-xs font-medium">
                           ID: {trx.trxId} • {trx.date}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-bold text-lg">
+                      <p className="text-gray-900 dark:text-white font-bold text-lg">
                         ৳ {trx.amount.toLocaleString("bn-BD")}
                       </p>
                       <p
                         className={`text-xs font-semibold px-3 py-1 rounded-full inline-block mt-1 ${
                           trx.status === "SUCCESS"
-                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                            : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                            ? "bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30"
+                            : trx.status === "REJECTED"
+                            ? "bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30"
+                            : "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30"
                         }`}
                       >
-                        {trx.status}
+                        {trx.status === "SUCCESS" && "সফল"}
+                        {trx.status === "PENDING" && "মুলতুবি"}
+                        {trx.status === "REJECTED" && "বাতিল"}
                       </p>
                     </div>
                   </div>
@@ -390,8 +414,13 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
             ))}
           </div>
         ) : (
-          <div className="text-white text-center mt-10 ">
-            লেনদেনের ইতিহাস পাওয়া যায়নি
+          <div className="text-center py-12">
+            <div className="text-gray-500 dark:text-gray-400 text-lg mb-4">
+              লেনদেনের ইতিহাস পাওয়া যায়নি
+            </div>
+            <div className="text-gray-400 dark:text-gray-500 text-sm">
+              এখনো কোন লেনদেন করা হয়নি
+            </div>
           </div>
         )}
       </div>

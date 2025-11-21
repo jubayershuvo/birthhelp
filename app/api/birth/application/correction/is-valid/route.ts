@@ -79,21 +79,7 @@ function isHTML(str: string): boolean {
 async function safeParseResponse(response: Response) {
   const text = await response.text();
   if (isHTML(text)) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-
-    // Ensure the /html directory exists
-    const dir = path.join(process.cwd(), "html");
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    const filePath = path.join(dir, `${timestamp}.html`);
-
-    // Write file
-    await fs.promises.writeFile(filePath, text, "utf8");
-
-    console.log(`HTML page saved to: ${filePath}`);
-
+    
     // Check for common HTML error patterns
     if (
       text.includes("login") ||

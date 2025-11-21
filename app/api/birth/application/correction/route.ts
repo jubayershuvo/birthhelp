@@ -82,17 +82,6 @@ function isHTML(str: string): boolean {
 async function safeParseResponse(response: Response) {
   const text = await response.text();
 
-  // Ensure the /html directory exists
-  const dir = path.join(process.cwd(), "html");
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
-  const filePath = path.join(dir, `currection.html`);
-
-  // Write file
-  await fs.promises.writeFile(filePath, text, "utf8");
-
   // console.log(`HTML page saved to: ${filePath}`);
   if (isHTML(text)) {
     if (text.includes("OTP NOT VERIFIED")) {

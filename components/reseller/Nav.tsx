@@ -154,7 +154,7 @@ export default function ResellerNav({
             )}
           </button>
 
-          <h1 className="text-lg font-semibold text-white">BDRIS Reseller</h1>
+          <h1 className="text-lg font-semibold text-white">Reseller</h1>
         </div>
 
         <div className="flex items-center gap-4">

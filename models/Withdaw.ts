@@ -6,6 +6,7 @@ interface IWithdraw extends Document {
   fee: number;
   method: "bkash" | "nagad";
   number: string;
+  accountType: string;
   status: "pending" | "completed" | "rejected";
   note: string;
   createdAt: Date;
@@ -14,48 +15,52 @@ interface IWithdraw extends Document {
 
 const withdrawSchema = new Schema<IWithdraw>(
   {
-    user: { 
-      type: Schema.Types.ObjectId, 
-      ref: "Reseller", 
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "Reseller",
       required: true,
-      index: true 
+      index: true,
     },
     amount: {
       type: Number,
       required: true,
       min: [10, "Minimum withdrawal is 10 BDT"],
     },
-    fee: { 
-      type: Number, 
-      required: true, 
+    fee: {
+      type: Number,
+      required: true,
       min: [0, "Fee cannot be negative"],
-      default: 0 
+      default: 0,
     },
-    method: { 
-      type: String, 
-      enum: ["bkash", "nagad"], 
-      required: true 
+    accountType: {
+      type: String,
+      required: true,
+    },
+    method: {
+      type: String,
+      enum: ["bkash", "nagad"],
+      required: true,
     },
     number: {
       type: String,
       required: true,
       match: [/^(01[3-9]\d{8})$/, "Invalid Bangladesh phone number format"],
-      trim: true
+      trim: true,
     },
     status: {
       type: String,
       enum: ["pending", "completed", "rejected"],
       default: "pending",
-      index: true
+      index: true,
     },
-    note: { 
-      type: String, 
+    note: {
+      type: String,
       default: "",
-      trim: true 
+      trim: true,
     },
   },
-  { 
-    timestamps: true, 
+  {
+    timestamps: true,
   }
 );
 
@@ -64,9 +69,8 @@ withdrawSchema.index({ user: 1, status: 1 });
 withdrawSchema.index({ createdAt: -1 });
 withdrawSchema.index({ user: 1, createdAt: -1 });
 
-
 const Withdraw =
-  mongoose.models.Withdraw || 
+  mongoose.models.Withdraw ||
   mongoose.model<IWithdraw>("Withdraw", withdrawSchema);
 
 export default Withdraw;
