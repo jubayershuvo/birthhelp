@@ -3,7 +3,6 @@ import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 
-
 export async function GET() {
   const url = "https://bdris.gov.bd/br/correction";
 
@@ -36,7 +35,7 @@ export async function GET() {
 
     // Regex to capture all "key=value" before first semicolon of each cookie
     const cookieRegex = /([^\s,=]+=[^;,\s]+)/g;
-
+    //match
     let match: RegExpExecArray | null;
     while ((match = cookieRegex.exec(cookiesStr)) !== null) {
       cookiesArr.push(match[1]);
