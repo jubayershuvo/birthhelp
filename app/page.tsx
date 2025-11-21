@@ -1,8 +1,8 @@
-import FullPagePDF from "@/components/Reciepts";
-
 
 export default function Home() {
   return (
-    <FullPagePDF />
+    <div>
+      <h1>Under Construction</h1>
+    </div>
   );
 }
