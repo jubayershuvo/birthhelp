@@ -3,7 +3,6 @@ import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
 
 export async function GET() {
   const url = "https://bdris.gov.bd/br/correction";

@@ -1036,24 +1036,6 @@ const UserManagement = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                    Balance
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">৳</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={formData.balance}
-                      onChange={(e) =>
-                        setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })
-                      }
-                      className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-
                 {/* Enhanced Services Section */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                   <div className="flex items-center justify-between mb-4">
