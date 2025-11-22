@@ -180,7 +180,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
             )}
           </button>
 
-          <h1 className="text-lg font-semibold text-white">My App</h1>
+          <h1 className="text-lg font-semibold text-white">BDRIS</h1>
         </div>
 
         <div className="flex items-center gap-4">

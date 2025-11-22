@@ -30,9 +30,10 @@ type Transaction = {
   date: string;
 };
 
-export default function WalletPage({ data }: { data: { bkash: string } }) {
+export default function WalletPage() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [data, setData] = useState<{ bkash: string }>({ bkash: "" });
   const { user } = useAppSelector((state) => state.userAuth);
   const dispatch = useAppDispatch();
   const [formData, setFormData] = useState<FormData>({
@@ -42,6 +43,19 @@ export default function WalletPage({ data }: { data: { bkash: string } }) {
   });
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const fetctData = async () => {
+    try {
+      const response = await fetch("/api/data");
+      const data = await response.json();
+      setData(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  useEffect(() => {
+    fetctData();
+  }, []);
 
   const bkashNumber = data.bkash;
 
