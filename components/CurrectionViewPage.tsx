@@ -33,7 +33,7 @@ export default function ViewCorrectionPage({
 
     try {
       const response = await fetch(
-        `/api/correction/download-pdf/${application._id}`
+        `/api/birth/application/correction/download-pdf/${application._id}`
       );
 
       if (!response.ok) {

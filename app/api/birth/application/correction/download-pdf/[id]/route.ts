@@ -19,12 +19,19 @@ export async function GET(
 
   try {
     const { id } = await params;
+    if (!id) {
+      return NextResponse.json(
+        { error: "Application id found" },
+        { status: 404 }
+      );
+    }
 
-    await connectDB();
+
 
     // For production - uncomment this section
     const application = await Currection.findById(id);
     if (!application) {
+      
       return NextResponse.json(
         { error: "Application not found" },
         { status: 404 }
