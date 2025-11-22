@@ -82,7 +82,7 @@ function LoginPage() {
 
   return (
     <div className="bg-gradient-to-br from-pink-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 min-h-screen flex items-center justify-center p-4">
-      <Toaster position="top-right" reverseOrder={false} />
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="w-full max-w-md">
         {/* Form Card */}
         <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
@@ -172,12 +172,12 @@ function LoginPage() {
                 </span>
               </label>
 
-              <Link
+              {/* <Link
                 href="/forgot-password"
                 className="text-sm text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 transition-colors"
               >
                 Forgot password?
-              </Link>
+              </Link> */}
             </div>
 
             {/* Login Button */}
@@ -197,18 +197,6 @@ function LoginPage() {
             </button>
           </form>
 
-          {/* Sign Up Link */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/signup"
-                className="text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300 font-semibold transition-colors"
-              >
-                Sign up now
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>
