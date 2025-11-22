@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/getUser";
 import Services from "@/models/Services";
 import Reseller from "@/models/Reseller";
+import Spent from "@/models/Use";
 
 // Define types for the request body
 interface CorrectionInfo {
@@ -588,6 +589,14 @@ export async function POST(request: NextRequest) {
     currection.cost = serviceCost;
     user.balance -= serviceCost;
     reseller.balance += userService.fee;
+
+    await Spent.create({
+      user: user._id,
+      service: userService._id,
+      amount: serviceCost,
+      data: currection._id,
+      dataSchema: "CurrectionApplication",
+    })
     await reseller.save();
     await user.save();
     await currection.save();
