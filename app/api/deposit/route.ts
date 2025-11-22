@@ -7,18 +7,14 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { amount, trxId, number } = body;
+    const { trxId } = body;
 
     // Validate fields
-    if (!amount || !trxId || !number) {
+    if (!trxId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
-    }
-
-    if (isNaN(amount) || amount <= 0) {
-      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
     await connectDB();
@@ -40,17 +36,33 @@ export async function POST(req: Request) {
       );
     }
 
+    const payment = await fetch(
+      `https://api.bdx.kg/bkash/submit.php?trxid=${trxId}`
+    );
+
+    if (!payment.ok) {
+      return NextResponse.json(
+        { error: "Bkash payment failed" },
+        { status: 400 }
+      );
+    }
+
+    const paymentData = await payment.json();
+    if (paymentData.error) {
+      return NextResponse.json({ error: paymentData.error }, { status: 400 });
+    }
+
     // Save new transaction
     await Transaction.create({
       user: user._id,
-      amount,
+      amount: paymentData.amount,
       trxId,
-      number,
+      number: paymentData.payerAccount,
       method: "Bkash",
       status: "SUCCESS",
     });
 
-    user.balance += Number(amount);
+    user.balance += Number(paymentData.amount);
     await user.save();
     const userWithoutPassword = await User.findById(user._id).select(
       "-password"

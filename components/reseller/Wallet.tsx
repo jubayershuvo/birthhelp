@@ -9,7 +9,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { updateUser } from "@/lib/userSlice";
 import toast from "react-hot-toast";
 import { resellerLogin } from "@/lib/resellerSlice";
 
@@ -38,8 +37,9 @@ const ACCOUNT_TYPES = [
   { value: "agent", label: "Agent", description: "এজেন্ট অ্যাকাউন্ট" },
 ];
 
-export default function WalletPage({ data }: { data: { percentage: number } }) {
+export default function WalletPage() {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [data, setData] = useState<{ percentage: number }>({ percentage: 0 });
   const { reseller } = useAppSelector((state) => state.resellerAuth);
   const dispatch = useAppDispatch();
   const [formData, setFormData] = useState<FormData>({
@@ -47,7 +47,19 @@ export default function WalletPage({ data }: { data: { percentage: number } }) {
     number: "",
     type: "",
   });
+  const fetctData = async () => {
+    try {
+      const response = await fetch("/api/data");
+      const data = await response.json();
+      setData(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
+  useEffect(() => {
+    fetctData();
+  }, []);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
 
   const feePercentage = data.percentage || 0;

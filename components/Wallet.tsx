@@ -16,9 +16,7 @@ import toast from "react-hot-toast";
 
 // Define types for better TypeScript support
 type FormData = {
-  amount: string;
   trxId: string;
-  number: string;
 };
 
 type Transaction = {
@@ -37,9 +35,7 @@ export default function WalletPage() {
   const { user } = useAppSelector((state) => state.userAuth);
   const dispatch = useAppDispatch();
   const [formData, setFormData] = useState<FormData>({
-    amount: "",
     trxId: "",
-    number: "",
   });
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -51,7 +47,7 @@ export default function WalletPage() {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  }
+  };
 
   useEffect(() => {
     fetctData();
@@ -79,7 +75,7 @@ export default function WalletPage() {
   };
 
   const handleSubmit = async () => {
-    if (formData.amount && formData.trxId && formData.number) {
+    if (formData.trxId) {
       try {
         toast.loading("Depositing...", { id: "deposit" });
         const res = await fetch("/api/deposit", {
@@ -94,7 +90,7 @@ export default function WalletPage() {
         if (res.ok) {
           setTransactions(data.transactions || []);
           dispatch(updateUser(data.user));
-          setFormData({ amount: "", trxId: "", number: "" });
+          setFormData({ trxId: "" });
           setShowDepositModal(false);
           toast.success("Deposit successful", {
             id: "deposit",
@@ -227,7 +223,7 @@ export default function WalletPage() {
                       },
                       {
                         step: "৩",
-                        title: '"টাকা পাঠান" নির্বাচন করুন',
+                        title: '"Payment" নির্বাচন করুন',
                         desc: "বিকাশ মেনু থেকে পাঠান অপশন বেছে নিন",
                       },
                       {
@@ -266,7 +262,7 @@ export default function WalletPage() {
                   <div className="absolute inset-0 bg-gradient-to-r from-green-600/30 to-emerald-600/30 rounded-2xl blur-md group-hover/copy:blur-lg transition duration-500"></div>
                   <div className="relative bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/50 rounded-2xl p-5 backdrop-blur-sm">
                     <p className="text-white text-sm mb-3 font-medium">
-                      আমাদের bKash নম্বর:
+                      আমাদের bKash নম্বর (Payment Number):
                     </p>
                     <button
                       onClick={copyToClipboard}
@@ -294,18 +290,6 @@ export default function WalletPage() {
                 <div className="space-y-5">
                   {[
                     {
-                      label: "পরিমাণ (টাকা) *",
-                      name: "amount",
-                      type: "number",
-                      placeholder: "যেমন: 5000",
-                    },
-                    {
-                      label: "আপনার bKash নম্বর *",
-                      name: "number",
-                      type: "tel",
-                      placeholder: "যেমন: 01XXXXXXXXX",
-                    },
-                    {
                       label: "লেনদেন ID (TRX ID) *",
                       name: "trxId",
                       type: "text",
@@ -327,35 +311,20 @@ export default function WalletPage() {
                     </div>
                   ))}
 
-                  {/* Validation Warnings */}
-                  {formData.amount && (
-                    <div className="space-y-2">
-                      {parseFloat(formData.amount) < 50 && (
-                        <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
-                          <AlertCircle className="w-4 h-4" />
-                          <span>ন্যূনতম জমার পরিমাণ ৫০ টাকা</span>
-                        </div>
-                      )}
-                      {parseFloat(formData.amount) >= 50 && (
-                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
-                          <AlertCircle className="w-4 h-4" />
-                          <span>জমা দেওয়ার জন্য প্রস্তুত</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   <div className="flex gap-3 pt-4">
                     <button
                       onClick={handleSubmit}
-                      disabled={!formData.amount || !formData.trxId || !formData.number || parseFloat(formData.amount) < 50}
+                      disabled={!formData.trxId}
                       className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition duration-300 transform hover:scale-105 disabled:hover:scale-100 shadow-lg relative overflow-hidden group"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition duration-1000"></div>
                       <span className="relative z-10">জমা দিন</span>
                     </button>
                     <button
-                      onClick={() => setShowDepositModal(false)}
+                      onClick={() => {
+                        setShowDepositModal(false);
+                        setFormData({ trxId: "" });
+                      }}
                       className="flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-bold py-4 rounded-xl transition duration-300 border border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400"
                     >
                       বাতিল
@@ -395,7 +364,9 @@ export default function WalletPage() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-gray-900 dark:text-white font-semibold">{trx.method}</p>
+                        <p className="text-gray-900 dark:text-white font-semibold">
+                          {trx.method}
+                        </p>
                         <p className="text-gray-600 dark:text-gray-300 text-xs font-medium">
                           ID: {trx.trxId} • {trx.date}
                         </p>
