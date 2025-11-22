@@ -587,7 +587,8 @@ export async function POST(request: NextRequest) {
     currection.printLink = result.printLink;
     currection.cost = serviceCost;
     user.balance -= serviceCost;
-    reseller.balance = reseller.balance + userService.fee;
+    reseller.balance += userService.fee;
+    await reseller.save();
     await user.save();
     await currection.save();
 
