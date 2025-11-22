@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { countriesList, nationalityOptions } from "@/json/countries";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import SimpleUnicodeLoader from "./Loader";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Types
@@ -1073,6 +1074,7 @@ interface IData {
   cookies: string[];
   url: string;
   csrf: string;
+  serviceCost: number;
   captcha: { src: string };
 }
 
@@ -1170,15 +1172,20 @@ const validatePassport = (
   }
 };
 
-export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
-  console.log(InitData)
+export default function BirthCorrectionForm() {
   /* ── Basic states ─────────────────────────────────────────────────────── */
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [correctionInfos, setCorrectionInfos] = useState<CorrectionInfo[]>([
     { id: "1", key: "", value: "", cause: "2" },
   ]);
 
-  const [data, setData] = useState<IData>(InitData);
+  const [data, setData] = useState<IData>({
+    cookies: [],
+    url: "",
+    csrf: "",
+    serviceCost: 0,
+    captcha: { src: "" },
+  });
   const router = useRouter();
   // Enhanced address states with better initialization
   const [addresses, setAddresses] = useState<{
@@ -1192,8 +1199,8 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
   });
 
   const [formData, setFormData] = useState({
-    ubrn: "19882692074041111",
-    dob: "02/10/1988",
+    ubrn: "",
+    dob: "",
     captcha: "",
     relationWithApplicant: "SELF",
     applicantName: "",
@@ -1679,15 +1686,18 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
     const loadingToast = toast.loading("অনুসন্ধান করা হচ্ছে...");
 
     try {
-      const res = await fetch("/api/birth/application/correction/get-data-by-ubrn", {
-        method: "POST",
-        body: JSON.stringify({
-          ubrn: formData.ubrn,
-          dob: formData.dob,
-          captcha: formData.captcha,
-          data,
-        }),
-      });
+      const res = await fetch(
+        "/api/birth/application/correction/get-data-by-ubrn",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            ubrn: formData.ubrn,
+            dob: formData.dob,
+            captcha: formData.captcha,
+            data,
+          }),
+        }
+      );
       const userData = await res.json();
       setBirthRecord(userData.data);
 
@@ -1809,7 +1819,6 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
       }
 
       const data = await res.json();
-  
 
       toast.dismiss(loadingToast);
       toast.success(`ফাইল আপলোড সফল: ${file.name}`);
@@ -1936,20 +1945,23 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
     };
 
     try {
-      const response = await fetch("/api/birth/application/correction/otp-verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          personUbrn: formData.ubrn,
-          cookies: submissionData.cookies,
-          csrf: submissionData.csrf,
-          otp: submissionData.otp,
-          email: submissionData.applicantInfo.email,
-          phone: submissionData.applicantInfo.phone,
-        }),
-      });
+      const response = await fetch(
+        "/api/birth/application/correction/otp-verify",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            personUbrn: formData.ubrn,
+            cookies: submissionData.cookies,
+            csrf: submissionData.csrf,
+            otp: submissionData.otp,
+            email: submissionData.applicantInfo.email,
+            phone: submissionData.applicantInfo.phone,
+          }),
+        }
+      );
       const respData = await response.json();
       if (respData.data.isVerified !== true) {
         toast.error("OTP যাচাই ব্যর্থ হয়েছে", { id: "submission" });
@@ -2030,7 +2042,6 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
         isPrsntAddressIsSameAsPermAddress: formData.copyPermAddrToPrsntAddr,
       };
 
-
       toast.loading("OTP পাঠানো হচ্ছে...", { id: "otp" });
 
       const resp = await fetch("/api/birth/application/correction/is-valid", {
@@ -2084,7 +2095,7 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
   const sessionReload = async () => {
     try {
       toast.loading("সেশন রিলোড হচ্ছে...", { id: "sessionReload" });
-      const response = await fetch("/api/birth/application/correction/init");
+      const response = await fetch("/api/birth/application/correction");
 
       if (response.ok) {
         const newData = await response.json();
@@ -2100,6 +2111,30 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
     }
   };
 
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        await sessionReload();
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  if (loading) return <SimpleUnicodeLoader />;
+
+  const formatBdt = (amount: number) => {
+    return amount.toLocaleString("bn-BD", {
+      style: "currency",
+      currency: "BDT",
+    });
+  };
+
   /* ── Render ───────────────────────────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -2109,6 +2144,7 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4 text-center">
               জন্ম তথ্য সংশোধনের জন্য আবেদন
             </h1>
+            <p className="text-red-600 text-center pb-2">প্রতি আবেদনে {formatBdt(data.serviceCost)} টাকা করে কাটা হবে</p>
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center">
                 <div
@@ -2183,11 +2219,14 @@ export default function BirthCorrectionForm({ InitData }: { InitData: IData }) {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-3 sm:space-y-0">
                     {/* Captcha & Reload */}
                     <div className="flex items-center justify-between sm:justify-start bg-gray-200 dark:bg-gray-700 p-3 rounded-lg w-full sm:w-auto">
-                      <img
-                        src={data.captcha.src}
-                        alt="Captcha"
-                        className="h-14 w-auto max-w-4/5 object-contain rounded-md border border-gray-300 dark:border-gray-600"
-                      />
+                      {data.captcha?.src && (
+                        <img
+                          src={data.captcha.src}
+                          alt="Captcha"
+                          className="h-14 w-auto max-w-4/5 object-contain rounded-md border border-gray-300 dark:border-gray-600"
+                        />
+                      )}
+
                       <button
                         type="button"
                         onClick={() => sessionReload()}

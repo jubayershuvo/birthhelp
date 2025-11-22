@@ -116,7 +116,7 @@ export interface IBdrisApplication {
   cookies?: string[];
   isPermAddressIsSameAsBirthPlace?: boolean;
   isPrsntAddressIsSameAsPermAddress?: boolean;
-  cost?: number;
+  cost: number;
 }
 
 /* ---------------- Main Schema ---------------- */
@@ -145,6 +145,8 @@ const bdrisApplicationSchema = new Schema<IBdrisApplication>(
     otp: { type: String },
     captcha: { type: String },
     csrf: { type: String },
+
+    cost: { type: Number, default: 0 },
 
     cookies: { type: [String], default: [] },
 

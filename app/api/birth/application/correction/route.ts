@@ -2,8 +2,6 @@
 import { connectDB } from "@/lib/mongodb";
 import Currection from "@/models/Currection";
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { getUser } from "@/lib/getUser";
 import Services from "@/models/Services";
 import Reseller from "@/models/Reseller";
@@ -587,8 +585,8 @@ export async function POST(request: NextRequest) {
     currection.submit_status = "submitted";
     currection.applicationId = result.applicationId;
     currection.printLink = result.printLink;
-    currection.cost = serviceCost
-    user.balace = user.balace - serviceCost;
+    currection.cost = serviceCost;
+    user.balance -= serviceCost;
     reseller.balance = reseller.balance + userService.fee;
     await user.save();
     await currection.save();
@@ -613,12 +611,85 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json(
-    {
-      success: false,
-      error: "Method not allowed",
-      message: "GET method is not supported for this endpoint.",
-    },
-    { status: 405 }
-  );
+  const url = "https://bdris.gov.bd/br/correction";
+
+  try {
+    await connectDB();
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const servicePath = "/birth/application/correction";
+
+    const service = await Services.findOne({ href: servicePath });
+    if (!service) {
+      return NextResponse.json(
+        { success: false, error: "Service not found" },
+        { status: 404 }
+      );
+    }
+
+    const userService = user.services.find(
+      (s: { service: string }) =>
+        s.service.toString() === service._id.toString()
+    );
+
+    if (!userService) {
+      return NextResponse.json(
+        { success: false, error: "User does not have access to this service" },
+        { status: 403 }
+      );
+    }
+    const serviceCost = userService.fee + service.fee;
+    console.log(serviceCost)
+
+    // Fetch the HTML page
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const html = await response.text();
+
+    // Extract cookies from response
+    const cookies = response.headers.get("set-cookie");
+    const cookiesStr: string = cookies ?? "";
+
+    const cookiesArr: string[] = [];
+
+    // Regex to capture all "key=value" before first semicolon of each cookie
+    const cookieRegex = /([^\s,=]+=[^;,\s]+)/g;
+    //match
+    let match: RegExpExecArray | null;
+    while ((match = cookieRegex.exec(cookiesStr)) !== null) {
+      cookiesArr.push(match[1]);
+    }
+
+    // Parse HTML to extract required data
+    const csrfMatch = html.match(/<meta name="_csrf" content="([^"]*)"/);
+    const csrf = csrfMatch ? csrfMatch[1] : null;
+
+    const captchaMatch = html.match(/<img[^>]*id="captcha"[^>]*src="([^"]*)"/);
+    const captchaSrc = captchaMatch ? captchaMatch[1] : null;
+
+    return NextResponse.json({
+      url,
+      cookies: cookiesArr,
+      csrf,
+      serviceCost,
+      captcha: {
+        src: captchaSrc,
+      },
+    });
+  } catch (error) {
+    console.error("Scrape error:", error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
+  }
 }
