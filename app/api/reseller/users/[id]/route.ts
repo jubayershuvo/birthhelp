@@ -74,6 +74,17 @@ export async function PUT(
       );
     }
 
+    if (body.balance) {
+      delete body.balance;
+    }
+
+    if (body.username) {
+      const safeUsername = body.username
+        .replace(/[^a-zA-Z0-9]/g, "-")
+        .replace(/ /g, "");
+      body.username = safeUsername.toLowerCase().replace(/-/g, "");
+    }
+
     // Check for duplicates (excluding current user)
     if (body.email || body.username) {
       const duplicate = await User.findOne({

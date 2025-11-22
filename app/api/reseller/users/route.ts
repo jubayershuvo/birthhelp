@@ -5,7 +5,6 @@ import User from "@/models/User";
 import Reseller from "@/models/Reseller"; // Import Reseller model
 import "@/models/Services";
 import { Types } from "mongoose";
-import Services from "@/models/Services";
 
 export async function GET() {
   try {
@@ -59,56 +58,24 @@ export async function POST(request: Request) {
       );
     }
 
-    if (body.services) {
-      // Fetch all official services using IDs from the request
-      const existingServices = await Services.find({
-        _id: {
-          $in: body.services.map(
-            (service: { serviceId: string; fee: number }) => service.serviceId
-          ),
-        },
-      });
 
-      // Check: all provided service IDs must exist
-      if (existingServices.length !== body.services.length) {
-        return NextResponse.json(
-          { message: "One or more services not found" },
-          { status: 404 }
-        );
-      }
+    const safeUsername = body.username.replace(/[^a-zA-Z0-9]/g, "-").replace(/ /g, "");
 
-      // Validate each requested fee with official fee
-      const invalidFee = body.services.some(
-        (serviceBody: { serviceId: string; fee: number }) => {
-          const official = existingServices.find(
-            (s) => s._id.toString() === serviceBody.serviceId
-          );
-          if (!official) return true;
-          return serviceBody.fee < official.fee;
-        }
-      );
-
-      if (invalidFee) {
-        return NextResponse.json(
-          { message: "Service fee cannot be laser than official fee" },
-          { status: 400 }
-        );
-      }
-    }
+   
 
     // Create the user with reseller reference
     const user = await User.create({
       name: body.name,
       email: body.email,
-      username: body.username,
+      username: safeUsername.toLowerCase().replace(/-/g, ""),
       password: body.password,
       isEmailVerified: true,
       isActive: true,
       reseller: reseller._id,
       services: body.services.map(
-        (service: { serviceId: string; fee: number }) => {
+        (service: { service: string; fee: number }) => {
           return {
-            service: new Types.ObjectId(service.serviceId),
+            service: new Types.ObjectId(service.service),
             fee: service.fee,
           };
         }

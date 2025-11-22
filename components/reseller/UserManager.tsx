@@ -363,7 +363,6 @@ const UserManagement = () => {
           email: formData.email,
           password: formData.password,
           isBanned: formData.isBanned,
-          isEmailVerified: formData.isEmailVerified,
           services: formData.services.map(service => ({
             service: service.service,
             fee: service.fee, // reseller fee
@@ -1180,17 +1179,6 @@ const UserManagement = () => {
                       className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
                     />
                     <span className="text-gray-700 dark:text-gray-300">Banned</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.isEmailVerified}
-                      onChange={(e) =>
-                        setFormData({ ...formData, isEmailVerified: e.target.checked })
-                      }
-                      className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-gray-700 dark:text-gray-300">Email Verified</span>
                   </label>
                 </div>
 
