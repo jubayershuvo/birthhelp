@@ -36,50 +36,63 @@ export async function POST(req: Request) {
       );
     }
 
-    const payment = await fetch(
-      `https://api.bdx.kg/bkash/submit.php?trxid=${trxId}`
-    );
+    try {
+      const payment = await fetch(
+        `https://api.bdx.kg/bkash/submit.php?trxid=${trxId}`
+      );
 
-    if (!payment.ok) {
+      if (!payment.ok) {
+        return NextResponse.json(
+          {
+            error: "Bkash payment not found",
+            message: "Bkash payment not found",
+          },
+          { status: 400 }
+        );
+      }
+
+      const paymentData = await payment.json();
+      if (paymentData.error) {
+        return NextResponse.json(
+          { error: paymentData.error, message: paymentData.error },
+          { status: 400 }
+        );
+      }
+
+      // Save new transaction
+      await Transaction.create({
+        user: user._id,
+        amount: paymentData.amount,
+        trxId,
+        number: paymentData.payerAccount,
+        method: "Bkash",
+        status: "SUCCESS",
+      });
+
+      user.balance += Number(paymentData.amount);
+      await user.save();
+      const userWithoutPassword = await User.findById(user._id).select(
+        "-password"
+      );
+      // Get all transactions sorted (latest first)
+      const allTransactions = await Transaction.find({ user: user._id }).sort({
+        createdAt: -1,
+      });
+
       return NextResponse.json(
-        { error: "Bkash payment failed" },
-        { status: 400 }
+        {
+          success: true,
+          transactions: allTransactions,
+          user: userWithoutPassword,
+        },
+        { status: 200 }
+      );
+    } catch (error) {
+      return NextResponse.json(
+        { message: "TRX validation failed" },
+        { status: 500 }
       );
     }
-
-    const paymentData = await payment.json();
-    if (paymentData.error) {
-      return NextResponse.json({ error: paymentData.error }, { status: 400 });
-    }
-
-    // Save new transaction
-    await Transaction.create({
-      user: user._id,
-      amount: paymentData.amount,
-      trxId,
-      number: paymentData.payerAccount,
-      method: "Bkash",
-      status: "SUCCESS",
-    });
-
-    user.balance += Number(paymentData.amount);
-    await user.save();
-    const userWithoutPassword = await User.findById(user._id).select(
-      "-password"
-    );
-    // Get all transactions sorted (latest first)
-    const allTransactions = await Transaction.find({ user: user._id }).sort({
-      createdAt: -1,
-    });
-
-    return NextResponse.json(
-      {
-        success: true,
-        transactions: allTransactions,
-        user: userWithoutPassword,
-      },
-      { status: 200 }
-    );
   } catch (error) {
     console.error("Transaction API Error:", error);
     return NextResponse.json(
