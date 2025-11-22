@@ -59,6 +59,16 @@ export async function POST(req: Request) {
         );
       }
 
+      if (!paymentData.amount || !paymentData.payerAccount) {
+        return NextResponse.json(
+          {
+            error: "Bkash payment not found",
+            message: "Bkash payment not found",
+          },
+          { status: 400 }
+        );
+      }
+
       // Save new transaction
       await Transaction.create({
         user: user._id,
