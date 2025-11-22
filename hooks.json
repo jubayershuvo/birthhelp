@@ -1,0 +1,7 @@
+[
+  {
+    "id": "auto-deploy",
+    "execute-command": "/var/www/birthhelp/deploy.sh",
+    "command-working-directory": "/var/www/birthhelp"
+  }
+]
