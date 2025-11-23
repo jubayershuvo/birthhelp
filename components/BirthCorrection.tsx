@@ -183,24 +183,28 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     ward: useRef<HTMLSelectElement>(null),
   };
 
-  // Validation functions for address inputs
+  // Updated validation functions for address inputs - allowing numbers and special characters
   const validateBanglaText = (value: string): boolean => {
-    const banglaRegex = /^[\u0980-\u09FF\s.,;:!?()\-]+$/;
+    // Allow Bengali characters, numbers, and common special characters
+    const banglaRegex = /^[\u0980-\u09FF\s.,;:!?()\-–—'"০-৯]+$/;
     return banglaRegex.test(value) || value === "";
   };
 
   const validateEnglishText = (value: string): boolean => {
-    const englishRegex = /^[A-Za-z\s.,;:!?()\-]+$/;
+    // Allow English characters, numbers, and common special characters
+    const englishRegex = /^[A-Za-z\s.,;:!?()\-–—'"0-9]+$/;
     return englishRegex.test(value) || value === "";
   };
 
   const validateBanglaWithNumbers = (value: string): boolean => {
-    const banglaWithNumbersRegex = /^[\u0980-\u09FF\s.,;:!?()\-০-৯]+$/;
+    // Allow Bengali characters, numbers, and common special characters
+    const banglaWithNumbersRegex = /^[\u0980-\u09FF\s.,;:!?()\-–—'"০-৯]+$/;
     return banglaWithNumbersRegex.test(value) || value === "";
   };
 
   const validateEnglishWithNumbers = (value: string): boolean => {
-    const englishWithNumbersRegex = /^[A-Za-z\s.,;:!?()\-0-9]+$/;
+    // Allow English characters, numbers, and common special characters
+    const englishWithNumbersRegex = /^[A-Za-z\s.,;:!?()\-–—'"0-9]+$/;
     return englishWithNumbersRegex.test(value) || value === "";
   };
 
@@ -289,31 +293,31 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     switch (field) {
       case "postOfc":
         isValid = validateBanglaText(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর অনুমোদিত";
+        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "postOfcEn":
         isValid = validateEnglishText(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র ইংরেজি অক্ষর অনুমোদিত";
+        errorMessage = isValid ? "" : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "vilAreaTownBn":
         isValid = validateBanglaWithNumbers(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর ও সংখ্যা অনুমোদিত";
+        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "vilAreaTownEn":
         isValid = validateEnglishWithNumbers(value);
         errorMessage = isValid
           ? ""
-          : "শুধুমাত্র ইংরেজি অক্ষর ও সংখ্যা অনুমোদিত";
+          : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "houseRoadBn":
         isValid = validateBanglaWithNumbers(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর ও সংখ্যা অনুমোদিত";
+        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "houseRoadEn":
         isValid = validateEnglishWithNumbers(value);
         errorMessage = isValid
           ? ""
-          : "শুধুমাত্র ইংরেজি অক্ষর ও সংখ্যা অনুমোদিত";
+          : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
     }
 
@@ -327,73 +331,52 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
   const validateAddressInputs = (): boolean => {
     const newErrors = { ...addressErrors };
 
-    // Validate postOfc (Bangla)
-    if (addressInputs.postOfc && !validateBanglaText(addressInputs.postOfc)) {
-      newErrors.postOfc = "শুধুমাত্র বাংলা অক্ষর অনুমোদিত";
+    // Validate postOfc (Bangla) - Required
+    if (!addressInputs.postOfc.trim()) {
+      newErrors.postOfc = "ডাকঘরের নাম বাংলায় পূরণ করুন";
+    } else if (!validateBanglaText(addressInputs.postOfc)) {
+      newErrors.postOfc = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.postOfc = "";
     }
 
-    // Validate postOfcEn (English)
-    if (
-      addressInputs.postOfcEn &&
-      !validateEnglishText(addressInputs.postOfcEn)
-    ) {
-      newErrors.postOfcEn = "শুধুমাত্র ইংরেজি অক্ষর অনুমোদিত";
+    // Validate postOfcEn (English) - Required
+    if (!addressInputs.postOfcEn.trim()) {
+      newErrors.postOfcEn = "ডাকঘরের নাম ইংরেজিতে পূরণ করুন";
+    } else if (!validateEnglishText(addressInputs.postOfcEn)) {
+      newErrors.postOfcEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.postOfcEn = "";
     }
 
-    // Validate vilAreaTownBn (Bangla with numbers) - required for non-Bangladesh
-    if (
-      selected.country !== "1" &&
-      !addressInputs.vilAreaTownBn.trim() &&
-      !addressInputs.vilAreaTownEn.trim()
-    ) {
-      newErrors.vilAreaTownBn =
-        "গ্রাম/পাড়া/মহল্লার নাম বাংলা বা ইংরেজিতে পূরণ করুন";
-    } else if (
-      addressInputs.vilAreaTownBn &&
-      !validateBanglaWithNumbers(addressInputs.vilAreaTownBn)
-    ) {
-      newErrors.vilAreaTownBn = "শুধুমাত্র বাংলা অক্ষর ও সংখ্যা অনুমোদিত";
+    // Validate vilAreaTownBn (Bangla with numbers) - Required
+    if (!addressInputs.vilAreaTownBn.trim()) {
+      newErrors.vilAreaTownBn = "গ্রাম/পাড়া/মহল্লার নাম বাংলায় পূরণ করুন";
+    } else if (!validateBanglaWithNumbers(addressInputs.vilAreaTownBn)) {
+      newErrors.vilAreaTownBn = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.vilAreaTownBn = "";
     }
 
-    // Validate vilAreaTownEn (English with numbers) - required for non-Bangladesh
-    if (
-      selected.country !== "1" &&
-      !addressInputs.vilAreaTownBn.trim() &&
-      !addressInputs.vilAreaTownEn.trim()
-    ) {
-      newErrors.vilAreaTownEn =
-        "গ্রাম/পাড়া/মহল্লার নাম বাংলা বা ইংরেজিতে পূরণ করুন";
-    } else if (
-      addressInputs.vilAreaTownEn &&
-      !validateEnglishWithNumbers(addressInputs.vilAreaTownEn)
-    ) {
-      newErrors.vilAreaTownEn = "শুধুমাত্র ইংরেজি অক্ষর ও সংখ্যা অনুমোদিত";
+    // Validate vilAreaTownEn (English with numbers) - Required
+    if (!addressInputs.vilAreaTownEn.trim()) {
+      newErrors.vilAreaTownEn = "গ্রাম/পাড়া/মহল্লার নাম ইংরেজিতে পূরণ করুন";
+    } else if (!validateEnglishWithNumbers(addressInputs.vilAreaTownEn)) {
+      newErrors.vilAreaTownEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.vilAreaTownEn = "";
     }
 
-    // Validate houseRoadBn (Bangla with numbers)
-    if (
-      addressInputs.houseRoadBn &&
-      !validateBanglaWithNumbers(addressInputs.houseRoadBn)
-    ) {
-      newErrors.houseRoadBn = "শুধুমাত্র বাংলা অক্ষর ও সংখ্যা অনুমোদিত";
+    // Validate houseRoadBn (Bangla with numbers) - Optional
+    if (addressInputs.houseRoadBn && !validateBanglaWithNumbers(addressInputs.houseRoadBn)) {
+      newErrors.houseRoadBn = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.houseRoadBn = "";
     }
 
-    // Validate houseRoadEn (English with numbers)
-    if (
-      addressInputs.houseRoadEn &&
-      !validateEnglishWithNumbers(addressInputs.houseRoadEn)
-    ) {
-      newErrors.houseRoadEn = "শুধুমাত্র ইংরেজি অক্ষর ও সংখ্যা অনুমোদিত";
+    // Validate houseRoadEn (English with numbers) - Optional
+    if (addressInputs.houseRoadEn && !validateEnglishWithNumbers(addressInputs.houseRoadEn)) {
+      newErrors.houseRoadEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.houseRoadEn = "";
     }
@@ -403,14 +386,30 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     // Check if there are any errors
     const hasErrors = Object.values(newErrors).some((error) => error !== "");
 
-    // For non-Bangladesh countries, check if at least one address field is filled
+    // For non-Bangladesh countries, check if all required address fields are filled
     if (selected.country !== "1" && selected.country !== "-1") {
-      const hasAddressContent =
-        addressInputs.vilAreaTownBn.trim() ||
+      const hasAllRequiredFields = 
+        addressInputs.postOfc.trim() &&
+        addressInputs.postOfcEn.trim() &&
+        addressInputs.vilAreaTownBn.trim() &&
         addressInputs.vilAreaTownEn.trim();
 
-      if (!hasAddressContent) {
-        toast.error("গ্রাম/পাড়া/মহল্লার নাম বাংলা বা ইংরেজিতে পূরণ করুন");
+      if (!hasAllRequiredFields) {
+        toast.error("দয়া করে সকল প্রয়োজনীয় ঠিকানা তথ্য পূরণ করুন");
+        return false;
+      }
+    }
+
+    // For Bangladesh, check required fields
+    if (selected.country === "1") {
+      const hasAllRequiredFields = 
+        addressInputs.postOfc.trim() &&
+        addressInputs.postOfcEn.trim() &&
+        addressInputs.vilAreaTownBn.trim() &&
+        addressInputs.vilAreaTownEn.trim();
+
+      if (!hasAllRequiredFields) {
+        toast.error("দয়া করে সকল প্রয়োজনীয় ঠিকানা তথ্য পূরণ করুন");
         return false;
       }
     }
@@ -572,15 +571,15 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
       }
     }
 
-    // For non-Bangladesh countries, require at least address fields
-    if (country.id !== "1") {
-      if (
-        !addressInputs.vilAreaTownBn.trim() &&
-        !addressInputs.vilAreaTownEn.trim()
-      ) {
-        toast.error("Missing address fields for non-Bangladesh country");
-        return null;
-      }
+    // Validate required address fields
+    if (
+      !addressInputs.postOfc.trim() ||
+      !addressInputs.postOfcEn.trim() ||
+      !addressInputs.vilAreaTownBn.trim() ||
+      !addressInputs.vilAreaTownEn.trim()
+    ) {
+      toast.error("Missing required address fields");
+      return null;
     }
 
     return {
@@ -627,10 +626,12 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         else if (!selected.union) toast.error("দয়া করে ইউনিয়ন নির্বাচন করুন");
       } else {
         if (
-          !addressInputs.vilAreaTownBn.trim() &&
+          !addressInputs.postOfc.trim() ||
+          !addressInputs.postOfcEn.trim() ||
+          !addressInputs.vilAreaTownBn.trim() ||
           !addressInputs.vilAreaTownEn.trim()
         ) {
-          toast.error("দয়া করে ঠিকানা লিখুন (বাংলা বা ইংরেজিতে)");
+          toast.error("দয়া করে সকল প্রয়োজনীয় ঠিকানা তথ্য পূরণ করুন");
         }
       }
     }
@@ -781,7 +782,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         {/* ডাকঘর (বাংলায়) */}
         <div>
           <label className="block font-medium mb-1 text-gray-700 dark:text-gray-300">
-            ডাকঘর (বাংলায়)
+            ডাকঘর (বাংলায়) *
           </label>
           <input
             type="text"
@@ -793,6 +794,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
               addressErrors.postOfc ? "border-red-500 dark:border-red-400" : ""
             }`}
             placeholder="ডাকঘরের নাম বাংলায়"
+            required
           />
           {addressErrors.postOfc && (
             <p className="text-red-500 dark:text-red-400 text-sm mt-1">
@@ -804,7 +806,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         {/* ডাকঘর (ইংরেজিতে) */}
         <div>
           <label className="block font-medium mb-1 text-gray-700 dark:text-gray-300">
-            ডাকঘর (ইংরেজিতে)
+            ডাকঘর (ইংরেজিতে) *
           </label>
           <input
             type="text"
@@ -818,6 +820,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
                 : ""
             }`}
             placeholder="Post Office Name in English"
+            required
           />
           {addressErrors.postOfcEn && (
             <p className="text-red-500 dark:text-red-400 text-sm mt-1">
@@ -829,7 +832,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         {/* গ্রাম / পাড়া / মহল্লা */}
         <div>
           <label className="block font-medium mb-1 text-gray-700 dark:text-gray-300">
-            গ্রাম / পাড়া / মহল্লা *
+            গ্রাম / পাড়া / মহল্লা (বাংলায়) *
           </label>
           <textarea
             value={addressInputs.vilAreaTownBn}
@@ -843,7 +846,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
             }`}
             placeholder="গ্রাম/পাড়া/মহল্লার নাম বাংলায়"
             rows={3}
-            required={selected.country !== "1"}
+            required
           />
           {addressErrors.vilAreaTownBn && (
             <p className="text-red-500 dark:text-red-400 text-sm mt-1">
@@ -869,7 +872,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
             }`}
             placeholder="Village/Area/Town in English"
             rows={3}
-            required={selected.country !== "1"}
+            required
           />
           {addressErrors.vilAreaTownEn && (
             <p className="text-red-500 dark:text-red-400 text-sm mt-1">
@@ -929,7 +932,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         </div>
       </div>
       <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-        * চিহ্নিত ফিল্ডগুলি আবশ্যক
+        * চিহ্নিত ফিল্ডগুলি আবশ্যক (বাসা ও সড়ক ছাড়া)
       </p>
     </div>
   );
