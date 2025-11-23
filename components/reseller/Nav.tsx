@@ -204,7 +204,7 @@ export default function ResellerNav({
           ))}
           <div className="mt-auto mb-4">
             <Link
-              href="/profile"
+              href="/reseller/profile"
               className={`flex  ${
                 collapsed ? "justify-center" : "justify-start"
               }  p-4 mx-2 my-1 rounded-lg group relative transition-all duration-300 ease-in-out`}
@@ -261,7 +261,7 @@ export default function ResellerNav({
 
           <div className="mb-4">
             <Link
-              href="/profile"
+              href="/reseller/profile"
               className="flex items-center p-4 rounded-lg 
                hover:bg-indigo-200/70 dark:hover:bg-teal-700/50 transition-all"
               onClick={() => setMobileOpen(false)}
