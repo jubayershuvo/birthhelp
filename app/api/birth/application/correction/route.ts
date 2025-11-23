@@ -6,6 +6,7 @@ import { getUser } from "@/lib/getUser";
 import Services from "@/models/Services";
 import Reseller from "@/models/Reseller";
 import Spent from "@/models/Use";
+import Earnings from "@/models/Earnings";
 
 // Define types for the request body
 interface CorrectionInfo {
@@ -592,6 +593,14 @@ export async function POST(request: NextRequest) {
 
     await Spent.create({
       user: user._id,
+      service: userService._id,
+      amount: serviceCost,
+      data: currection._id,
+      dataSchema: "CurrectionApplication",
+    })
+    await Earnings.create({
+      user: user._id,
+      reseller: reseller._id,
       service: userService._id,
       amount: serviceCost,
       data: currection._id,

@@ -127,7 +127,7 @@ export default function ResellerNav({
   return (
     <div className="flex flex-col h-screen w-screen">
       {/* HEADER */}
-      <Toaster position="top-right" reverseOrder={false} />
+      <Toaster position="top-center" reverseOrder={false} />
       <header
         className="w-full h-16 bg-gradient-to-r from-indigo-600 via-indigo-500 to-teal-500 
         flex items-center justify-between px-4 shadow-md"
