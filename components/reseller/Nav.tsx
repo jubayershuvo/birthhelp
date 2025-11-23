@@ -82,7 +82,7 @@ export default function ResellerNav({
   // Fetch user profile and counts
   useEffect(() => {
     async function fetchData() {
-      if (isResellerLoggedIn && reseller._id) {
+  
         try {
           const response = await axios.get(`/api/reseller/profile`, {
             withCredentials: true,
@@ -106,9 +106,7 @@ export default function ResellerNav({
             console.error("Error fetching profile:", String(error));
           }
         }
-      } else {
-        router.push("/reseller/login");
-      }
+
     }
 
     fetchData();

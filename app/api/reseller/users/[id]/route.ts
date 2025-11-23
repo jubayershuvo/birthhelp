@@ -50,6 +50,7 @@ export async function PUT(
     const { id } = await params;
     const body = (await request.json()) as Partial<{
       email: string;
+      name: string;
       username: string;
       password: string;
       balance?: number;
@@ -109,43 +110,35 @@ export async function PUT(
     }
 
     // Transform services data
-    const updateData: UpdateData = {
-      ...body,
-    };
-
     if (body.services) {
-      updateData.services = body.services.map((service: ServiceInput) => ({
+      body.services = body.services.map((service) => ({
         service: service.service,
         fee: service.fee,
       }));
     }
 
-    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    })
-      .select("-password")
-      .populate("services.service", "name");
-
-    if (!updatedUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (body.name) {
+      user.name = body.name;
     }
+    if (body.email) {
+      user.email = body.email;
+    }
+    if (body.username) {
+      user.username = body.username;
+    }
+    if (body.password) {
+      user.password = body.password;
+    }
+    if (body.services) {
+      user.services = body.services;
+    }
+    await user.save();
 
-    // Transform the response
-    const userObject = updatedUser.toObject();
-    const transformedUser: UserResponse = {
-      ...userObject,
-      services: updatedUser.services.map((service: ServiceDocument) => ({
-        serviceId: service.service?._id,
-        serviceName: service.service?.name || "",
-        fee: service.fee,
-      })),
-    };
-
+    const newUser = await User.findById(id);
     return NextResponse.json({
       success: true,
       message: "User updated successfully",
-      user: transformedUser,
+      user: newUser,
     });
   } catch (error: unknown) {
     console.error("Error updating user:", error);

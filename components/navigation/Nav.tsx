@@ -38,7 +38,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
-  const { user } = useAppSelector((state) => state.userAuth);
+  const { user, isLoggedIn } = useAppSelector((state) => state.userAuth);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [menuItems, setMenuItems] = useState(menuItemsd);
@@ -85,8 +85,11 @@ export default function Nav({ children }: { children: React.ReactNode }) {
 
   // Fetch user profile and counts
   useEffect(() => {
-    // Don't run on reseller routes or if we're already on login page
+
     if (pathname.startsWith("/reseller") || pathname === "/login") return;
+
+    // if (!mounted) return;
+    // if (!isLoggedIn) return handleLogout();
 
     async function fetchData() {
       try {
