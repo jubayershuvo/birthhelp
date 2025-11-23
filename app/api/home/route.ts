@@ -9,6 +9,9 @@ export async function GET() {
   try {
     await connectDB();
     const user = await getUser();
+    if(!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
     const spentList = await Spent.find({user: user._id}).sort({ createdAt: -1 });
     const recharges = await Transaction.find({user: user._id}).sort({ createdAt: -1 });

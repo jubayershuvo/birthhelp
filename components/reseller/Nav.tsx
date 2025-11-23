@@ -4,7 +4,6 @@ import {
   Menu,
   X,
   Home,
-  Settings,
   ArrowLeftToLine,
   ArrowRightToLine,
   Wallet,
@@ -23,7 +22,6 @@ const menuItems = [
   { label: "Home", icon: <Home size={20} />, href: "/reseller/dashboard" },
   { label: "Users", icon: <User size={20} />, href: "/reseller/users" },
   { label: "Wallet", icon: <Wallet size={20} />, href: "/reseller/wallet" },
-  { label: "Settings", icon: <Settings size={20} />, href: "/reseller/settings" },
 ];
 
 export default function ResellerNav({

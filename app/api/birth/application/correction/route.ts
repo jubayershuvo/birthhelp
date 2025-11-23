@@ -602,7 +602,7 @@ export async function POST(request: NextRequest) {
       user: user._id,
       reseller: reseller._id,
       service: userService._id,
-      amount: serviceCost,
+      amount: userService.fee,
       data: currection._id,
       dataSchema: "CurrectionApplication",
     })

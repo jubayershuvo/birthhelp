@@ -1,9 +1,7 @@
+import EarningsWithdrawalsDashboard from "@/components/reseller/Home";
+
 export default function ResellerDashboardPage() {
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100">
-      <div className="text-center">
-        <div>Under Construction</div>
-      </div>
-    </div>
+    <EarningsWithdrawalsDashboard />
   );
 }
