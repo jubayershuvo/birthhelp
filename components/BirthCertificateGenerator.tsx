@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { useParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface CertificateData {
   registrationOffice?: string;
@@ -37,24 +38,52 @@ const BirthCertificate: React.FC = () => {
   const certificateRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [certificateData, setCertificateData] = useState<CertificateData>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const id = params.id as string;
+
   const fetchCertificateData = async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       const response = await fetch(`/api/birth/certificate/get/${id}`);
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch certificate data: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(
+          `Failed to fetch certificate data: ${response.status} - ${errorText}`
+        );
       }
 
       const data: CertificateData = await response.json();
+
+      // Check if data is empty or invalid
+      if (!data || Object.keys(data).length === 0) {
+        throw new Error("No certificate data found");
+      }
+
       setCertificateData(data);
+      toast.success("Certificate data loaded successfully");
     } catch (err) {
       console.error("Error fetching certificate data:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load certificate data";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCertificateData();
-  }, []);
+    if (id) {
+      fetchCertificateData();
+    } else {
+      setError("No certificate ID provided");
+      toast.error("No certificate ID provided");
+    }
+  }, [id]);
 
   const capitalizeWords = (str: string | undefined): string => {
     if (!str) return "N/A";
@@ -90,9 +119,18 @@ const BirthCertificate: React.FC = () => {
   };
 
   const downloadPDF = async () => {
-    if (!certificateRef.current) return;
+    if (!certificateRef.current) {
+      toast.error("Certificate content not found");
+      return;
+    }
+
+    if (Object.keys(certificateData).length === 0) {
+      toast.error("No certificate data available to download");
+      return;
+    }
 
     setIsGenerating(true);
+    const toastId = toast.loading("Generating PDF...");
 
     try {
       const element = certificateRef.current;
@@ -122,13 +160,68 @@ const BirthCertificate: React.FC = () => {
       pdf.save(
         `birth-certificate-${certificateData.birthRegNumber || "download"}.pdf`
       );
+
+      toast.success("PDF downloaded successfully", { id: toastId });
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
+      toast.error("Failed to generate PDF. Please try again.", { id: toastId });
     } finally {
       setIsGenerating(false);
     }
   };
+
+  const retryFetch = () => {
+    fetchCertificateData();
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-lg text-gray-600">
+            Loading certificate data...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-red-50 rounded-lg border border-red-200">
+          <div className="text-red-600 mb-4">
+            <svg
+              className="w-16 h-16 mx-auto"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-red-800 mb-2">
+            Error Loading Certificate
+          </h2>
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={retryFetch}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors duration-200"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -142,10 +235,10 @@ const BirthCertificate: React.FC = () => {
         <div className="mb-6 text-center">
           <button
             onClick={downloadPDF}
-            disabled={isGenerating}
+            disabled={isGenerating || Object.keys(certificateData).length === 0}
             className={`bg-${
               isGenerating ? "green-500" : "green-700"
-            } hover:bg-green-600 dark:text-black text-white dark:bg-white bg-black font-semibold px-4 py-2 rounded-full shadow-md transition-colors duration-200 ease-in-out`}
+            } hover:bg-green-600 dark:text-black text-white dark:bg-white bg-black font-semibold px-4 py-2 rounded-full shadow-md transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isGenerating ? "Generating PDF..." : "Download PDF"}
           </button>

@@ -28,7 +28,10 @@ export async function GET(
     }
 
     // Find the certificate by ID
-    const certificate = await BirthCertificate.findById(id);
+    const certificate = await BirthCertificate.findOne({
+      _id: id,
+      user: user._id,
+    });
 
     if (!certificate) {
       return NextResponse.json(
@@ -39,7 +42,6 @@ export async function GET(
 
     const qrCode = await generateQRCode(certificate.qrCodeData);
     const barCode = generateBarcode(certificate.barcodeData);
-
 
     // Create a properly typed certificate object
     const certificateData = {

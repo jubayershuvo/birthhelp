@@ -2,14 +2,17 @@
 
 import { useState, useCallback, useMemo } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 // Limited data interface for search results
 interface ISearchData {
   _id: string;
-  ubrn: string;
+  birthRegNumber: string;
   personNameEn: string;
   personNameBn: string;
   dateOfBirth: string;
+  cost: number;
 }
 
 // Full data interface for edit page (not exposed here)
@@ -52,70 +55,114 @@ interface SearchForm {
 }
 
 export default function BirthCertificateSearch() {
-  const [searchForm, setSearchForm] = useState<SearchForm>({ ubrn: "", dob: "" });
+  const [searchForm, setSearchForm] = useState<SearchForm>({
+    ubrn: "",
+    dob: "",
+  });
   const [searchData, setSearchData] = useState<ISearchData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const [searchPerformed, setSearchPerformed] = useState(false);
+  const router = useRouter();
+
+  // Format date from YYYY-MM-DD to DD/MM/YYYY
+  const formatDateToDDMMYYYY = useCallback((dateString: string): string => {
+    if (!dateString) return "";
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid date");
+      }
+
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return dateString; // Return original if formatting fails
+    }
+  }, []);
 
   // Search form handler
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSearchForm(prev => ({ ...prev, [name]: value }));
-  }, []);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setSearchForm((prev) => ({ ...prev, [name]: value }));
+    },
+    []
+  );
 
   // Search handler
   const handleSearch = useCallback(async () => {
     if (!searchForm.ubrn || !searchForm.dob) {
-      setMessage("❌ Please fill in both UBRN and Date of Birth");
+      toast.error("❌ Please fill in both UBRN and Date of Birth");
       return;
     }
 
     setLoading(true);
-    setMessage("");
     setSearchPerformed(true);
 
     try {
-      const response = await axios.post("/api/birth/certificate/find", searchForm);
+      // Format the date before sending to API
+      const formattedDob = formatDateToDDMMYYYY(searchForm.dob);
+
+      const payload = {
+        ubrn: searchForm.ubrn,
+        dob: formattedDob,
+      };
+
+      const response = await axios.post("/api/birth/certificate/find", payload);
+
       if (response.data) {
-        setSearchData(response.data);
-        setMessage("✅ Record found!");
+        setSearchData(response.data.data);
+        toast.success("✅ Record found!");
       } else {
-        setMessage("❌ No record found");
+        toast.error("❌ No record found");
         setSearchData(null);
       }
     } catch (err) {
-      console.error("Search error:", err);
-      setMessage("❌ Error searching for record");
+      toast.error("❌ Error loading record details");
       setSearchData(null);
     } finally {
       setLoading(false);
     }
-  }, [searchForm]);
+  }, [searchForm, formatDateToDDMMYYYY]);
 
   // Show full data handler - redirect to edit page
-  const handleShowFull = useCallback(() => {
+  const handleShowFull = useCallback(async () => {
     if (searchData?._id) {
-      // Redirect to the edit page with the record ID
-      window.location.href = `/birth/certificate/edit/${searchData._id}`;
+      const url = `/api/birth/certificate/buy/${searchData?._id}`;
+      try {
+        const res = await axios.get<IFullData>(url);
+        router.push(`/birth/certificate/edit/${res.data._id}`);
+      } catch (error) {
+        toast.error("❌ Error loading record details");
+      }
+    } else {
+      toast.error("❌ No record selected");
     }
-  }, [searchData]);
+  }, [router, searchData]);
 
   // Reset search
   const handleReset = useCallback(() => {
     setSearchForm({ ubrn: "", dob: "" });
     setSearchData(null);
-    setMessage("");
     setSearchPerformed(false);
+    toast.success("Search form reset");
   }, []);
 
   // Search result fields
-  const searchResultFields = useMemo(() => [
-    { label: "UBRN", key: "ubrn" as keyof ISearchData },
-    { label: "Name (English)", key: "personNameEn" as keyof ISearchData },
-    { label: "Name (Bangla)", key: "personNameBn" as keyof ISearchData },
-    { label: "Date of Birth", key: "dateOfBirth" as keyof ISearchData },
-  ], []);
+  const searchResultFields = useMemo(
+    () => [
+      { label: "UBRN", key: "birthRegNumber" as keyof ISearchData },
+      { label: "Name (English)", key: "personNameEn" as keyof ISearchData },
+      { label: "Name (Bangla)", key: "personNameBn" as keyof ISearchData },
+      { label: "Date of Birth", key: "dateOfBirth" as keyof ISearchData },
+    ],
+    []
+  );
 
   return (
     <div className="max-w-2xl mx-auto mt-12 p-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl transition-all duration-500">
@@ -127,7 +174,10 @@ export default function BirthCertificateSearch() {
       {/* Search Form */}
       <div className="space-y-6 mb-8">
         <div>
-          <label htmlFor="ubrn" className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+          <label
+            htmlFor="ubrn"
+            className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
+          >
             UBRN (Unique Birth Registration Number)
           </label>
           <input
@@ -142,7 +192,10 @@ export default function BirthCertificateSearch() {
         </div>
 
         <div>
-          <label htmlFor="dob" className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300">
+          <label
+            htmlFor="dob"
+            className="block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300"
+          >
             Date of Birth
           </label>
           <input
@@ -153,6 +206,9 @@ export default function BirthCertificateSearch() {
             onChange={handleSearchChange}
             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Date will be sent as DD/MM/YYYY format to the server
+          </p>
         </div>
 
         {/* Search Button */}
@@ -202,23 +258,16 @@ export default function BirthCertificateSearch() {
         </div>
       </div>
 
-      {/* Message */}
-      {message && (
-        <div className={`text-center mb-6 p-3 rounded-lg ${
-          message.includes("✅") 
-            ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200" 
-            : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
-        }`}>
-          {message}
-        </div>
-      )}
-
       {/* Search Results */}
       {searchData && (
         <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
           <h3 className="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-100">
             Search Results
           </h3>
+
+          <div className="w-full text-center pb-4">
+            <p className="text-red-600">প্রতি বার ${searchData.cost} টাকা করে কাটা হবে</p>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
             {searchResultFields.map((item) => (
@@ -239,7 +288,7 @@ export default function BirthCertificateSearch() {
               onClick={handleShowFull}
               className="bg-green-600 dark:bg-green-500 hover:bg-green-700 dark:hover:bg-green-600 text-white px-8 py-3 rounded-xl font-medium transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
-              Show Full Data & Edit
+              Show Buy Data & Edit
             </button>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
               You will be redirected to the full edit page

@@ -1,7 +1,8 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IBirthCertificate extends Document {
   _id: string;
+  user?:Types.ObjectId;
   qrCode: string;
   barCode: string;
   createdAt: string;
@@ -39,11 +40,16 @@ export interface IBirthCertificate extends Document {
 
 const birthCertificateSchema = new Schema<IBirthCertificate>(
   {
+    user: { type: Types.ObjectId, ref: "User" },
+    qrCode: { type: String },
+    barCode: { type: String },
+    createdAt: { type: String },
+    updatedAt: { type: String },
     registrationDate: { type: String },
     registrationOffice: { type: String },
     issuanceDate: { type: String },
     dateOfBirth: { type: String },
-    birthRegNumber: { type: String,},
+    birthRegNumber: { type: String, required: true },
     sex: { type: String },
     personNameBn: { type: String },
     personNameEn: { type: String },

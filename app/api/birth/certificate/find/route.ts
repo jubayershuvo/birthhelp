@@ -1,15 +1,21 @@
-import axios from "axios";
 import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
+import BirthCertificate from "@/models/BirthCertificate";
+import Services from "@/models/Services";
 import { NextResponse } from "next/server";
+
+interface RequestBody {
+  ubrn: string;
+  dob: string;
+}
 
 export async function POST(req: Request) {
   try {
-    const { ubrn, dob } = await req.json();
+    const { ubrn, dob }: RequestBody = await req.json();
 
     if (!ubrn || !dob) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { success: false, error: "All fields are required" },
         { status: 400 }
       );
     }
@@ -18,44 +24,70 @@ export async function POST(req: Request) {
     const user = await getUser();
 
     if (!user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    let apiResponse;
-
-    try {
-      apiResponse = await axios.post(
-        "https://api.fortest.top/birth_test/api/birth_verification.php",
-        {
-          username: "sagarmandal712103@gmail.com",
-          password: "sagarmandal712103@gmail.com",
-          ubrn,
-          birth_date: dob,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      if (apiResponse.data.error || !apiResponse.data.success) {
-        return NextResponse.json(
-          { success: false, error: apiResponse.data.error },
-          { status: 400 }
-        );
-      }
-    } catch (error) {
       return NextResponse.json(
-        {
-          success: false,
-          error: error || "External API error",
-        },
-        { status: 500 }
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    const servicePath = "/birth/certificate";
+
+    const service = await Services.findOne({ href: servicePath });
+    if (!service) {
+      return NextResponse.json(
+        { success: false, error: "Service not found" },
+        { status: 404 }
       );
     }
 
-    return NextResponse.json(apiResponse.data, { status: 200 });
+    const userService = user.services.find(
+      (s: { service: string }) =>
+        s.service.toString() === service._id.toString()
+    );
+
+    if (!userService) {
+      return NextResponse.json(
+        { success: false, error: "User does not have access to this service" },
+        { status: 403 }
+      );
+    }
+    const serviceCost = userService.fee + service.fee;
+
+    if (user.balace < serviceCost) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient balance" },
+        { status: 402 }
+      );
+    }
+    const response = await fetch(
+      `http://api.sheva247.site/birth_test/api/birth_verification_get.php?ubrn=${ubrn}&dob=${dob}`
+    );
+
+    const jsonData = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: jsonData.error || "Failed to fetch data" },
+        { status: response.status }
+      );
+    }
+
+    const certificate = await BirthCertificate.create(jsonData.data);
+
+    const sendData = {
+      _id: certificate._id,
+      birthRegNumber: certificate.birthRegNumber,
+      personNameEn: certificate.personNameEn,
+      personNameBn: certificate.personNameBn,
+      dateOfBirth: certificate.dateOfBirth,
+      cost: serviceCost,
+    };
+
+    return NextResponse.json({ success: true, data: sendData });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Server Error";
+
     return NextResponse.json(
-      { success: false, error: error || "Server Error" },
+      { success: false, error: message },
       { status: 500 }
     );
   }
