@@ -1243,12 +1243,13 @@ const BirthCertificate: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <div style={{ textAlign: "center", marginTop: "70px" }}>
+              <div style={{ textAlign: "center", marginTop: "90px" }}>
                 <p
                   style={{
                     fontSize: "11px",
                     color: "#232323",
                     fontWeight: "400",
+                    fontFamily: "Dai Banna SIL",
                   }}
                 >
                   This certificate is generated from bdris.gov.bd, and to verify
