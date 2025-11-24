@@ -1246,7 +1246,7 @@ const BirthCertificate: React.FC = () => {
               <div style={{ textAlign: "center", marginTop: "90px" }}>
                 <p
                   style={{
-                    fontSize: "11px",
+                    fontSize: "13px",
                     color: "#232323",
                     fontWeight: "400",
                     fontFamily: "Dai Banna SIL",
