@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import { useParams } from "next/navigation";
 
 interface CertificateData {
   registrationOffice?: string;
@@ -31,12 +32,29 @@ interface CertificateData {
   barCode?: string;
 }
 
-const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certificateData}) => {
+const BirthCertificate: React.FC = () => {
+  const params = useParams();
   const certificateRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [certificateData, setCertificateData] = useState<CertificateData>({});
+  const id = params.id as string;
+  const fetchCertificateData = async () => {
+    try {
+      const response = await fetch(`/api/birth/certificate/get/${id}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch certificate data: ${response.status}`);
+      }
 
+      const data: CertificateData = await response.json();
+      setCertificateData(data);
+    } catch (err) {
+      console.error("Error fetching certificate data:", err);
+    }
+  };
 
-
+  useEffect(() => {
+    fetchCertificateData();
+  }, []);
 
   const capitalizeWords = (str: string | undefined): string => {
     if (!str) return "N/A";
@@ -125,7 +143,9 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
           <button
             onClick={downloadPDF}
             disabled={isGenerating}
-            className={`bg-${isGenerating ? "green-500" : "green-700"} hover:bg-green-600 dark:text-black text-white dark:bg-white bg-black text-white font-semibold px-4 py-2 rounded-full shadow-md transition-colors duration-200 ease-in-out`}
+            className={`bg-${
+              isGenerating ? "green-500" : "green-700"
+            } hover:bg-green-600 dark:text-black text-white dark:bg-white bg-black font-semibold px-4 py-2 rounded-full shadow-md transition-colors duration-200 ease-in-out`}
           >
             {isGenerating ? "Generating PDF..." : "Download PDF"}
           </button>
@@ -143,6 +163,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
             padding: "25px",
             position: "relative",
             color: "#000000",
+            fontFamily: "Arial, sans-serif",
+            fontSize: "12px",
           }}
         >
           {/* Watermark */}
@@ -289,7 +311,11 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   top: "50px",
                 }}
               >
-                <img style={{width:'180px', height:'30px'}} src={certificateData.barCode} alt="Barcode"></img>
+                <img
+                  style={{ width: "180px", height: "30px" }}
+                  src={certificateData.barCode}
+                  alt="Barcode"
+                ></img>
               </div>
             </div>
 
@@ -501,9 +527,10 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     নাম
@@ -521,10 +548,11 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     {capitalizeWords(certificateData.personNameBn)}
@@ -533,16 +561,17 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                     }}
                   >
                     Name
                   </span>
                   <span
                     style={{
-                      marginLeft: "56px",
+                      marginLeft: "57px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -553,10 +582,11 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                     }}
                   >
                     {capitalizeWords(certificateData.personNameEn)}
@@ -575,9 +605,10 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     মাতা
@@ -595,10 +626,11 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     {capitalizeWords(certificateData.motherNameBn)}
@@ -607,7 +639,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -616,7 +649,7 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   </span>
                   <span
                     style={{
-                      marginLeft: "49px",
+                      marginLeft: "46px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -627,7 +660,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -649,9 +683,10 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     মাতার জাতীয়তা
@@ -669,10 +704,11 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     {capitalizeWords(certificateData.motherNationalityBn)}
@@ -681,7 +717,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -690,7 +727,7 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   </span>
                   <span
                     style={{
-                      marginLeft: "26px",
+                      marginLeft: "21px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -701,7 +738,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -723,16 +761,17 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     পিতা
                   </span>
                   <span
                     style={{
-                      marginLeft: "88px",
+                      marginLeft: "92px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -743,10 +782,11 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     {capitalizeWords(certificateData.fatherNameBn)}
@@ -755,7 +795,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -764,7 +805,7 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   </span>
                   <span
                     style={{
-                      marginLeft: "53px",
+                      marginLeft: "55px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -775,7 +816,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -797,16 +839,17 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     পিতার জাতীয়তা
                   </span>
                   <span
                     style={{
-                      marginLeft: "15px",
+                      marginLeft: "21px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -817,10 +860,11 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     {capitalizeWords(certificateData.fatherNationalityBn)}
@@ -829,7 +873,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -838,7 +883,7 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   </span>
                   <span
                     style={{
-                      marginLeft: "26px",
+                      marginLeft: "24px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -849,7 +894,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -871,16 +917,17 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     জন্মস্থান
                   </span>
                   <span
                     style={{
-                      marginLeft: "65px",
+                      marginLeft: "75px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -891,10 +938,11 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     {capitalizeWords(certificateData.birthPlaceBn)}
@@ -903,7 +951,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex", alignItems: "start" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -923,7 +972,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -939,16 +989,17 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     স্থায়ী ঠিকানা
                   </span>
                   <span
                     style={{
-                      marginLeft: "35px",
+                      marginLeft: "49px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -959,11 +1010,12 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
                       lineHeight: "1.2",
+                      fontFamily: "Kalpurush",
                     }}
                   >
                     {capitalizeWords(certificateData.permanentAddressBn)}
@@ -973,7 +1025,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       width: "90px",
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -982,7 +1035,7 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   </span>
                   <span
                     style={{
-                      marginLeft: "7px",
+                      marginLeft: "17px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -993,7 +1046,8 @@ const BirthCertificate: React.FC<{certificateData: CertificateData}> = ({certifi
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "15px",
+                      fontSize: "18px",
+                      fontFamily: "Dai Banna SIL",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",

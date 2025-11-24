@@ -4,6 +4,13 @@ import "./globals.css";
 import NavLayout from "@/components/navigation/Nav";
 import ReduxProvider from "./providers";
 
+import { Dai_Banna_SIL } from "next/font/google";
+
+const daiBanna = Dai_Banna_SIL({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -26,6 +33,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+        <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Dai+Banna+SIL:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

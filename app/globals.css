@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+
+
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -19,6 +22,25 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
+}
+
+
+@font-face {
+  font-family: 'Prima Sans';
+  src: url('/fonts/Prima-Sans-Regular.woff2') format('woff2'),
+       url('/fonts/Prima-Sans-Regular.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Kalpurush';
+  src: url('/fonts/Kalpurush.woff2') format('woff2'),
+       url('/fonts/Kalpurush.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Prima Serif';
+  src: url('/fonts/PrimaSerifBT-Roman.woff2') format('woff2'),
+       url('/fonts/PrimaSerifBT-Roman.woff') format('woff');
 }
 
 body {
