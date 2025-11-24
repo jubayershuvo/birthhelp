@@ -256,7 +256,7 @@ const BirthCertificate: React.FC = () => {
             padding: "25px",
             position: "relative",
             color: "#000000",
-            fontFamily: "Arial, sans-serif",
+            fontFamily: "Prima Sans",
             fontSize: "12px",
           }}
         >
@@ -284,7 +284,6 @@ const BirthCertificate: React.FC = () => {
                 left: "50%",
                 transform: "translate(-50%, -50%)",
                 width: "550px",
-                opacity: "0.75",
               }}
             />
           </div>
@@ -296,14 +295,14 @@ const BirthCertificate: React.FC = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
-                marginBottom: "24px",
+                marginBottom: "5px",
               }}
             >
               {/* Left - QR Code */}
               <div
                 style={{
                   position: "absolute",
-                  top: "45px",
+                  top: "75px",
                   left: "35px",
                 }}
               >
@@ -315,13 +314,14 @@ const BirthCertificate: React.FC = () => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    paddingLeft: "5px",
                   }}
                 >
                   <img src={certificateData.qrCode} alt="QR Code" />
                 </div>
                 <p
                   style={{
-                    marginTop: "3px",
+                    marginTop: "1px",
                     color: "#9ca3af",
                     fontSize: "16px",
                     fontWeight: "100",
@@ -334,17 +334,22 @@ const BirthCertificate: React.FC = () => {
               </div>
 
               {/* Middle - Title */}
-              <div style={{ flex: 1, textAlign: "center", padding: "0 16px" }}>
+              <div
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  padding: "0 16px",
+                  marginTop: "20px",
+                }}
+              >
                 <img
                   src="/images/logo.png"
                   alt="Logo"
                   style={{
                     position: "absolute",
-                    left: "314px",
-                    top: "-8px",
+                    left: "290px",
                     height: "auto",
                     width: "auto",
-                    zIndex: 1,
                   }}
                 />
                 <div
@@ -357,19 +362,20 @@ const BirthCertificate: React.FC = () => {
                 ></div>
                 <p
                   style={{
-                    fontSize: "18px",
-                    marginBottom: "6px",
+                    fontSize: "16px",
+                    marginBottom: "5px",
+                    marginTop: "15px",
                     color: "#000000",
                   }}
                 >
                   Government of the People&apos;s Republic of Bangladesh
                 </p>
-                <p style={{ fontSize: "16px", color: "#000000" }}>
+                <p style={{ fontSize: "14px", color: "#000000" }}>
                   Office of the Registrar, Birth and Death Registration
                 </p>
                 <p
                   style={{
-                    fontSize: "16px",
+                    fontSize: "14px",
                     marginTop: "4px",
                     color: "#000000",
                   }}
@@ -378,7 +384,7 @@ const BirthCertificate: React.FC = () => {
                 </p>
                 <p
                   style={{
-                    fontSize: "16px",
+                    fontSize: "14px",
                     marginTop: "6px",
                     color: "#000000",
                   }}
@@ -400,8 +406,8 @@ const BirthCertificate: React.FC = () => {
               <div
                 style={{
                   position: "absolute",
-                  right: "60px",
-                  top: "50px",
+                  right: "115px",
+                  top: "80px",
                 }}
               >
                 <img
@@ -416,12 +422,20 @@ const BirthCertificate: React.FC = () => {
             <div style={{ textAlign: "center", marginBottom: "8px" }}>
               <p
                 style={{
-                  fontSize: "20px",
-                  fontWeight: "600",
+                  fontSize: "16px",
+                  fontWeight: "550",
                   color: "#000000",
                 }}
               >
-                <span>জন্ম নিবন্ধন সনদ / </span>
+                <span
+                  style={{
+                    fontFamily: "Kalpurush",
+                    fontWeight: "600",
+                    fontSize: "18px",
+                  }}
+                >
+                  জন্ম নিবন্ধন সনদ /{" "}
+                </span>
                 <span>Birth Registration Certificate</span>
               </p>
             </div>
@@ -437,22 +451,24 @@ const BirthCertificate: React.FC = () => {
                 marginTop: "13px",
               }}
             >
-              <div style={{ textAlign: "center" }}>
+              <div style={{ textAlign: "left" }}>
                 <p
                   style={{
-                    fontSize: "13px",
+                    fontSize: "15px",
                     fontWeight: "500",
                     color: "#232323",
+                    fontFamily: "Prima Sans",
                   }}
                 >
                   Date of Registration
                 </p>
                 <p
                   style={{
-                    fontSize: "13px",
-                    fontWeight: "600",
+                    fontSize: "15px",
+                    fontWeight: "500",
                     marginTop: "2px",
                     color: "#232323",
+                    fontFamily: "Prima Sans",
                   }}
                 >
                   {formatDateToDDMMYYYY(certificateData.registrationDate)}
@@ -461,30 +477,33 @@ const BirthCertificate: React.FC = () => {
               <div style={{ textAlign: "center", marginLeft: "-37px" }}>
                 <h2
                   style={{
-                    fontSize: "16px",
+                    fontSize: "20px",
                     fontWeight: "500",
-                    marginBottom: "3px",
                     color: "#1a1a1a",
+                    fontFamily: "Prima Sans",
                   }}
                 >
                   Birth Registration Number
                 </h2>
                 <h1
                   style={{
-                    fontSize: "16px",
-                    fontWeight: "600",
+                    fontSize: "18px",
+                    fontWeight: "520",
                     color: "#000000",
+                    fontFamily: "sans-serif",
+                    letterSpacing: "0.05em",
                   }}
                 >
                   {certificateData.birthRegNumber || "N/A"}
                 </h1>
               </div>
-              <div style={{ textAlign: "center" }}>
+              <div style={{ textAlign: "left" }}>
                 <p
                   style={{
                     fontSize: "13px",
                     fontWeight: "500",
                     color: "#232323",
+                    fontFamily: "Prima Sans",
                   }}
                 >
                   Date of Issuance
@@ -492,9 +511,10 @@ const BirthCertificate: React.FC = () => {
                 <p
                   style={{
                     fontSize: "13px",
-                    fontWeight: "600",
+                    fontWeight: "500",
                     marginTop: "2px",
                     color: "#232323",
+                    fontFamily: "Prima Sans",
                   }}
                 >
                   {formatDateToDDMMYYYY(certificateData.issuanceDate)}
@@ -515,16 +535,17 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
+                      fontFamily: "Prima Sans",
                     }}
                   >
                     Date of Birth
                   </span>
                   <span
                     style={{
-                      marginLeft: "18px",
+                      marginLeft: "22px",
                       fontSize: "16px",
                       color: "#000000",
                       fontWeight: "500",
@@ -535,7 +556,7 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "16px",
+                      fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -544,7 +565,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                 </div>
                 <div
-                  style={{ width: "39%", display: "flex", marginLeft: "35px" }}
+                  style={{ width: "49%", display: "flex", marginLeft: "35px" }}
                 >
                   <span
                     style={{
@@ -581,7 +602,7 @@ const BirthCertificate: React.FC = () => {
                   style={{
                     width: "120px",
                     whiteSpace: "nowrap",
-                    fontSize: "18px",
+                    fontSize: "15px",
                     color: "#000000",
                     fontWeight: "500",
                   }}
@@ -590,7 +611,8 @@ const BirthCertificate: React.FC = () => {
                 </span>
                 <span
                   style={{
-                    fontSize: "15px",
+                    marginLeft: "0px",
+                    fontSize: "16px",
                     color: "#000000",
                     fontWeight: "500",
                   }}
@@ -601,7 +623,7 @@ const BirthCertificate: React.FC = () => {
                   style={{
                     marginLeft: "13px",
                     fontStyle: "italic",
-                    fontSize: "18px",
+                    fontSize: "15px",
                     color: "#000000",
                     fontWeight: "400",
                     width: "400px",
@@ -620,7 +642,7 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       fontFamily: "Kalpurush",
@@ -630,7 +652,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "94px",
+                      marginLeft: "98px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -641,7 +663,7 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
@@ -656,8 +678,8 @@ const BirthCertificate: React.FC = () => {
                     style={{
                       color: "#000000",
                       fontWeight: "500",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                     }}
                   >
                     Name
@@ -678,8 +700,8 @@ const BirthCertificate: React.FC = () => {
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                     }}
                   >
                     {capitalizeWords(certificateData.personNameEn)}
@@ -719,7 +741,7 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
@@ -732,8 +754,8 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -742,7 +764,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "46px",
+                      marginLeft: "49px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -753,8 +775,8 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -786,7 +808,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "20px",
+                      marginLeft: "18px",
                       fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
@@ -810,8 +832,8 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -820,7 +842,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "21px",
+                      marginLeft: "23px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -831,8 +853,8 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -854,7 +876,7 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       fontFamily: "Kalpurush",
@@ -864,7 +886,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "92px",
+                      marginLeft: "95px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -875,7 +897,7 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
@@ -888,8 +910,8 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -898,7 +920,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "55px",
+                      marginLeft: "57px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -909,8 +931,8 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -932,7 +954,7 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       fontFamily: "Kalpurush",
@@ -942,7 +964,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "21px",
+                      marginLeft: "35px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -953,7 +975,7 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
@@ -966,8 +988,8 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -987,8 +1009,8 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -1010,7 +1032,7 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       fontFamily: "Kalpurush",
@@ -1020,7 +1042,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "75px",
+                      marginLeft: "80px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -1031,7 +1053,7 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
@@ -1044,8 +1066,8 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex", alignItems: "start" }}>
                   <span
                     style={{
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -1054,7 +1076,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "7px",
+                      marginLeft: "6px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -1065,8 +1087,8 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
@@ -1082,7 +1104,7 @@ const BirthCertificate: React.FC = () => {
                 <div style={{ flex: 1, display: "flex" }}>
                   <span
                     style={{
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       fontFamily: "Kalpurush",
@@ -1092,7 +1114,7 @@ const BirthCertificate: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      marginLeft: "49px",
+                      marginLeft: "59px",
                       fontSize: "15px",
                       color: "#000000",
                       fontWeight: "500",
@@ -1103,11 +1125,10 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
+                      fontSize: "15px",
                       color: "#2f2f2f",
                       fontWeight: "500",
                       width: "188px",
-                      lineHeight: "1.2",
                       fontFamily: "Kalpurush",
                     }}
                   >
@@ -1118,8 +1139,8 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       width: "90px",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                     }}
@@ -1139,8 +1160,8 @@ const BirthCertificate: React.FC = () => {
                   <span
                     style={{
                       marginLeft: "13px",
-                      fontSize: "18px",
-                      fontFamily: "Dai Banna SIL",
+                      fontSize: "15px",
+                      fontFamily: "Prima Sans",
                       color: "#000000",
                       fontWeight: "500",
                       width: "188px",
