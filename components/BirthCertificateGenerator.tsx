@@ -417,17 +417,17 @@ const BirthCertificate: React.FC = () => {
             </div>
 
             {/* Certificate Title */}
-            <div style={{ textAlign: "center", marginBottom: "5px" }}>
+            <div style={{ textAlign: "center", marginBottom: "5px", marginLeft: "25px",marginTop:"-5px" }}>
               <p
                 style={{
-                  fontSize: "17px",
+                  fontSize: "18px",
                   fontWeight: "600",
                   color: "#000000",
                 }}
               >
                 <span
                   style={{
-                    fontFamily: "Kalpurush",
+                    fontFamily: "Nikosh",
                     fontWeight: "600",
                     fontSize: "18px",
                   }}
@@ -436,8 +436,8 @@ const BirthCertificate: React.FC = () => {
                 </span>
                 <span
                   style={{
-                    fontFamily: "Dai Banna SIL",
-                    fontWeight: "600",
+                    fontFamily: "Nikosh",
+                    fontWeight: "500",
                     fontSize: "20px",
 
                   }}
@@ -486,7 +486,7 @@ const BirthCertificate: React.FC = () => {
                     fontSize: "18px",
                     fontWeight: "500",
                     color: "#1a1a1a",
-                    fontFamily: "Prima Sans",
+                    fontFamily: "Nikosh",
                   }}
                 >
                   Birth Registration Number
@@ -496,7 +496,7 @@ const BirthCertificate: React.FC = () => {
                     fontSize: "18px",
                     fontWeight: "550",
                     color: "#000000",
-                    fontFamily: "sans-serif",
+                    fontFamily: "Nikosh",
                     letterSpacing: "0.05em",
                   }}
                 >

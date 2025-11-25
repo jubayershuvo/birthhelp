@@ -1,8 +1,5 @@
 @import "tailwindcss";
 
-
-
-
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -24,23 +21,38 @@
   }
 }
 
-
 @font-face {
-  font-family: 'Prima Sans';
-  src: url('/fonts/Prima-Sans-Regular.woff2') format('woff2'),
-       url('/fonts/Prima-Sans-Regular.woff') format('woff');
+  font-family: "Prima Sans";
+  src: url("/fonts/Prima-Sans-Regular.woff2") format("woff2"),
+    url("/fonts/Prima-Sans-Regular.woff") format("woff");
 }
 
 @font-face {
-  font-family: 'Kalpurush';
-  src: url('/fonts/Kalpurush.woff2') format('woff2'),
-       url('/fonts/Kalpurush.woff') format('woff');
+  font-family: "Kalpurush";
+  src: url("/fonts/Kalpurush.woff2") format("woff2"),
+    url("/fonts/Kalpurush.woff") format("woff");
 }
 
 @font-face {
-  font-family: 'Prima Serif';
-  src: url('/fonts/PrimaSerifBT-Roman.woff2') format('woff2'),
-       url('/fonts/PrimaSerifBT-Roman.woff') format('woff');
+  font-family: "Prima Serif";
+  src: url("/fonts/PrimaSerifBT-Roman.woff2") format("woff2"),
+    url("/fonts/PrimaSerifBT-Roman.woff") format("woff");
+}
+@font-face {
+  font-family: "SolaimanLipi";
+  src: url("/fonts/SolaimanLipi-normal.ttf") format("ttf");
+}
+@font-face {
+  font-family: "Arial";
+  src: url("/fonts/ARIAL.TTF") format("ttf");
+}
+@font-face {
+  font-family: "Nikosh";
+  src: url("/fonts/Nikosh.ttf") format("ttf");
+}
+@font-face {
+  font-family: "Sans Serif Collection";
+  src: url("/fonts/SansSerifCollection.ttf") format("ttf");
 }
 
 body {
