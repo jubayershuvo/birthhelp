@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
           id: "birthPlaceLocationId",
           val:
             birthPlace.geoId !== "0"
-              ? birthPlace.geoId
+              ? birthPlace.country
               : birthPlace.paurasavaOrUnion.toString(),
         },
         {
@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
           id: "permAddrLocationId",
           val:
             permAddress.geoId !== "0"
-              ? permAddress.geoId
+              ? permAddress.country
               : permAddress.paurasavaOrUnion.toString(),
         },
         {
@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
           id: "prsntAddrLocationId",
           val:
             prsntAddress.geoId !== "0"
-              ? prsntAddress.geoId
+              ? prsntAddress.country
               : prsntAddress.paurasavaOrUnion.toString(),
         },
         {
@@ -306,7 +306,7 @@ export async function POST(request: NextRequest) {
       formData.append(
         "birthPlaceLocationId",
         birthPlace.geoId !== "0"
-          ? birthPlace.geoId
+          ? birthPlace.country
           : birthPlace.paurasavaOrUnion.toString()
       );
       formData.append(
@@ -354,7 +354,7 @@ export async function POST(request: NextRequest) {
       formData.append(
         "permAddrLocationId",
         permAddress.geoId !== "0"
-          ? permAddress.geoId
+          ? permAddress.country
           : permAddress.paurasavaOrUnion.toString()
       );
       formData.append(
@@ -408,7 +408,7 @@ export async function POST(request: NextRequest) {
       formData.append(
         "prsntAddrLocationId",
         prsntAddress.geoId !== "0"
-          ? prsntAddress.geoId
+          ? prsntAddress.country
           : prsntAddress.paurasavaOrUnion.toString()
       );
       formData.append(
