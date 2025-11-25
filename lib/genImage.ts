@@ -30,7 +30,7 @@ export async function generateQRCode(data: string): Promise<string | null> {
   try {
     const qrImage = await QRCode.toDataURL(cleanUrl(data), {
       errorCorrectionLevel: "H", // High error correction
-      width: 300,
+      width: 200,
     });
     return qrImage; // Base64 string
   } catch (error) {
