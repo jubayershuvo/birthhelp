@@ -183,28 +183,28 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     ward: useRef<HTMLSelectElement>(null),
   };
 
-  // Updated validation functions for address inputs - allowing numbers and special characters
+  // Updated validation functions for address inputs - allowing numbers, special characters, and additional symbols
   const validateBanglaText = (value: string): boolean => {
-    // Allow Bengali characters, numbers, and common special characters
-    const banglaRegex = /^[\u0980-\u09FF\s.,;:!?()\-–—'"০-৯]+$/;
+    // Allow Bengali characters, numbers, and common special characters including , - and space
+    const banglaRegex = /^[\u0980-\u09FF\s.,;:!?()\-–—'"০-৯,/ -]+$/;
     return banglaRegex.test(value) || value === "";
   };
 
   const validateEnglishText = (value: string): boolean => {
-    // Allow English characters, numbers, and common special characters
-    const englishRegex = /^[A-Za-z\s.,;:!?()\-–—'"0-9]+$/;
+    // Allow English characters, numbers, and common special characters including , - and space
+    const englishRegex = /^[A-Za-z\s.,;:!?()\-–—'"0-9,/ -]+$/;
     return englishRegex.test(value) || value === "";
   };
 
   const validateBanglaWithNumbers = (value: string): boolean => {
-    // Allow Bengali characters, numbers, and common special characters
-    const banglaWithNumbersRegex = /^[\u0980-\u09FF\s.,;:!?()\-–—'"০-৯]+$/;
+    // Allow Bengali characters, numbers, and common special characters including , - and space
+    const banglaWithNumbersRegex = /^[\u0980-\u09FF\s.,;:!?()\-–—'"০-৯,/ -]+$/;
     return banglaWithNumbersRegex.test(value) || value === "";
   };
 
   const validateEnglishWithNumbers = (value: string): boolean => {
-    // Allow English characters, numbers, and common special characters
-    const englishWithNumbersRegex = /^[A-Za-z\s.,;:!?()\-–—'"0-9]+$/;
+    // Allow English characters, numbers, and common special characters including , - and space
+    const englishWithNumbersRegex = /^[A-Za-z\s.,;:!?()\-–—'"0-9,/ -]+$/;
     return englishWithNumbersRegex.test(value) || value === "";
   };
 
@@ -293,31 +293,31 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     switch (field) {
       case "postOfc":
         isValid = validateBanglaText(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "postOfcEn":
         isValid = validateEnglishText(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+        errorMessage = isValid ? "" : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "vilAreaTownBn":
         isValid = validateBanglaWithNumbers(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "vilAreaTownEn":
         isValid = validateEnglishWithNumbers(value);
         errorMessage = isValid
           ? ""
-          : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+          : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "houseRoadBn":
         isValid = validateBanglaWithNumbers(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "houseRoadEn":
         isValid = validateEnglishWithNumbers(value);
         errorMessage = isValid
           ? ""
-          : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+          : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হайфেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
     }
 
@@ -335,7 +335,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     if (!addressInputs.postOfc.trim()) {
       newErrors.postOfc = "ডাকঘরের নাম বাংলায় পূরণ করুন";
     } else if (!validateBanglaText(addressInputs.postOfc)) {
-      newErrors.postOfc = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.postOfc = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.postOfc = "";
     }
@@ -344,7 +344,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     if (!addressInputs.postOfcEn.trim()) {
       newErrors.postOfcEn = "ডাকঘরের নাম ইংরেজিতে পূরণ করুন";
     } else if (!validateEnglishText(addressInputs.postOfcEn)) {
-      newErrors.postOfcEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.postOfcEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.postOfcEn = "";
     }
@@ -353,7 +353,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     if (!addressInputs.vilAreaTownBn.trim()) {
       newErrors.vilAreaTownBn = "গ্রাম/পাড়া/মহল্লার নাম বাংলায় পূরণ করুন";
     } else if (!validateBanglaWithNumbers(addressInputs.vilAreaTownBn)) {
-      newErrors.vilAreaTownBn = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.vilAreaTownBn = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.vilAreaTownBn = "";
     }
@@ -362,21 +362,21 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     if (!addressInputs.vilAreaTownEn.trim()) {
       newErrors.vilAreaTownEn = "গ্রাম/পাড়া/মহল্লার নাম ইংরেজিতে পূরণ করুন";
     } else if (!validateEnglishWithNumbers(addressInputs.vilAreaTownEn)) {
-      newErrors.vilAreaTownEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.vilAreaTownEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.vilAreaTownEn = "";
     }
 
     // Validate houseRoadBn (Bangla with numbers) - Optional
     if (addressInputs.houseRoadBn && !validateBanglaWithNumbers(addressInputs.houseRoadBn)) {
-      newErrors.houseRoadBn = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.houseRoadBn = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.houseRoadBn = "";
     }
 
     // Validate houseRoadEn (English with numbers) - Optional
     if (addressInputs.houseRoadEn && !validateEnglishWithNumbers(addressInputs.houseRoadEn)) {
-      newErrors.houseRoadEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.houseRoadEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.houseRoadEn = "";
     }
