@@ -293,15 +293,21 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     switch (field) {
       case "postOfc":
         isValid = validateBanglaText(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+        errorMessage = isValid
+          ? ""
+          : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "postOfcEn":
         isValid = validateEnglishText(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+        errorMessage = isValid
+          ? ""
+          : "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "vilAreaTownBn":
         isValid = validateBanglaWithNumbers(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+        errorMessage = isValid
+          ? ""
+          : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "vilAreaTownEn":
         isValid = validateEnglishWithNumbers(value);
@@ -311,7 +317,9 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         break;
       case "houseRoadBn":
         isValid = validateBanglaWithNumbers(value);
-        errorMessage = isValid ? "" : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+        errorMessage = isValid
+          ? ""
+          : "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
         break;
       case "houseRoadEn":
         isValid = validateEnglishWithNumbers(value);
@@ -335,7 +343,8 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     if (!addressInputs.postOfc.trim()) {
       newErrors.postOfc = "ডাকঘরের নাম বাংলায় পূরণ করুন";
     } else if (!validateBanglaText(addressInputs.postOfc)) {
-      newErrors.postOfc = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.postOfc =
+        "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.postOfc = "";
     }
@@ -344,7 +353,8 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     if (!addressInputs.postOfcEn.trim()) {
       newErrors.postOfcEn = "ডাকঘরের নাম ইংরেজিতে পূরণ করুন";
     } else if (!validateEnglishText(addressInputs.postOfcEn)) {
-      newErrors.postOfcEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.postOfcEn =
+        "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.postOfcEn = "";
     }
@@ -353,7 +363,8 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     if (!addressInputs.vilAreaTownBn.trim()) {
       newErrors.vilAreaTownBn = "গ্রাম/পাড়া/মহল্লার নাম বাংলায় পূরণ করুন";
     } else if (!validateBanglaWithNumbers(addressInputs.vilAreaTownBn)) {
-      newErrors.vilAreaTownBn = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.vilAreaTownBn =
+        "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.vilAreaTownBn = "";
     }
@@ -362,21 +373,30 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     if (!addressInputs.vilAreaTownEn.trim()) {
       newErrors.vilAreaTownEn = "গ্রাম/পাড়া/মহল্লার নাম ইংরেজিতে পূরণ করুন";
     } else if (!validateEnglishWithNumbers(addressInputs.vilAreaTownEn)) {
-      newErrors.vilAreaTownEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+      newErrors.vilAreaTownEn =
+        "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.vilAreaTownEn = "";
     }
 
     // Validate houseRoadBn (Bangla with numbers) - Optional
-    if (addressInputs.houseRoadBn && !validateBanglaWithNumbers(addressInputs.houseRoadBn)) {
-      newErrors.houseRoadBn = "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+    if (
+      addressInputs.houseRoadBn &&
+      !validateBanglaWithNumbers(addressInputs.houseRoadBn)
+    ) {
+      newErrors.houseRoadBn =
+        "শুধুমাত্র বাংলা অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.houseRoadBn = "";
     }
 
     // Validate houseRoadEn (English with numbers) - Optional
-    if (addressInputs.houseRoadEn && !validateEnglishWithNumbers(addressInputs.houseRoadEn)) {
-      newErrors.houseRoadEn = "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
+    if (
+      addressInputs.houseRoadEn &&
+      !validateEnglishWithNumbers(addressInputs.houseRoadEn)
+    ) {
+      newErrors.houseRoadEn =
+        "শুধুমাত্র ইংরেজি অক্ষর, সংখ্যা, কমা, হাইফেন এবং সাধারণ বিশেষ চিহ্ন অনুমোদিত";
     } else {
       newErrors.houseRoadEn = "";
     }
@@ -388,7 +408,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
 
     // For non-Bangladesh countries, check if all required address fields are filled
     if (selected.country !== "1" && selected.country !== "-1") {
-      const hasAllRequiredFields = 
+      const hasAllRequiredFields =
         addressInputs.postOfc.trim() &&
         addressInputs.postOfcEn.trim() &&
         addressInputs.vilAreaTownBn.trim() &&
@@ -402,7 +422,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
 
     // For Bangladesh, check required fields
     if (selected.country === "1") {
-      const hasAllRequiredFields = 
+      const hasAllRequiredFields =
         addressInputs.postOfc.trim() &&
         addressInputs.postOfcEn.trim() &&
         addressInputs.vilAreaTownBn.trim() &&
@@ -2094,14 +2114,16 @@ export default function BirthCorrectionForm() {
       toast.error("OTP পাঠাতে সমস্যা হয়েছে");
     }
   };
-
+const [loading, setLoading] = useState(false);
   const sessionReload = async () => {
+    if (loading) return;
     try {
       toast.loading("সেশন রিলোড হচ্ছে...", { id: "sessionReload" });
       const response = await fetch("/api/birth/application/correction");
 
       if (response.ok) {
         const newData = await response.json();
+        console.log(newData);
         setData(newData);
         handleInputChange("captcha", "");
         toast.success("সেশন রিলোড সফলভাবে হয়েছে", { id: "sessionReload" });
@@ -2114,7 +2136,7 @@ export default function BirthCorrectionForm() {
     }
   };
 
-  const [loading, setLoading] = useState(false);
+  
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -2125,8 +2147,9 @@ export default function BirthCorrectionForm() {
         setLoading(false);
       }
     }
+  
+      fetchData();
 
-    fetchData();
   }, []);
 
   if (loading) return <SimpleUnicodeLoader />;
@@ -2147,7 +2170,9 @@ export default function BirthCorrectionForm() {
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4 text-center">
               জন্ম তথ্য সংশোধনের জন্য আবেদন
             </h1>
-            <p className="text-red-600 text-center pb-2">প্রতি আবেদনে {formatBdt(data.serviceCost)} টাকা করে কাটা হবে</p>
+            <p className="text-red-600 text-center pb-2">
+              প্রতি আবেদনে {formatBdt(data.serviceCost)} টাকা করে কাটা হবে
+            </p>
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center">
                 <div

@@ -7,6 +7,9 @@ import Services from "@/models/Services";
 import Reseller from "@/models/Reseller";
 import Spent from "@/models/Use";
 import Earnings from "@/models/Earnings";
+import path from "path";
+import fs from "fs";
+import puppeteer from "puppeteer-extra";
 
 // Define types for the request body
 interface CorrectionInfo {
@@ -630,86 +633,248 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  const url = "https://bdris.gov.bd/br/correction";
-  const url1 = "https://bdris.gov.bd";
-
+  let browser;
   try {
-    await connectDB();
-    const user = await getUser();
-    if (!user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const servicePath = "/birth/application/correction";
-
-    const service = await Services.findOne({ href: servicePath });
-    if (!service) {
-      return NextResponse.json(
-        { success: false, error: "Service not found" },
-        { status: 404 }
-      );
-    }
-
-    const userService = user.services.find(
-      (s: { service: string }) =>
-        s.service.toString() === service._id.toString()
-    );
-
-    if (!userService) {
-      return NextResponse.json(
-        { success: false, error: "User does not have access to this service" },
-        { status: 403 }
-      );
-    }
-    const serviceCost = userService.fee + service.fee;
-
-    // Fetch the HTML page
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        referer: url1,
-      },
+    browser = await puppeteer.launch({
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-blink-features=AutomationControlled",
+      ],
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    const page = await browser.newPage();
 
-    const html = await response.text();
+    // --------- Extra anti-block settings ----------
+    await page.setViewport({ width: 1280, height: 900 });
 
-    // Extract cookies from response
-    const cookies = response.headers.get("set-cookie");
-    const cookiesStr: string = cookies ?? "";
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+        "AppleWebKit/537.36 (KHTML, like Gecko) " +
+        "Chrome/121.0.0.0 Safari/537.36"
+    );
 
-    const cookiesArr: string[] = [];
+    await page.setExtraHTTPHeaders({
+      "Accept-Language": "en-US,en;q=0.9",
+      Referer: "https://bdris.gov.bd/",
+    });
 
-    // Regex to capture all "key=value" before first semicolon of each cookie
-    const cookieRegex = /([^\s,=]+=[^;,\s]+)/g;
-    //match
-    let match: RegExpExecArray | null;
-    while ((match = cookieRegex.exec(cookiesStr)) !== null) {
-      cookiesArr.push(match[1]);
-    }
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, "webdriver", { get: () => false });
+    });
 
-    // Parse HTML to extract required data
-    const csrfMatch = html.match(/<meta name="_csrf" content="([^"]*)"/);
-    const csrf = csrfMatch ? csrfMatch[1] : null;
+    // ------------------------------------------------
 
-    const captchaMatch = html.match(/<img[^>]*id="captcha"[^>]*src="([^"]*)"/);
-    const captchaSrc = captchaMatch ? captchaMatch[1] : null;
+    await page.goto("https://bdris.gov.bd/br/correction", {
+      waitUntil: "networkidle2",
+      timeout: 90000,
+    });
+
+    // Wait for body load
+    await page.waitForSelector("body");
+
+    const html = await page.content();
+    console.log(html.length)
+
+    const cookies = await page.cookies();
+    const cookiesArr = cookies.map((c) => `${c.name}=${c.value}`);
+
+    const csrf = await page
+      .$eval('meta[name="_csrf"]', (el) => el.getAttribute("content"))
+      .catch(() => null);
+
+    const captchaSrc = await page
+      .$eval("#captcha", (el) => el.getAttribute("src"))
+      .catch(() => null);
+
+    await browser.close();
 
     return NextResponse.json({
-      url,
       cookies: cookiesArr,
       csrf,
-      serviceCost,
+      serviceCost: 0,
       captcha: {
         src: captchaSrc,
       },
     });
-  } catch (error) {
-    console.error("Scrape error:", error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  } catch (err) {
+    console.error(err);
+    return Response.json({ error: true, message: String(err) });
   }
 }
+
+// export async function GET() {
+//   const url = "https://bdris.gov.bd/br/correction";
+//   const url1 = "https://bdris.gov.bd";
+
+//   try {
+//     await connectDB();
+//     const user = await getUser();
+//     if (!user) {
+//       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+//     }
+
+//     const servicePath = "/birth/application/correction";
+
+//     const service = await Services.findOne({ href: servicePath });
+//     if (!service) {
+//       return NextResponse.json(
+//         { success: false, error: "Service not found" },
+//         { status: 404 }
+//       );
+//     }
+
+//     const userService = user.services.find(
+//       (s: { service: string }) =>
+//         s.service.toString() === service._id.toString()
+//     );
+
+//     if (!userService) {
+//       return NextResponse.json(
+//         { success: false, error: "User does not have access to this service" },
+//         { status: 403 }
+//       );
+//     }
+//     const serviceCost = userService.fee + service.fee;
+
+//     // Fetch the HTML page
+//     const headers = {
+//       "User-Agent":
+//         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+//       Accept:
+//         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+//       "Accept-Language": "en-US,en;q=0.9",
+//       "Accept-Encoding": "gzip, deflate, br",
+//       "Cache-Control": "no-cache",
+//       Connection: "keep-alive",
+//       "Upgrade-Insecure-Requests": "1",
+//       "Sec-Fetch-Dest": "document",
+//       "Sec-Fetch-Mode": "navigate",
+//       "Sec-Fetch-Site": "none",
+//       "Sec-Fetch-User": "?1",
+//       "sec-ch-ua":
+//         '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+//       "sec-ch-ua-mobile": "?0",
+//       "sec-ch-ua-platform": '"Windows"',
+//       Pragma: "no-cache",
+//       Referer: url1,
+//     };
+
+//     const response = await fetch(url, { headers });
+
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+
+//     const html = await response.text();
+
+//     // Check if we got the challenge page
+//     if (html.includes("Please enable JavaScript") || html.includes("ie9rgb4")) {
+//       throw new Error("Bot detection triggered - got challenge page");
+//     }
+
+//     //save the html
+//     const filePath = path.join(
+//       process.cwd(),
+//       "public",
+//       "html",
+//       "correction.html"
+//     );
+//     // if not exist create the file
+//     if (!fs.existsSync(path.dirname(filePath))) {
+//       fs.mkdirSync(path.dirname(filePath), { recursive: true });
+//     }
+//     await fs.promises.writeFile(filePath, html);
+
+//     // Extract cookies from response
+//     const cookies = response.headers.get("set-cookie");
+//     const cookiesStr: string = cookies ?? "";
+
+//     const cookiesArr: string[] = [];
+
+//     // Regex to capture all "key=value" before first semicolon of each cookie
+//     const cookieRegex = /([^\s,=]+=[^;,\s]+)/g;
+//     //match
+//     let match: RegExpExecArray | null;
+//     while ((match = cookieRegex.exec(cookiesStr)) !== null) {
+//       cookiesArr.push(match[1]);
+//     }
+
+//     // Parse HTML to extract required data
+//     const csrfMatch = html.match(/<meta name="_csrf" content="([^"]*)"/);
+//     const csrf = csrfMatch ? csrfMatch[1] : null;
+
+//     const captchaMatch = html.match(
+//       /<img[^>]*id=["']captcha["'][^>]*src=["'](data:image\/png;base64,[^"']+)["']/i
+//     );
+//     const captchaSrc = captchaMatch ? captchaMatch[1] : null;
+
+//     return NextResponse.json({
+//       url,
+//       cookies: cookiesArr,
+//       csrf,
+//       serviceCost,
+//       captcha: {
+//         src: captchaSrc,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Scrape error:", error);
+//     return NextResponse.json({ error: String(error) }, { status: 500 });
+//   }
+// }
+// export async function GET() {
+//   const url = "http://api.sheva247.site/test/cpr.php";
+//   try {
+//     await connectDB();
+//     const user = await getUser();
+//     if (!user) {
+//       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+//     }
+
+//     const servicePath = "/birth/application/correction";
+
+//     const service = await Services.findOne({ href: servicePath });
+//     if (!service) {
+//       return NextResponse.json(
+//         { success: false, error: "Service not found" },
+//         { status: 404 }
+//       );
+//     }
+
+//     const userService = user.services.find(
+//       (s: { service: string }) =>
+//         s.service.toString() === service._id.toString()
+//     );
+
+//     if (!userService) {
+//       return NextResponse.json(
+//         { success: false, error: "User does not have access to this service" },
+//         { status: 403 }
+//       );
+//     }
+//     const serviceCost = userService.fee + service.fee;
+
+//     const response = await fetch(url, { method: "GET" });
+//     const data = await response.json();
+//     const csrf = data.csrf_token;
+//     const cookiesArr = Object.entries(data.cookies).map(
+//       ([k, v]) => `${k}=${v}`
+//     );
+//     const captchaSrc = data.captcha_image_src;
+//     console.log(cookiesArr);
+//     return NextResponse.json({
+//       cookies: cookiesArr,
+//       csrf,
+//       serviceCost,
+//       captcha: {
+//         src: captchaSrc,
+//       },
+//     });
+//   } catch (error) {
+//     return NextResponse.json(
+//       { message: "Internal Server Error" },
+//       { status: 500 }
+//     );
+//   }
+// }

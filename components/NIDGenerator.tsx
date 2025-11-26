@@ -205,7 +205,7 @@ const NIDCard: React.FC = () => {
           >
             <img
               style={{
-                width: "80%",
+                width: "91%",
                 margin: "20px auto",
               }}
               src="/images/nid-formate.jpg"
@@ -215,17 +215,17 @@ const NIDCard: React.FC = () => {
           <div
             style={{
               position: "absolute",
-              top: "30px",
-              left: "75px",
-              height: "75px",
-              width: "320px",
+              top: "50px",
+              left: "100px",
+              height: "65px",
+              width: "297px",
               textAlign: "center",
               fontFamily: "SolaimanLipi",
             }}
           >
             <h2
               style={{
-                fontSize: "14px",
+                fontSize: "13px",
                 letterSpacing: "0.2px",
                 fontWeight: "400",
               }}
@@ -235,7 +235,7 @@ const NIDCard: React.FC = () => {
             <h2
               style={{
                 fontFamily: "Arial",
-                fontSize: "12px",
+                fontSize: "11px",
                 color: "#007700",
                 letterSpacing: "0.2px",
                 fontWeight: "400",
@@ -277,7 +277,9 @@ const NIDCard: React.FC = () => {
             <div
               style={{
                 position: "absolute",
-                width: "80px",
+                width: "65px",
+                top: "17px",
+                left: "38px",
                 textAlign: "center",
               }}
             >
@@ -302,7 +304,8 @@ const NIDCard: React.FC = () => {
               <div
                 style={{
                   position: "absolute",
-                  left: "85px",
+                  left: "110px",
+                  top: "10px",
                   width: "277px",
                   height: "100%",
                   textAlign: "left",
@@ -312,14 +315,14 @@ const NIDCard: React.FC = () => {
               >
                 <div
                   style={{
-                    paddingBottom: "5.5px",
+                    paddingBottom: "5px",
                   }}
                 >
                   <p>
                     নাম:{" "}
                     <span
                       style={{
-                        fontWeight: "bold",
+                        fontWeight: "800",
                       }}
                     >
                       {nidData.nameBn}
@@ -330,7 +333,7 @@ const NIDCard: React.FC = () => {
                 <div
                   style={{
                     fontFamily: "Arial",
-                    paddingBottom: "5.5px",
+                    paddingBottom: "5px",
                   }}
                 >
                   <p>
@@ -347,7 +350,7 @@ const NIDCard: React.FC = () => {
 
                 <div
                   style={{
-                    paddingBottom: "5.5px",
+                    paddingBottom: "5px",
                   }}
                 >
                   <p>
@@ -357,7 +360,7 @@ const NIDCard: React.FC = () => {
 
                 <div
                   style={{
-                    paddingBottom: "5.5px",
+                    paddingBottom: "5px",
                   }}
                 >
                   <p>
@@ -368,7 +371,7 @@ const NIDCard: React.FC = () => {
                 <div
                   style={{
                     fontFamily: "Arial",
-                    paddingBottom: "5.5px",
+                    paddingBottom: "5px",
                     fontWeight: "400",
                   }}
                 >
@@ -407,17 +410,19 @@ const NIDCard: React.FC = () => {
           <div
             style={{
               position: "absolute",
-              top: "30px",
+              top: "47px",
               left: "401px",
               height: "45px",
-              width: "359px",
+              width: "340px",
+              letterSpacing: "0.2px",
+              fontWeight: "500",
             }}
           >
             {" "}
             <p
               style={{
                 fontFamily: "SolaimanLipi",
-                fontSize: "9px",
+                fontSize: "8px",
                 width: "92%",
                 margin: "auto",
                 paddingTop: "5px",
@@ -431,7 +436,7 @@ const NIDCard: React.FC = () => {
           <div
             style={{
               position: "absolute",
-              top: "70px",
+              top: "86px",
               left: "401px",
               height: "80px",
               width: "359px",
@@ -448,10 +453,10 @@ const NIDCard: React.FC = () => {
                 style={{
                   position: "absolute",
                   height: "50px",
-                  width: "100%",
+                  width: "90%",
                   margin: "auto",
                   fontFamily: "SolaimanLipi",
-                  fontSize: "9px",
+                  fontSize: "8px",
                   display: "flex",
                 }}
               >
@@ -462,9 +467,9 @@ const NIDCard: React.FC = () => {
               <div
                 style={{
                   position: "absolute",
-                  top: "56px",
+                  top: "49px",
                   height: "30px",
-                  width: "100%",
+                  width: "91%",
                   margin: "auto",
                   fontFamily: "SolaimanLipi",
                   fontSize: "9px",
@@ -526,7 +531,7 @@ const NIDCard: React.FC = () => {
               top: "145px",
               left: "403px",
               height: "115px",
-              width: "359px",
+              width: "325px",
               overflow: "hidden",
               fontSize: "9px",
               fontFamily: "SolaimanLipi",
@@ -536,7 +541,7 @@ const NIDCard: React.FC = () => {
             <div
               style={{
                 width: "100%",
-                height: "50%",
+                height: "51%",
                 position: "relative",
               }}
             >
@@ -555,6 +560,7 @@ const NIDCard: React.FC = () => {
                   position: "absolute",
                   bottom: "0px",
                   left: "15px",
+                  fontSize: "10px",
                 }}
               >
                 প্রদানকারী কর্তৃপক্ষের স্বাক্ষর{" "}
@@ -563,8 +569,8 @@ const NIDCard: React.FC = () => {
               <div
                 style={{
                   position: "absolute",
-                  bottom: "0px",
-                  left: "220px",
+                  bottom: "1px",
+                  left: "190px",
                   display: "flex",
                 }}
               >

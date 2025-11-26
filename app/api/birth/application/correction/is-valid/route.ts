@@ -1,9 +1,8 @@
 // app/api/birth-registration/correction/route.ts
 import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
-import fs from "fs";
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
+
 
 // Define types for the request body
 interface CorrectionInfo {

@@ -26,10 +26,10 @@ export async function POST(req: NextRequest) {
     headers.set("Accept", "*/*");
     headers.set("X-Requested-With", "XMLHttpRequest");
     headers.set("Referer", "https://bdris.gov.bd/br/correction");
-
     // Make the request
     const response = await fetch(url, { headers });
     if (!response.ok) {
+      console.log(response)
       return NextResponse.json({ success: false, error: "Failed to fetch data" }, { status: 500 });
     }
     const jsonData = await response.json(); // JSON response
