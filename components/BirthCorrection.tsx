@@ -1707,6 +1707,10 @@ export default function BirthCorrectionForm() {
 
     setIsLoading(true);
     const loadingToast = toast.loading("অনুসন্ধান করা হচ্ছে...");
+    const formattedDob = formData.dob
+      .replace(/[-]/g, "/")
+      .replace(/[.]/g, "/")
+      .replace(/[ ]/g, "/");
 
     try {
       const res = await fetch(
@@ -1715,7 +1719,7 @@ export default function BirthCorrectionForm() {
           method: "POST",
           body: JSON.stringify({
             ubrn: formData.ubrn,
-            dob: formData.dob,
+            dob: formattedDob,
             captcha: formData.captcha,
             data,
           }),
@@ -2114,7 +2118,7 @@ export default function BirthCorrectionForm() {
       toast.error("OTP পাঠাতে সমস্যা হয়েছে");
     }
   };
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const sessionReload = async () => {
     if (loading) return;
     try {
@@ -2136,7 +2140,6 @@ const [loading, setLoading] = useState(false);
     }
   };
 
-  
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -2147,9 +2150,8 @@ const [loading, setLoading] = useState(false);
         setLoading(false);
       }
     }
-  
-      fetchData();
 
+    fetchData();
   }, []);
 
   if (loading) return <SimpleUnicodeLoader />;

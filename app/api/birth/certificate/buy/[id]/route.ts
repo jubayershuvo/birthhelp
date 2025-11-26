@@ -12,7 +12,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  console.log(id);
   if (!id) {
     return NextResponse.json(
       { message: "Certificate ID is required" },
@@ -66,6 +65,8 @@ export async function GET(
       );
     }
     certificate.user = user._id;
+    certificate.birthPlaceBn = `${certificate.birthPlaceBn}, বাংলাদেশ`;
+    certificate.birthPlaceEn = `${certificate.birthPlaceEn}, BANGLADESH`;
     user.balance -= serviceCost;
     reseller.balance += userService.fee;
 

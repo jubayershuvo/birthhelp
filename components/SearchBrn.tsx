@@ -108,7 +108,7 @@ export default function BirthCertificateSearch() {
         setSearchData(null);
       }
     } catch (err) {
-      toast.error("❌ Error loading record details");
+      toast.error("❌ Faild to load Retry..");
       setSearchData(null);
     } finally {
       setLoading(false);
@@ -253,7 +253,7 @@ export default function BirthCertificateSearch() {
 
           <div className="w-full text-center pb-4">
             <p className="text-red-600">
-              প্রতি বার ${searchData.cost} টাকা করে কাটা হবে
+              প্রতি বার {searchData.cost} টাকা করে কাটা হবে
             </p>
           </div>
 
