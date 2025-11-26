@@ -58,6 +58,7 @@ export async function POST(req: Request) {
         { status: 402 }
       );
     }
+    console.log(ubrn,dob)
     const response = await fetch(
       `http://api.sheva247.site/birth_test/api/birth_verification_get.php?ubrn=${ubrn}&dob=${dob}`
     );

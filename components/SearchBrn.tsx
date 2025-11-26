@@ -64,13 +64,6 @@ export default function BirthCertificateSearch() {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const router = useRouter();
 
-  // Format date from YYYY-MM-DD to DD/MM/YYYY
-  const formatDateToDDMMYYYY = useCallback((dateString: string): string => {
-    if (!dateString) return "";
-
-    return dateString.replace(/[ -,.]/g, "/");
-  }, []);
-
   // Search form handler
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,7 +85,13 @@ export default function BirthCertificateSearch() {
 
     try {
       // Format the date before sending to API
-      const formattedDob = formatDateToDDMMYYYY(searchForm.dob);
+      if (searchForm && !searchForm.dob) {
+        return toast.error("❌ Please fill in both UBRN and Date of Birth");
+      }
+      const formattedDob = searchForm.dob
+        .replace(/[ ]/g, "/")
+        .replace(/[-]/g, "/")
+        .replace(/[.]/g, "/");
 
       const payload = {
         ubrn: searchForm.ubrn,
@@ -114,7 +113,7 @@ export default function BirthCertificateSearch() {
     } finally {
       setLoading(false);
     }
-  }, [searchForm, formatDateToDDMMYYYY]);
+  }, [searchForm]);
 
   // Show full data handler - redirect to edit page
   const handleShowFull = useCallback(async () => {
