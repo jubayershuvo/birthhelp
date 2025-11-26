@@ -635,6 +635,34 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   let browser;
   try {
+    await connectDB();
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const servicePath = "/birth/application/correction";
+
+    const service = await Services.findOne({ href: servicePath });
+    if (!service) {
+      return NextResponse.json(
+        { success: false, error: "Service not found" },
+        { status: 404 }
+      );
+    }
+
+    const userService = user.services.find(
+      (s: { service: string }) =>
+        s.service.toString() === service._id.toString()
+    );
+
+    if (!userService) {
+      return NextResponse.json(
+        { success: false, error: "User does not have access to this service" },
+        { status: 403 }
+      );
+    }
+    const serviceCost = userService.fee + service.fee;
     browser = await puppeteer.launch({
       args: [
         "--no-sandbox",
@@ -674,7 +702,7 @@ export async function GET() {
     await page.waitForSelector("body");
 
     const html = await page.content();
-    console.log(html.length)
+    console.log(html.length);
 
     const cookies = await page.cookies();
     const cookiesArr = cookies.map((c) => `${c.name}=${c.value}`);
@@ -692,7 +720,7 @@ export async function GET() {
     return NextResponse.json({
       cookies: cookiesArr,
       csrf,
-      serviceCost: 0,
+      serviceCost: serviceCost,
       captcha: {
         src: captchaSrc,
       },
