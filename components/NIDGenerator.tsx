@@ -146,8 +146,6 @@ const NIDCard: React.FC = () => {
     fetchNidData();
   };
 
-
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center dark:bg-gray-800">
@@ -205,7 +203,14 @@ const NIDCard: React.FC = () => {
               textAlign: "center",
             }}
           >
-            <img src="/images/nid-formate.jpg" alt="nid" />
+            <img
+              style={{
+                width: "80%",
+                margin: "20px auto",
+              }}
+              src="/images/nid-formate.jpg"
+              alt="nid"
+            />
           </div>
           <div
             style={{
