@@ -663,35 +663,11 @@ export async function GET() {
     }
     const serviceCost = userService.fee + service.fee;
 
-    const response1 = await fetch(url1, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      },
-    });
-
-    if (!response1.ok) {
-      throw new Error(`HTTP error! status: ${response1.status}`);
-    }
-    const cookies1 = response1.headers.get("set-cookie");
-    const cookiesStr1: string = cookies1 ?? "";
-
-    const cookiesArr1: string[] = [];
-
-    // Regex to capture all "key=value" before first semicolon of each cookie
-    const cookieRegex1 = /([^\s,=]+=[^;,\s]+)/g;
-    //match
-    let match1: RegExpExecArray | null;
-    while ((match1 = cookieRegex1.exec(cookiesStr1)) !== null) {
-      cookiesArr1.push(match1[1]);
-    }
-
     // Fetch the HTML page
     const response = await fetch(url, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Cookie: cookiesArr1?.join("; "),
         referer: url1,
       },
     });

@@ -29,9 +29,9 @@ export async function POST(req: NextRequest) {
 
     // Make the request
     const response = await fetch(url, { headers });
-    // if (!response.ok) {
-    //   return NextResponse.json({ success: false, error: "Failed to fetch data" }, { status: 500 });
-    // }
+    if (!response.ok) {
+      return NextResponse.json({ success: false, error: "Failed to fetch data" }, { status: 500 });
+    }
     const jsonData = await response.json(); // JSON response
     if (jsonData.success === false) {
       return NextResponse.json(
