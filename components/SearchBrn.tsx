@@ -68,21 +68,7 @@ export default function BirthCertificateSearch() {
   const formatDateToDDMMYYYY = useCallback((dateString: string): string => {
     if (!dateString) return "";
 
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        throw new Error("Invalid date");
-      }
-
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-
-      return `${day}/${month}/${year}`;
-    } catch (error) {
-      console.error("Date formatting error:", error);
-      return dateString; // Return original if formatting fails
-    }
+    return dateString.replace(/[ -,.]/g, "/");
   }, []);
 
   // Search form handler
@@ -200,8 +186,9 @@ export default function BirthCertificateSearch() {
           </label>
           <input
             id="dob"
-            type="date"
+            type="text"
             name="dob"
+            placeholder="DD/MM/YYYY"
             value={searchForm.dob}
             onChange={handleSearchChange}
             className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
@@ -266,7 +253,9 @@ export default function BirthCertificateSearch() {
           </h3>
 
           <div className="w-full text-center pb-4">
-            <p className="text-red-600">প্রতি বার ${searchData.cost} টাকা করে কাটা হবে</p>
+            <p className="text-red-600">
+              প্রতি বার ${searchData.cost} টাকা করে কাটা হবে
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
