@@ -1,0 +1,317 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+
+export default function BDRISPrint() {
+  const [appId, setAppId] = useState("");
+  const [dob, setDob] = useState("");
+  const [appType, setAppType] = useState("br");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const [data, setData] = useState({
+    serviceCost: 0,
+  });
+
+  const sessionReload = async () => {
+    if (loading) return;
+    try {
+      toast.loading("সেশন রিলোড হচ্ছে...", { id: "sessionReload" });
+      const response = await fetch("/api/download/session");
+
+      if (response.ok) {
+        const newData = await response.json();
+        setData(newData);
+        toast.success("সেশন রিলোড সফলভাবে হয়েছে", { id: "sessionReload" });
+      } else {
+        toast.error("সেশন রিলোড করতে সমস্যা হয়েছে", { id: "sessionReload" });
+      }
+    } catch (error) {
+      toast.error("সেশন রিলোড করতে সমস্যা হয়েছে", { id: "sessionReload" });
+    }
+  };
+
+  useEffect(() => {
+    sessionReload();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setResult(null);
+
+    toast.loading("PDF ডাউনলোড শুরু হয়েছে...", { id: "pdfDownload" });
+    
+    try {
+      const apiUrl = `/api/download/pdf?appId=${appId}&dob=${dob}&appType=${appType}`;
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/pdf,text/html,*/*",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Download failed");
+      }
+
+      toast.success("PDF ডাউনলোড সফল হয়েছে", { id: "pdfDownload" });
+      setAppId("");
+      setDob("");
+      setAppType("br");
+      
+    } catch (err) {
+      setResult({
+        type: "error",
+        message: `ব্যর্থ হয়েছে`,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+      <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <div className="p-6">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center mb-3">
+              <svg
+                className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-2"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                বিডিআরআইএস প্রিন্ট
+              </h1>
+            </div>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              জন্ম ও মৃত্যু নিবন্ধনের যেকোনো আবেদন প্রিন্ট করুন
+            </p>
+            <p className="text-red-500 dark:text-red-400 mt-2">
+              প্রতি বার {data.serviceCost} টাকা করে কাটা হবে
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Application ID */}
+            <div>
+              <label
+                htmlFor="appId"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                আবেদন নম্বর (Application ID)
+              </label>
+              <input
+                type="text"
+                id="appId"
+                value={appId}
+                onChange={(e) => setAppId(e.target.value)}
+                placeholder="যেমন: 257699728"
+                required
+                className="w-full px-4 py-3 border  border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+              />
+            </div>
+
+            {/* Date of Birth/Death */}
+            <div>
+              <label
+                htmlFor="dob"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                জন্ম/মৃত্যু তারিখ (dd/mm/yyyy)
+              </label>
+              <input
+                type="text"
+                id="dob"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                placeholder="যেমন: 12/07/1982"
+                required
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+              />
+            </div>
+
+            {/* Application Type */}
+            <div>
+              <label
+                htmlFor="appType"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                আবেদনের ধরন
+              </label>
+              <select
+                id="appType"
+                value={appType}
+                onChange={(e) => setAppType(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+              >
+                <option value="br">জন্ম নিবন্ধনের জন্য আবেদন</option>
+                <option value="br_correction">জন্ম তথ্য সংশোধন</option>
+                <option value="br_reprint">জন্ম নিবন্ধন প্রতিলিপি</option>
+                <option value="br_cancel">জন্ম সনদ বাতিলের আবেদন</option>
+                <option value="dr">মৃত্যু নিবন্ধনের জন্য আবেদন</option>
+                <option value="dr_correction">মৃত্যু তথ্য সংশোধন</option>
+                <option value="dr_reprint">মৃত্যু নিবন্ধন প্রতিলিপি</option>
+                <option value="dr_cancel">মৃত্যু সনদ বাতিলের আবেদন</option>
+              </select>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 dark:bg-blue-700 dark:hover:bg-blue-600 dark:disabled:bg-blue-800 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  ডাউনলোড প্রস্তুত হচ্ছে...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  PDF ডাউনলোড করুন
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Download Popup/Message */}
+          {result && (
+            <div
+              className={`mt-6 p-4 rounded-lg animate-fade-in ${
+                result.type === "success"
+                  ? "bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-800 text-green-800 dark:text-green-300"
+                  : "bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800 text-red-800 dark:text-red-300"
+              }`}
+            >
+              <div className="flex items-start">
+                {result.type === "success" ? (
+                  <svg
+                    className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+                <div>
+                  <strong className="block text-sm">
+                    {result.type === "success"
+                      ? "ডাউনলোড সফল!"
+                      : "ডাউনলোড ব্যর্থ!"}
+                  </strong>
+                  <span
+                    className="text-sm mt-1 block"
+                    dangerouslySetInnerHTML={{ __html: result.message }}
+                  />
+                  {result.type === "success" && (
+                    <div className="mt-2 text-xs text-green-700 dark:text-green-400">
+                      ✅ ডাউনলোড স্বয়ংক্রিয়ভাবে শুরু হয়েছে
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Note */}
+          <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 rounded-lg">
+            <strong className="block text-yellow-800 dark:text-yellow-300 text-sm mb-2">
+              দ্রষ্টব্য:
+            </strong>
+            <ul className="text-yellow-700 dark:text-yellow-400 text-sm space-y-1">
+              <li>• আবেদন নম্বর ও সঠিক তারিখ দিতে হবে</li>
+              <li>• সার্ভারে কিছু সময় লাগতে পারে (৫-১৫ সেকেন্ড)</li>
+              <li>• PDF ডাউনলোড স্বয়ংক্রিয়ভাবে শুরু হবে</li>
+              <li>• যদি ডাউনলোড না হয়, ব্রাউজারের পপ-আপ ব্লকার চেক করুন</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Add custom animations */}
+      <style jsx global>{`
+        @import url("https://fonts.maateen.me/solaiman-lipi/font.css");
+
+        body {
+          font-family: "SolaimanLipi", Arial, sans-serif;
+        }
+
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+      `}</style>
+    </div>
+  );
+}

@@ -95,7 +95,7 @@ export default function ViewCorrectionPage({
               <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Application ID
               </label>
-              <p className="mt-1 text-sm text-gray-900 dark:text-white">
+              <p className="mt-1 font-bold text-gray-900 dark:text-white">
                 {application.applicationId}
               </p>
             </div>
@@ -192,7 +192,7 @@ export default function ViewCorrectionPage({
           >
             Back
           </button>
-          <button
+          {/* <button
             type="button"
             onClick={handleDownload}
             disabled={isDownloading}
@@ -225,9 +225,10 @@ export default function ViewCorrectionPage({
             ) : (
               "Download PDF"
             )}
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
   );
 }
+// 
