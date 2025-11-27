@@ -62,12 +62,13 @@ export async function GET(request: Request) {
 
     browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox"],
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
     await page.setExtraHTTPHeaders({
       "Accept-Language": "en-US,en;q=0.9",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       "Upgrade-Insecure-Requests": "1",
       Referer: "http://api.sheva247.site",
     });
@@ -76,48 +77,77 @@ export async function GET(request: Request) {
 
     await page.evaluateOnNewDocument(() => {
       Object.defineProperty(navigator, "webdriver", { get: () => false });
+      Object.defineProperty(navigator, "languages", { get: () => ["en-US", "en"] });
     });
 
     page.on("requestfailed", (req) => {
       console.log("❌ Request failed:", req.url(), req.failure());
     });
 
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    page.on("console", (msg) => {
+      console.log("PAGE LOG:", msg.text());
+    });
+
+    // Wait for network to be idle and content to load
+    await page.goto(url, { 
+      waitUntil: "networkidle0",
+      timeout: 30000 
+    });
 
     const html = await page.content();
+    
     if (html.includes("session has expired")) {
       return NextResponse.json({ error: "Session Expired" }, { status: 403 });
     }
-    if (html.includes("error")) {
+    
+    if (html.includes("error") || html.includes("not found") || html.includes("কোনও অ্যাপ্লিকেশন পাওয়া যায় নাই")) {
       return NextResponse.json(
         { error: "কোনও অ্যাপ্লিকেশন পাওয়া যায় নাই" },
-        { status: 403 }
+        { status: 404 }
       );
     }
 
-    // Generate PDF as buffer and convert to Uint8Array
+    // Check if we actually got valid content
+    const bodyText = await page.evaluate(() => document.body.innerText);
+    if (!bodyText || bodyText.length < 100) {
+      return NextResponse.json(
+        { error: "No valid content found for PDF generation" },
+        { status: 404 }
+      );
+    }
+
+    // Generate PDF as buffer
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
       margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
+      timeout: 30000
     });
 
-    // Convert Buffer to Uint8Array
-    const pdfUint8Array = new Uint8Array(pdfBuffer);
+    if (!pdfBuffer || pdfBuffer.length === 0) {
+      throw new Error("Generated PDF is empty");
+    }
 
     // Create filename for download
     const filename = `${appId}.pdf`;
 
-    // Create response with Uint8Array
-    const response = new NextResponse(pdfUint8Array, {
+    // Convert buffer to Blob or use ArrayBuffer for proper response
+    const pdfArrayBuffer = pdfBuffer.buffer.slice(
+      pdfBuffer.byteOffset,
+      pdfBuffer.byteOffset + pdfBuffer.byteLength
+    );
+
+    // Create response with proper body type
+    const response = new NextResponse(pdfArrayBuffer as ArrayBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${filename}"`,
-        "Content-Length": pdfUint8Array.length.toString(),
+        "Content-Length": pdfBuffer.length.toString(),
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache",
         "Expires": "0",
+        "X-Filename": filename,
       },
     });
 
@@ -145,17 +175,36 @@ export async function GET(request: Request) {
     await reseller.save();
     await user.save();
 
+    console.log(`✅ PDF generated successfully: ${filename}, Size: ${pdfBuffer.length} bytes`);
+
     return response;
 
   } catch (err) {
-    console.error("❌ PDF Error:", err);
+    console.error("❌ PDF Generation Error:", err);
+    
+    // More specific error messages
+    if (err instanceof Error) {
+      if (err.message.includes("timeout")) {
+        return NextResponse.json(
+          { error: "Request timeout - service took too long to respond" },
+          { status: 504 }
+        );
+      }
+      if (err.message.includes("net::ERR")) {
+        return NextResponse.json(
+          { error: "Network error - cannot connect to the service" },
+          { status: 502 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: "PDF generation failed", details: String(err) },
       { status: 500 }
     );
   } finally {
     if (browser) {
-      await browser.close();
+      await browser.close().catch(console.error);
     }
   }
 }

@@ -1779,7 +1779,7 @@ export default function BirthCorrectionForm() {
   const processSelectedFiles = (files: File[]) => {
     const valid = files.filter(
       (f) =>
-        ["image/jpeg", "image/jpg", "image/png", "application/pdf"].includes(
+        ["image/jpeg", "image/jpg", "image/png"].includes(
           f.type
         ) && f.size <= 2 * 1024 * 1024
     );
