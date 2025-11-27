@@ -8,8 +8,8 @@ import {
   ArrowRightToLine,
   Wallet,
   ShoppingBag,
-  BriefcaseBusiness,
   MessageCircle,
+  ArrowBigRight,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -109,7 +109,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
               service: { name: string; href: string };
             }) => ({
               label: name,
-              icon: <BriefcaseBusiness size={20} />,
+              icon: <ArrowBigRight size={20} />,
               href,
             })
           );

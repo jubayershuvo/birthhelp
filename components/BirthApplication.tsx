@@ -1312,11 +1312,13 @@ const validatePassport = (passport: string): boolean => {
 };
 
 // Main Birth Registration Form Component
-export default function BirthRegistrationForm({
-  csrf,
-  cookieString,
-}: BirthRegistrationFormProps) {
-  const [currentStep, setCurrentStep] = useState(4);
+export default function BirthRegistrationForm() {
+  const [sessionData, setSessionData] = useState({
+    cookies: [],
+    csrf: "",
+    serviceCost: 0,
+  });
+  const [currentStep, setCurrentStep] = useState(3);
   const [formData, setFormData] = useState<FormData>({
     officeAddressType: "",
     officeAddrCountry: "",
@@ -1375,8 +1377,25 @@ export default function BirthRegistrationForm({
     },
   });
 
-  console.log(cookieString);
-  console.log(csrf);
+  const fetchSession = async () => {
+    toast.loading("Loading session data...",{id: "sessionReload"});
+    try {
+
+      const response = await fetch("/api/birth/application/registration");
+      const data = await response.json();
+      setSessionData(data);
+      toast.success("Session data loaded successfully",{id: "sessionReload"});
+    } catch (error) {
+      console.error("Error fetching session data:", error);
+      toast.error("Failed to load session data",{id: "sessionReload"});
+    }
+  };
+
+  useEffect(() => {
+    fetchSession();
+  }, []);
+
+  console.log(sessionData);
 
   const [bdMissionChecked, setBdMissionChecked] = useState(false);
   const [age, setAge] = useState<{
@@ -1543,8 +1562,8 @@ export default function BirthRegistrationForm({
           id: countryId,
           geoOrder: "0",
           geoType: "10",
-          csrf: csrf,
-          cookie: cookieString,
+          csrf: sessionData.csrf,
+          cookie: sessionData.cookies,
         }),
       });
 
@@ -1626,8 +1645,8 @@ export default function BirthRegistrationForm({
           id: cityId,
           geoOrder: countryTargetGeoOrder.toString(), // Use dynamic targetGeoOrder from country response
           geoType: selectedCity.geoLevelId?.toString() || "11", // Use city's geoLevelId
-          csrf: csrf,
-          cookie: cookieString,
+          csrf: sessionData.csrf,
+          cookie: sessionData.cookies,
         }),
       });
 
@@ -2095,7 +2114,8 @@ export default function BirthRegistrationForm({
     try {
       // Prepare final data according to your API structure
       const submissionData = {
-        _csrf: csrf,
+        _csrf: sessionData.csrf,
+        cookies: sessionData.cookies,
         officeAddressType: formData.officeAddressType,
         officeAddrCountry: formData.officeAddrCountry,
         officeAddrCity: formData.officeAddrCity,
@@ -2212,11 +2232,10 @@ export default function BirthRegistrationForm({
       console.log("Form submission data:", submissionData);
 
       // Send data to API
-      const response = await fetch("/api/birth-registration", {
+      const response = await fetch("/api/birth/application/registration", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Cookie: cookieString,
         },
         body: JSON.stringify(submissionData),
       });
@@ -2263,6 +2282,7 @@ export default function BirthRegistrationForm({
           <p className="text-gray-600 dark:text-gray-300 text-center text-sm sm:text-base">
             Birth Registration Application Form
           </p>
+          <p className="text-red-600 text-center text-sm mt-2">প্রতি আবেদনে {sessionData.serviceCost} টাকা করে কাটা হবে</p>
         </div>
 
         {/* Progress Steps - Made Responsive */}
@@ -2922,7 +2942,7 @@ export default function BirthRegistrationForm({
                     )}
                   </div>
 
-                  <div data-field="father.personNid">
+                  {/* <div data-field="father.personNid">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       পিতার জাতীয় পরিচয়পত্র নম্বর
                     </label>
@@ -2948,7 +2968,7 @@ export default function BirthRegistrationForm({
                         {formErrors["father.personNid"]}
                       </p>
                     )}
-                  </div>
+                  </div> */}
 
                   <div data-field="father.personNationality">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -2987,7 +3007,7 @@ export default function BirthRegistrationForm({
                     )}
                   </div>
 
-                  <div data-field="father.passportNumber">
+                  {/* <div data-field="father.passportNumber">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       পিতার পাসপোর্ট নম্বর
                     </label>
@@ -3013,7 +3033,7 @@ export default function BirthRegistrationForm({
                         {formErrors["father.passportNumber"]}
                       </p>
                     )}
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Mother's Information */}
@@ -3118,7 +3138,7 @@ export default function BirthRegistrationForm({
                     )}
                   </div>
 
-                  <div data-field="mother.personNid">
+                  {/* <div data-field="mother.personNid">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       মাতার জাতীয় পরিচয়পত্র নম্বর
                     </label>
@@ -3144,7 +3164,7 @@ export default function BirthRegistrationForm({
                         {formErrors["mother.personNid"]}
                       </p>
                     )}
-                  </div>
+                  </div> */}
 
                   <div data-field="mother.personNationality">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -3183,7 +3203,7 @@ export default function BirthRegistrationForm({
                     )}
                   </div>
 
-                  <div data-field="mother.passportNumber">
+                  {/* <div data-field="mother.passportNumber">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       মাতার পাসপোর্ট নম্বর
                     </label>
@@ -3209,7 +3229,7 @@ export default function BirthRegistrationForm({
                         {formErrors["mother.passportNumber"]}
                       </p>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
@@ -3630,47 +3650,6 @@ export default function BirthRegistrationForm({
                     </div>
                   </div>
                 </div>
-
-                {/* Upload Summary */}
-                {uploadedFiles.length > 0 && (
-                  <div className="border-b dark:border-gray-700 pb-6">
-                    <h4 className="font-semibold text-gray-800 dark:text-white mb-4">
-                      আপলোডকৃত ফাইল সমূহ
-                    </h4>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                      <p className="text-blue-800 dark:text-blue-300 text-sm mb-2">
-                        মোট আপলোডকৃত ফাইল: {uploadedFiles.length}টি
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                        {uploadedFiles.map((file) => (
-                          <div
-                            key={file.id}
-                            className="flex justify-between items-center"
-                          >
-                            <span className="text-gray-700 dark:text-gray-300">
-                              {file.name}
-                            </span>
-                            <span
-                              className={`px-2 py-1 rounded ${
-                                file.uploadedId
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                  : file.isUploading
-                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                              }`}
-                            >
-                              {file.uploadedId
-                                ? `আপলোডেড`
-                                : file.isUploading
-                                ? "আপলোড হচ্ছে..."
-                                : "ফাইল টাইপ নির্বাচন করুন"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* Terms and Conditions */}
                 <div>
