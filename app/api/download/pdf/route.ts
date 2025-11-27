@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer-extra";
-import fs from "fs";
-import path from "path";
-import os from "os";
 import Services from "@/models/Services";
 import { connectDB } from "@/lib/mongodb";
 import { getUser } from "@/lib/getUser";
@@ -48,7 +45,6 @@ export async function GET(request: Request) {
     );
   }
 
-
   const serviceCost = userService.fee + service.fee;
 
   if (user.balance < serviceCost) {
@@ -59,11 +55,12 @@ export async function GET(request: Request) {
   }
 
   const reseller = await Reseller.findById(user.reseller);
+  let browser;
 
   try {
     const url = `https://api.sheva247.site/test/4.php?appId=${appId}&dob=${dob}&appType=${appType}`;
 
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox"],
     });
@@ -89,43 +86,42 @@ export async function GET(request: Request) {
 
     const html = await page.content();
     if (html.includes("session has expired")) {
-      await browser.close();
       return NextResponse.json({ error: "Session Expired" }, { status: 403 });
     }
     if (html.includes("error")) {
-      await browser.close();
       return NextResponse.json(
         { error: "কোনও অ্যাপ্লিকেশন পাওয়া যায় নাই" },
         { status: 403 }
       );
     }
 
-    // Create public directory path for PDFs
-    const publicDir = path.join(process.cwd(), "public", "pdfs");
-
-    // Ensure directory exists
-    if (!fs.existsSync(publicDir)) {
-      fs.mkdirSync(publicDir, { recursive: true });
-    }
-
-    // Create filename with timestamp to avoid conflicts
-    const filename = `${appId}.pdf`;
-    const pdfPath = path.join(publicDir, filename);
-
-    // Generate PDF and save to public folder
-    await page.pdf({
-      path: pdfPath,
+    // Generate PDF as buffer and convert to Uint8Array
+    const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
       margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
     });
 
-    await browser.close();
+    // Convert Buffer to Uint8Array
+    const pdfUint8Array = new Uint8Array(pdfBuffer);
 
-    // Generate static URL for the PDF
-    const pdfUrl = `/pdfs/${filename}`;
+    // Create filename for download
+    const filename = `${appId}.pdf`;
 
-    // Deduct balance and create records
+    // Create response with Uint8Array
+    const response = new NextResponse(pdfUint8Array, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Length": pdfUint8Array.length.toString(),
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    });
+
+    // Deduct balance and create records after successful PDF generation
     user.balance -= serviceCost;
     reseller.balance += userService.fee;
 
@@ -148,52 +144,26 @@ export async function GET(request: Request) {
 
     await reseller.save();
     await user.save();
-    // Return the static URL instead of the file
-    return NextResponse.json({
-      success: true,
-      pdfUrl: pdfUrl,
-      filename: filename,
-      message: "PDF generated successfully",
-    });
+
+    return response;
+
   } catch (err) {
     console.error("❌ PDF Error:", err);
     return NextResponse.json(
       { error: "PDF generation failed", details: String(err) },
       { status: 500 }
     );
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 
-// Optional: Add cleanup endpoint to delete old PDFs
-export async function DELETE(request: Request) {
-  try {
-    const urlParams = new URL(request.url);
-    const filename = urlParams.searchParams.get("filename");
-
-    if (!filename) {
-      return NextResponse.json(
-        { error: "Filename is required" },
-        { status: 400 }
-      );
-    }
-
-    const publicDir = path.join(process.cwd(), "public", "pdfs");
-    const filePath = path.join(publicDir, filename);
-
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      return NextResponse.json({
-        success: true,
-        message: "File deleted successfully",
-      });
-    } else {
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
-    }
-  } catch (err) {
-    console.error("❌ File deletion error:", err);
-    return NextResponse.json(
-      { error: "File deletion failed", details: String(err) },
-      { status: 500 }
-    );
-  }
+// DELETE endpoint is no longer needed since files aren't stored
+export async function DELETE() {
+  return NextResponse.json(
+    { error: "This endpoint is no longer supported" },
+    { status: 410 }
+  );
 }

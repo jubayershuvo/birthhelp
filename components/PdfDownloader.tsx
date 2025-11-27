@@ -40,73 +40,17 @@ export default function BDRISPrint() {
     sessionReload();
   }, []);
 
-  const downloadPDF = (pdfUrl: string, filename: string) => {
-    // Method 1: Direct download using anchor tag
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = filename || 'document.pdf';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setResult(null);
 
-    toast.loading("PDF তৈরি করা হচ্ছে...", { id: "pdfDownload" });
-    
-    try {
-      const apiUrl = `/api/download/pdf?appId=${appId}&dob=${dob}&appType=${appType}`;
-      const response = await fetch(apiUrl);
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || data.message || "Download failed");
-      }
-
-      if (data.success && data.pdfUrl) {
-        // Download the PDF
-        downloadPDF(data.pdfUrl, data.filename || `${appId}.pdf`);
-        
-        toast.success("PDF ডাউনলোড সফল হয়েছে", { id: "pdfDownload" });
-        setResult({
-          type: "success",
-          message: `PDF সফলভাবে তৈরি হয়েছে! ডাউনলোড শুরু হয়েছে।`,
-          pdfUrl: data.pdfUrl
-        });
-        
-        setAppId("");
-        setDob("");
-        setAppType("br");
-      } else {
-        throw new Error(data.error || "PDF generation failed");
-      }
-      
-    } catch (err) {
-      console.error("Download error:", err);
-      
-      const errorMessage = "PDF ডাউনলোড ব্যর্থ হয়েছে";
-      
-
-      toast.error(errorMessage, { id: "pdfDownload" });
-      setResult({
-        type: "error",
-        message: errorMessage
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleManualDownload = () => {
-    if (result?.pdfUrl) {
-      downloadPDF(result.pdfUrl, `${appId || 'document'}.pdf`);
-      toast.success("PDF আবার ডাউনলোড করা হচ্ছে", { id: "manualDownload" });
-    }
+    window.open(
+      `/api/download/pdf?appId=${appId}&dob=${dob}&appType=${appType}`
+    );
+    setLoading(false);
+    setAppId("");
+    setDob("");
   };
 
   return (
@@ -295,35 +239,7 @@ export default function BDRISPrint() {
                       ? "ডাউনলোড সফল!"
                       : "ডাউনলোড ব্যর্থ!"}
                   </strong>
-                  <span className="text-sm mt-1 block">
-                    {result.message}
-                  </span>
-                  
-                  {result.type === "success" && result.pdfUrl && (
-                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                      <button
-                        onClick={handleManualDownload}
-                        className="flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors"
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                        আবার ডাউনলোড করুন
-                      </button>
-                      
-                      <a
-                        href={result.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                        </svg>
-                        নতুন ট্যাবে খুলুন
-                      </a>
-                    </div>
-                  )}
+                  <span className="text-sm mt-1 block">{result.message}</span>
                 </div>
               </div>
             </div>
