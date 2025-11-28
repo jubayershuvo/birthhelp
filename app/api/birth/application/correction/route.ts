@@ -662,6 +662,12 @@ export async function GET() {
       );
     }
     const serviceCost = userService.fee + service.fee;
+    if(user.balance < serviceCost) {
+      return NextResponse.json(
+        { success: false, error: "User does not have enough balance" },
+        { status: 403 }
+      );
+    }
     const url = "https://bdris.gov.bd";
     const applicationUrl = "https://bdris.gov.bd/br/correction";
     const res = await fetch(applicationUrl, {

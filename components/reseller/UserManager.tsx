@@ -220,9 +220,6 @@ const UserManagement = () => {
   }, [searchTerm, users]);
 
   // Format currency with BDT symbol
-  const formatCurrency = (amount: number): string => {
-    return `৳${amount.toFixed(2)}`;
-  };
 
   // Get official fee for a service
   const getOfficialFee = (serviceId: string): number => {
@@ -236,10 +233,6 @@ const UserManagement = () => {
   };
 
   // Calculate total fee (official + reseller)
-  const calculateTotalFee = (serviceId: string, resellerFee: number): number => {
-    const officialFee = getOfficialFee(serviceId);
-    return officialFee + resellerFee;
-  };
 
   // Validate service data before submission
   const validateServices = (services: ServiceAccess[]): boolean => {
