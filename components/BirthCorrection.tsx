@@ -2974,8 +2974,7 @@ export default function BirthCorrectionForm() {
                               onChange={(e) =>
                                 updateUploadingFileType(idx, e.target.value)
                               }
-                              className="px-3 py-2 border rounded text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-white 
-             w-40 truncate"
+                              className="px-3 py-2 border rounded text-sm dark:bg-gray-600 dark:border-gray-500 dark:text-white w-40 truncate"
                             >
                               <option value="-1">---টাইপ নির্বাচন---</option>
                               {fileTypes.map((t) => (
