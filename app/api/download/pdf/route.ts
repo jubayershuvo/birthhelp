@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const appId = urlParams.searchParams.get("appId");
   const dob = urlParams.searchParams.get("dob");
   const appType = urlParams.searchParams.get("appType");
-  const redirectUrl = request.nextUrl.clone();
+  const redirectUrl = new URL(process.env.NEXT_PUBLIC_SERVER_URL!);
   redirectUrl.pathname = "/application/download/pdf";
 
   if (!appId || !dob || !appType) {
