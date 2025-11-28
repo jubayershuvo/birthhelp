@@ -54,6 +54,7 @@ export async function PUT(
       username: string;
       password: string;
       balance?: number;
+      isBanned?: boolean;
       services: ServiceInput[];
     }>;
     const reseller = await getReseller();
@@ -132,6 +133,7 @@ export async function PUT(
     if (body.services) {
       user.services = body.services;
     }
+    user.isBanned = body.isBanned || false;
     await user.save();
 
     const newUser = await User.findById(id);

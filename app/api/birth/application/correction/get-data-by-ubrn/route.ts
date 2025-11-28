@@ -1,5 +1,6 @@
 import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
+import Services from "@/models/Services";
 import { NextRequest, NextResponse } from "next/server";
 
 const userAgentString =
@@ -13,6 +14,35 @@ export async function POST(req: NextRequest) {
     const user = await getUser();
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    const servicePath = "/birth/certificate";
+
+    const service = await Services.findOne({ href: servicePath });
+    if (!service) {
+      return NextResponse.json(
+        { success: false, error: "Service not found" },
+        { status: 404 }
+      );
+    }
+
+    const userService = user.services.find(
+      (s: { service: string }) =>
+        s.service.toString() === service._id.toString()
+    );
+
+    if (!userService) {
+      return NextResponse.json(
+        { success: false, error: "User does not have access to this service" },
+        { status: 403 }
+      );
+    }
+    const serviceCost = userService.fee + service.fee;
+
+    if (user.balance < serviceCost) {
+      return NextResponse.json(
+        { success: false, error: "Insufficient balance" },
+        { status: 402 }
+      );
     }
 
     const url = `https://bdris.gov.bd/api/br/search-by-ubrn-and-dob?ubrn=${ubrn}&personBirthDate=${dob}&captchaAns=${captcha}`;
@@ -29,8 +59,11 @@ export async function POST(req: NextRequest) {
     // Make the request
     const response = await fetch(url, { headers });
     if (!response.ok) {
-      console.log(response)
-      return NextResponse.json({ success: false, error: "Failed to fetch data" }, { status: 500 });
+      console.log(response);
+      return NextResponse.json(
+        { success: false, error: "Failed to fetch data" },
+        { status: 500 }
+      );
     }
     const jsonData = await response.json(); // JSON response
     if (jsonData.success === false) {
