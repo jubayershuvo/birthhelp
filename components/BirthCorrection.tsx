@@ -1779,9 +1779,8 @@ export default function BirthCorrectionForm() {
   const processSelectedFiles = (files: File[]) => {
     const valid = files.filter(
       (f) =>
-        ["image/jpeg", "image/jpg", "image/png"].includes(
-          f.type
-        ) && f.size <= 2 * 1024 * 1024
+        ["image/jpeg", "image/jpg", "image/png"].includes(f.type) &&
+        f.size <= 2 * 1024 * 1024
     );
 
     if (files.length !== valid.length) {
@@ -2328,8 +2327,16 @@ export default function BirthCorrectionForm() {
                             {birthRecord.fatherNameBn}
                           </div>
                           <div className="text-gray-900 dark:text-gray-100">
+                            <strong>পিতার নাম (ইংরেজি):</strong>{" "}
+                            {birthRecord.fatherNameEn}
+                          </div>
+                          <div className="text-gray-900 dark:text-gray-100">
                             <strong>মাতার নাম (বাংলা):</strong>{" "}
                             {birthRecord.motherNameBn}
+                          </div>
+                          <div className="text-gray-900 dark:text-gray-100">
+                            <strong>মাতার নাম (ইংরেজি):</strong>{" "}
+                            {birthRecord.motherNameEn}
                           </div>
                         </div>
 
@@ -2406,6 +2413,46 @@ export default function BirthCorrectionForm() {
                         </div>
                         <div className="text-gray-900 dark:text-gray-100">
                           {birthRecord.ubrn}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
+                        <div className="font-medium text-gray-700 dark:text-gray-300">
+                          পিতার নাম (বাংলা):
+                        </div>
+                        <div className="text-gray-900 dark:text-gray-100">
+                          {birthRecord.fatherNameBn}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
+                        <div className="font-medium text-gray-700 dark:text-gray-300">
+                          পিতার নাম (ইংরেজি):
+                        </div>
+                        <div className="text-gray-900 dark:text-gray-100">
+                          {birthRecord.fatherNameEn}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
+                        <div className="font-medium text-gray-700 dark:text-gray-300">
+                          মাতার নাম (বাংলা):
+                        </div>
+                        <div className="text-gray-900 dark:text-gray-100">
+                          {birthRecord.fatherNameEn}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded border dark:border-gray-700">
+                        <div className="font-medium text-gray-700 dark:text-gray-300">
+                          মাতার নাম (ইংরেজি):
+                        </div>
+                        <div className="text-gray-900 dark:text-gray-100">
+                          {birthRecord.motherNameEn}
                         </div>
                       </div>
                     </div>
