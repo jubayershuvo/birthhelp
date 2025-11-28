@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer-extra";
 import Services from "@/models/Services";
 import { connectDB } from "@/lib/mongodb";
@@ -7,19 +7,17 @@ import Reseller from "@/models/Reseller";
 import Spent from "@/models/Use";
 import Earnings from "@/models/Earnings";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const urlParams = new URL(request.url);
   const appId = urlParams.searchParams.get("appId");
   const dob = urlParams.searchParams.get("dob");
   const appType = urlParams.searchParams.get("appType");
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = "/application/download/pdf";
 
   if (!appId || !dob || !appType) {
-    return NextResponse.redirect(
-      new URL(
-        `/application/download/pdf?error=Missing required fields`,
-        request.url
-      )
-    );
+    redirectUrl.searchParams.set("error", "Missing required fields");
+    return NextResponse.redirect(redirectUrl);
   }
 
   await connectDB();
@@ -31,32 +29,26 @@ export async function GET(request: Request) {
   const servicePath = "/application/download/pdf";
   const service = await Services.findOne({ href: servicePath });
   if (!service) {
-    return NextResponse.redirect(
-      new URL(`/application/download/pdf?error=Service not found`, request.url)
-    );
+    redirectUrl.searchParams.set("error", "Service not found");
+    return NextResponse.redirect(redirectUrl);
   }
 
   const userService = user.services.find(
     (s: { service: string }) => s.service.toString() === service._id.toString()
   );
   if (!userService) {
-    return NextResponse.redirect(
-      new URL(
-        `/application/download/pdf?error=User does not have access to this service`,
-        request.url
-      )
+    redirectUrl.searchParams.set(
+      "error",
+      "User does not have access to this service"
     );
+    return NextResponse.redirect(redirectUrl);
   }
 
   const serviceCost = userService.fee + service.fee;
 
   if (user.balance < serviceCost) {
-    return NextResponse.redirect(
-      new URL(
-        `/application/download/pdf?error=Insufficient balance`,
-        request.url
-      )
-    );
+    redirectUrl.searchParams.set("error", "Insufficient balance");
+    return NextResponse.redirect(redirectUrl);
   }
 
   const reseller = await Reseller.findById(user.reseller);
@@ -105,12 +97,8 @@ export async function GET(request: Request) {
     const html = await page.content();
 
     if (html.includes("session has expired")) {
-      return NextResponse.redirect(
-        new URL(
-          `/application/download/pdf?error=Session has expired`,
-          request.url
-        )
-      );
+      redirectUrl.searchParams.set("error", "Session has expired");
+      return NextResponse.redirect(redirectUrl);
     }
 
     if (
@@ -118,20 +106,15 @@ export async function GET(request: Request) {
       html.includes("not found") ||
       html.includes("কোনও অ্যাপ্লিকেশন পাওয়া যায় নাই")
     ) {
-      return NextResponse.redirect(
-        new URL(
-          `/application/download/pdf?error=কোনও অ্যাপ্লিকেশন পাওয়া যায় নাই`,
-          request.url
-        )
-      );
+      redirectUrl.searchParams.set("error", "Application not found");
+      return NextResponse.redirect(redirectUrl);
     }
 
     // Check if we actually got valid content
     const bodyText = await page.evaluate(() => document.body.innerText);
     if (!bodyText || bodyText.length < 100) {
-      return NextResponse.redirect(
-        new URL(`/application/download/pdf?error=Invalid content`, request.url)
-      );
+      redirectUrl.searchParams.set("error", "Invalid content");
+      return NextResponse.redirect(redirectUrl);
     }
 
     // Generate PDF as buffer
@@ -193,7 +176,6 @@ export async function GET(request: Request) {
     await reseller.save();
     await user.save();
 
-
     return response;
   } catch (err) {
     console.error("❌ PDF Generation Error:", err);
@@ -201,23 +183,16 @@ export async function GET(request: Request) {
     // More specific error messages
     if (err instanceof Error) {
       if (err.message.includes("timeout")) {
-        return NextResponse.redirect(
-          new URL(`/application/download/pdf?error=Timeout`, request.url)
-        );
+        redirectUrl.searchParams.set("error", "Request timed out");
+        return NextResponse.redirect(redirectUrl);
       }
       if (err.message.includes("net::ERR")) {
-        return NextResponse.redirect(
-          new URL(`/application/download/pdf?error=Network error`, request.url)
-        );
+        redirectUrl.searchParams.set("error", "Network error");
+        return NextResponse.redirect(redirectUrl);
       }
     }
-
-    return NextResponse.redirect(
-      new URL(
-        `/application/download/pdf?error=Failed to generate PDF`,
-        request.url
-      )
-    );
+    redirectUrl.searchParams.set("error", "Unknown error");
+    return NextResponse.redirect(redirectUrl);
   } finally {
     if (browser) {
       await browser.close().catch(console.error);
