@@ -18,22 +18,26 @@ export default function BDRISPrint() {
     serviceCost: 0,
   });
 
+  const url = new URL(window.location.href);
+  const error = url.searchParams.get("error");
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, []);
+
   const sessionReload = async () => {
     if (loading) return;
     try {
-      toast.loading("সেশন রিলোড হচ্ছে...", { id: "sessionReload" });
       const response = await fetch("/api/download/session");
 
       if (response.ok) {
         const newData = await response.json();
         setData(newData);
-        toast.success("সেশন রিলোড সফলভাবে হয়েছে", { id: "sessionReload" });
       } else {
-        toast.error("সেশন রিলোড করতে সমস্যা হয়েছে", { id: "sessionReload" });
+        toast.error("সেশন রিলোড করতে সমস্যা হয়েছে");
       }
-    } catch (error) {
-      toast.error("সেশন রিলোড করতে সমস্যা হয়েছে", { id: "sessionReload" });
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -45,9 +49,7 @@ export default function BDRISPrint() {
     setLoading(true);
     setResult(null);
 
-    window.open(
-      `/api/download/pdf?appId=${appId}&dob=${dob}&appType=${appType}`
-    );
+    window.location.href = `/api/download/pdf?appId=${appId}&dob=${dob}&appType=${appType}`;
     setLoading(false);
     setAppId("");
     setDob("");

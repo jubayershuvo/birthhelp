@@ -347,7 +347,7 @@ const BirthCertificate: React.FC = () => {
                   alt="Logo"
                   style={{
                     position: "absolute",
-                    left: "300px",
+                    left: "310px",
                     height: "85px",
                     width: "auto",
                   }}
@@ -1181,7 +1181,7 @@ const BirthCertificate: React.FC = () => {
             <div
               style={{
                 padding: "0 60px",
-                marginTop: "150px",
+                marginTop: "120px",
                 position: "relative",
                 zIndex: 10,
               }}
