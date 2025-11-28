@@ -48,7 +48,7 @@ export async function GET(
     }
     const serviceCost = userService.fee + service.fee;
 
-    if (user.balace < serviceCost) {
+    if (user.balance < serviceCost) {
       return NextResponse.json(
         { success: false, error: "Insufficient balance" },
         { status: 402 }
