@@ -37,7 +37,8 @@ export async function getUser() {
     if (!decoded?.userId) return null;
 
     // 5️⃣ Fetch user
-    const user = await User.findById(decoded.userId).select('+password');
+    const user = await User.findById(decoded.userId).select("+password");
+    if (user && user.isBanned) return null;
 
     if (!user) return null;
 

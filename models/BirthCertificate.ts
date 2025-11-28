@@ -35,6 +35,7 @@ export interface IBirthCertificate extends Document {
   dateInWords?: string;
   certificateNumber?: string;
   charged?: boolean;
+  pdfType?: string;
   amount_charged?: number;
 }
 
@@ -71,6 +72,7 @@ const birthCertificateSchema = new Schema<IBirthCertificate>(
     qrCodeData: { type: String },
     barcodeData: { type: String },
     dateInWords: { type: String },
+    pdfType: { type: String },
     certificateNumber: { type: String },
     charged: { type: Boolean, default: false },
     amount_charged: { type: Number, default: 0 },

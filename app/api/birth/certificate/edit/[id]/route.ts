@@ -90,6 +90,9 @@ export async function PUT(
     if(body.officeLocation){
       doc.officeLocation = body.officeLocation;
     }
+    if(body.pdfType){
+      doc.pdfType = body.pdfType;
+    }
   
 
 

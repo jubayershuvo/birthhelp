@@ -35,12 +35,13 @@ export interface IFullData {
   certificateNumber: string;
   charged: boolean;
   amount_charged: number;
+  pdfType?: string; // Added pdfType field
 }
 
 interface FormField {
   label: string;
   key: keyof IFullData;
-  type?: "text" | "date" | "checkbox" | "number" | "select";
+  type?: "text" | "date" | "checkbox" | "number" | "select" | "radio";
   options?: string[];
   validation?: {
     pattern?: RegExp;
@@ -53,15 +54,18 @@ interface ValidationErrors {
   [key: string]: string;
 }
 
-// Updated validation patterns to allow numbers and special characters
+// Updated validation patterns to allow numbers and special characters including commas, periods, and spaces
 const validationPatterns = {
-  bangla: /^[\u0980-\u09FF\s\.\-_,\(\)\[\]!@#$%^&*()+=?/:;"'{}|~`0-9]+$/, // Bengali Unicode range with numbers and special chars
-  english: /^[A-Za-z\s\.\-_,\(\)\[\]!@#$%^&*()+=?/:;"'{}|~`0-9]+$/, // English letters with numbers and special chars
+  bangla: /^[\u0980-\u09FF\s\.\-_,\(\)\[\]!@#$%^&*()+=?/:;"'{}|~`0-9,]+$/, // Bengali Unicode range with numbers and special chars including comma
+  english: /^[A-Za-z\s\.\-_,\(\)\[\]!@#$%^&*()+=?/:;"'{}|~`0-9,]+$/, // English letters with numbers and special chars including comma
   numbers: /^[0-9]+$/, // Numbers only
-  alphanumeric: /^[A-Za-z0-9\s\-_!@#$%^&*()+=?/:;"'{}|~`]+$/, // Alphanumeric with spaces, hyphens, underscores and special chars
+  alphanumeric: /^[A-Za-z0-9\s\-_!@#$%^&*()+=?/:;"'{}|~`,]+$/, // Alphanumeric with spaces, hyphens, underscores and special chars including comma
   date: /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/, // DD/MM/YYYY
   amount: /^\d+(\.\d{1,2})?$/, // Decimal numbers for amount
 };
+
+// PDF Type options
+const pdfTypeOptions = ["Corrected", "Duplicate", "New"];
 
 export default function EditBirthCertificate() {
   const params = useParams();
@@ -159,6 +163,18 @@ export default function EditBirthCertificate() {
   // Form fields configuration with validation
   const formFields = useMemo<FormField[]>(
     () => [
+      // PDF Type Selection - REQUIRED and NOT pre-selected
+      {
+        label: "PDF Type *",
+        key: "pdfType",
+        type: "radio",
+        options: pdfTypeOptions,
+        validation: {
+          required: true,
+          message: "Please select a PDF type",
+        },
+      },
+
       // Personal Information
       {
         label: "Birth Registration Number",
@@ -167,7 +183,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.alphanumeric,
-          message: "Alphanumeric characters, spaces, and common special characters allowed",
+          message:
+            "Alphanumeric characters, spaces, and common special characters allowed",
         },
       },
       {
@@ -177,7 +194,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
 
@@ -188,7 +206,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
       {
@@ -208,7 +227,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.bangla,
-          message: "Bengali characters, numbers, and special characters allowed",
+          message:
+            "Bengali characters, numbers, and special characters allowed",
         },
       },
       {
@@ -218,7 +238,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
       {
@@ -228,7 +249,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.bangla,
-          message: "Bengali characters, numbers, and special characters allowed",
+          message:
+            "Bengali characters, numbers, and special characters allowed",
         },
       },
       {
@@ -238,7 +260,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
 
@@ -270,7 +293,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
       {
@@ -280,7 +304,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
 
@@ -292,7 +317,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.bangla,
-          message: "Bengali characters, numbers, and special characters allowed",
+          message:
+            "Bengali characters, numbers, and special characters allowed",
         },
       },
       {
@@ -302,7 +328,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
       {
@@ -312,7 +339,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.bangla,
-          message: "Bengali characters, numbers, and special characters allowed",
+          message:
+            "Bengali characters, numbers, and special characters allowed",
         },
       },
       {
@@ -322,7 +350,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
 
@@ -334,7 +363,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.bangla,
-          message: "Bengali characters, numbers, and special characters allowed",
+          message:
+            "Bengali characters, numbers, and special characters allowed",
         },
       },
       {
@@ -344,7 +374,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
       {
@@ -354,7 +385,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.bangla,
-          message: "Bengali characters, numbers, and special characters allowed",
+          message:
+            "Bengali characters, numbers, and special characters allowed",
         },
       },
       {
@@ -364,7 +396,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
 
@@ -376,7 +409,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.bangla,
-          message: "Bengali characters, numbers, and special characters allowed",
+          message:
+            "Bengali characters, numbers, and special characters allowed",
         },
       },
       {
@@ -386,7 +420,8 @@ export default function EditBirthCertificate() {
         validation: {
           required: true,
           pattern: validationPatterns.english,
-          message: "English characters, numbers, and special characters allowed",
+          message:
+            "English characters, numbers, and special characters allowed",
         },
       },
       {
@@ -395,7 +430,8 @@ export default function EditBirthCertificate() {
         type: "text",
         validation: {
           pattern: validationPatterns.alphanumeric,
-          message: "Alphanumeric characters, spaces, and common special characters allowed",
+          message:
+            "Alphanumeric characters, spaces, and common special characters allowed",
         },
       },
 
@@ -432,6 +468,8 @@ export default function EditBirthCertificate() {
           registrationDate: formatDateToDDMMYYYY(data.registrationDate),
           issuanceDate: formatDateToDDMMYYYY(data.issuanceDate),
           dateOfBirth: formatDateToDDMMYYYY(data.dateOfBirth),
+          // REMOVED default pdfType - user must select explicitly
+          pdfType: data.pdfType || "", // Empty string instead of default value
         };
 
         setFormData(formattedData);
@@ -528,6 +566,25 @@ export default function EditBirthCertificate() {
     [validationErrors]
   );
 
+  // Handle radio button change separately
+  const handleRadioChange = useCallback((name: string, value: string) => {
+    setFormData((prev) => {
+      if (!prev) return prev;
+
+      // Clear validation error when user selects an option
+      setValidationErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+        delete newErrors[name];
+        return newErrors;
+      });
+
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
+  }, []);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -549,7 +606,10 @@ export default function EditBirthCertificate() {
 
         console.log("Submitting data:", submissionData); // For debugging
 
-        const {data} = await axios.put(`/api/birth/certificate/edit/${id}`, submissionData);
+        const { data } = await axios.put(
+          `/api/birth/certificate/edit/${id}`,
+          submissionData
+        );
         setMessage("✅ Certificate updated successfully!");
 
         // Optional: Redirect after success
@@ -685,19 +745,25 @@ export default function EditBirthCertificate() {
             const isReadOnly = isFieldReadOnly(field.key);
             const value = getFieldValue(field.key);
             const fieldError = validationErrors[field.key];
+            const isRadioField = field.type === "radio";
+            const isCheckboxField = field.type === "checkbox";
 
             return (
               <div
                 key={field.key}
                 className={
-                  field.type === "checkbox" ? "flex items-center space-x-3" : ""
+                  isRadioField
+                    ? "col-span-full" // Make PDF Type radio buttons span full width
+                    : isCheckboxField
+                    ? "flex items-center space-x-3"
+                    : ""
                 }
               >
                 <label
                   htmlFor={field.key}
                   className={`block text-sm font-medium mb-2 text-gray-600 dark:text-gray-300 ${
-                    field.type === "checkbox" ? "mb-0" : ""
-                  }`}
+                    isCheckboxField ? "mb-0" : ""
+                  } ${isRadioField ? "text-base font-semibold" : ""}`}
                 >
                   {field.label}
                   {field.validation?.required && (
@@ -705,7 +771,7 @@ export default function EditBirthCertificate() {
                   )}
                 </label>
 
-                {field.type === "checkbox" ? (
+                {isCheckboxField ? (
                   <div className="flex items-center">
                     <input
                       id={field.key}
@@ -720,6 +786,30 @@ export default function EditBirthCertificate() {
                           : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                       }`}
                     />
+                  </div>
+                ) : isRadioField ? (
+                  <div className="flex flex-wrap gap-6 mt-2">
+                    {field.options?.map((option) => (
+                      <label
+                        key={option}
+                        className="flex items-center space-x-3 cursor-pointer p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <input
+                          type="radio"
+                          name={field.key}
+                          value={option}
+                          checked={value === option}
+                          onChange={(e) =>
+                            handleRadioChange(field.key, e.target.value)
+                          }
+                          className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                          required={field.validation?.required}
+                        />
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">
+                          {option}
+                        </span>
+                      </label>
+                    ))}
                   </div>
                 ) : field.type === "select" ? (
                   <select
@@ -773,7 +863,7 @@ export default function EditBirthCertificate() {
                 {field.validation?.pattern && !fieldError && (
                   <p className="text-gray-500 text-xs mt-1">
                     {field.key.includes("Bn")
-                      ? "বাংলা ভাষায় লিখুন (সংখ্যা ও বিশেষ অক্ষর অনুমোদিত)"
+                      ? "বাংলা ভাষায় লিখুন (সংখ্যা, কমা, ও বিশেষ অক্ষর অনুমোদিত)"
                       : field.key.includes("Date")
                       ? "ফরম্যাট: DD/MM/YYYY"
                       : field.validation.message}
