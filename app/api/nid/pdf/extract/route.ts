@@ -95,12 +95,12 @@ export async function POST(req: Request) {
 
     function formatDate(dateStr: string): string {
       const date = new Date(dateStr);
-      const options: Intl.DateTimeFormatOptions = {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      };
-      return date.toLocaleDateString("en-US", options);
+
+      const day = date.toLocaleString("en-US", { day: "2-digit" });
+      const month = date.toLocaleString("en-US", { month: "short" });
+      const year = date.getFullYear();
+
+      return `${month} ${day} ${year}`; // No comma
     }
 
     const barcodeData = `<pin>${pdfResult.data.pincode}</pin><name>${
