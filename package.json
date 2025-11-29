@@ -23,6 +23,7 @@
     "mongoose": "^8.19.3",
     "next": "15.5.3",
     "otplib": "^12.0.1",
+    "pdf417-generator": "^1.0.5",
     "puppeteer": "^24.29.1",
     "puppeteer-extra": "^3.3.6",
     "qrcode": "^1.5.4",

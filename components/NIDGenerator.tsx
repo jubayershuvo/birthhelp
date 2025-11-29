@@ -31,24 +31,16 @@ const NIDCard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const id = params.id as string;
 
-  // Static fallback data with Bangladeshi information
-  const staticNidData: NIDData = {
-    nameBn: "শারমিন জান্নাত",
-    nameEn: "Sharmin Zannat",
-    fatherNameBn: "মোঃ সামছুল হক",
-    motherNameBn: "হোসনে আরা বেগম",
-    dateOfBirth: "20 Jun 1992",
-    nidNumber: "6452534669",
-    bloodGroup: "A+",
-    birthPlaceBn: "চট্টগ্রাম",
-    addressBn:
-      "বাসা/হোল্ডিং: ৩৯৮নং সোনাশাহ মাজার রোড, গ্রাম/রাস্তা: ৩৯৮নং, সোনাশাহ মাজার রোড, রামপুর, ডাকঘর: রামপুর - ৪২২৪, হালিশহর, চট্টগ্রাম সিটি কর্পোরেশন, চট্টগ্রাম",
-    photo: "/images/profile-img.jpg",
-    signature: "/images/signature.jpg",
-    adminSignature: "/images/sign-administrator.jpg",
-    issueDate: "১৯/০৩/২০২৫",
-    barcode: "/images/barcode.jpg",
-  };
+const getIssueDate = () => {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = String(date.getFullYear());
+
+  const englishDate = `${day}/${month}/${year}`;
+  return englishDate.replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]);
+};
+
 
   const fetchNidData = async () => {
     try {
@@ -60,12 +52,29 @@ const NIDCard: React.FC = () => {
       if (!response.ok) {
         throw new Error(`Failed to fetch NID data: ${response.status}`);
       }
-
-      const data: NIDData = await response.json();
+      const resData = await response.json();
+      const data: NIDData = {
+        nameBn: resData.data.name_bn,
+        nameEn: resData.data.name_en,
+        fatherNameBn: resData.data.father_name,
+        motherNameBn: resData.data.mother_name,
+        dateOfBirth: resData.data.dob,
+        nidNumber: resData.data.nid,
+        bloodGroup: resData.data.blood_group,
+        birthPlaceBn: resData.data.birth_place,
+        addressBn: resData.data.permanent_address_full,
+        photo: resData.data.photo,
+        signature: resData.data.signature,
+        adminSignature: '/images/sign-administrator.jpg',
+        issueDate: getIssueDate(),
+        barcode: resData.data.barcode
+      };
 
       if (!data || Object.keys(data).length === 0) {
         throw new Error("No NID data found");
       }
+
+      console.log(JSON.stringify(data));
 
       setNidData(data);
       toast.success("NID data loaded successfully");
@@ -75,8 +84,6 @@ const NIDCard: React.FC = () => {
         err instanceof Error ? err.message : "Failed to load NID data";
       setError(errorMessage);
       toast.error("Using static data instead");
-
-      setNidData(staticNidData);
     } finally {
       setLoading(false);
     }
@@ -88,7 +95,6 @@ const NIDCard: React.FC = () => {
     } else {
       setError("No NID ID provided");
       toast.error("Using static data instead");
-      setNidData(staticNidData);
     }
   }, [id]);
 
@@ -528,7 +534,7 @@ const NIDCard: React.FC = () => {
           <div
             style={{
               position: "absolute",
-              top: "145px",
+              top: "140px",
               left: "403px",
               height: "115px",
               width: "325px",
@@ -541,7 +547,7 @@ const NIDCard: React.FC = () => {
             <div
               style={{
                 width: "100%",
-                height: "51%",
+                height: "52%",
                 position: "relative",
               }}
             >
@@ -597,7 +603,7 @@ const NIDCard: React.FC = () => {
                   marginTop: "5px",
                 }}
               >
-                <img src={nidData.barcode} alt="barcode" />
+                <img style={{ width: "100%" }} src={nidData.barcode} alt="barcode" />
               </div>
             </div>
           </div>

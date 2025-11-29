@@ -1956,30 +1956,6 @@ export default function BirthRegistrationForm() {
           errors["father.personNationality"] = "পিতার জাতীয়তা নির্বাচন করুন";
         }
 
-        // Father date validation
-        if (formData.father.personBirthDate) {
-          const { valid } = parseDateString(formData.father.personBirthDate);
-          if (!valid) {
-            errors["father.personBirthDate"] = "বৈধ তারিখ দিন (DD/MM/YYYY)";
-          }
-        }
-
-        // Father NID validation
-        if (
-          formData.father.personNid &&
-          !validateNID(formData.father.personNid)
-        ) {
-          errors["father.personNid"] = "বৈধ জাতীয় পরিচয়পত্র নম্বর দিন";
-        }
-
-        // Father passport validation
-        if (
-          formData.father.passportNumber &&
-          !validatePassport(formData.father.passportNumber)
-        ) {
-          errors["father.passportNumber"] = "বৈধ পাসপোর্ট নম্বর দিন";
-        }
-
         // Mother information validation
         if (!formData.mother.personNameBn.trim()) {
           errors["mother.personNameBn"] = "মাতার নাম বাংলায় প্রয়োজন";
@@ -1991,15 +1967,54 @@ export default function BirthRegistrationForm() {
           errors["mother.personNationality"] = "মাতার জাতীয়তা নির্বাচন করুন";
         }
 
-        // Mother date validation
-        if (formData.mother.personBirthDate) {
-          const { valid } = parseDateString(formData.mother.personBirthDate);
-          if (!valid) {
-            errors["mother.personBirthDate"] = "বৈধ তারিখ দিন (DD/MM/YYYY)";
+        // Only validate parent birth registration and dates if person's birth year is 2012 or later
+        const birthYear = parseDateString(formData.personInfoForBirth.personBirthDate).year;
+        
+        if (birthYear >= 2012) {
+          // Father birth registration validation for 2012 and later
+          if (!formData.father.ubrn.trim()) {
+            errors["father.ubrn"] = "পিতার জন্ম নিবন্ধন নম্বর প্রয়োজন";
+          }
+          if (!formData.father.personBirthDate) {
+            errors["father.personBirthDate"] = "পিতার জন্ম তারিখ প্রয়োজন";
+          } else {
+            const { valid } = parseDateString(formData.father.personBirthDate);
+            if (!valid) {
+              errors["father.personBirthDate"] = "বৈধ তারিখ দিন (DD/MM/YYYY)";
+            }
+          }
+
+          // Mother birth registration validation for 2012 and later
+          if (!formData.mother.ubrn.trim()) {
+            errors["mother.ubrn"] = "মাতার জন্ম নিবন্ধন নম্বর প্রয়োজন";
+          }
+          if (!formData.mother.personBirthDate) {
+            errors["mother.personBirthDate"] = "মাতার জন্ম তারিখ প্রয়োজন";
+          } else {
+            const { valid } = parseDateString(formData.mother.personBirthDate);
+            if (!valid) {
+              errors["mother.personBirthDate"] = "বৈধ তারিখ দিন (DD/MM/YYYY)";
+            }
           }
         }
 
-        // Mother NID validation
+        // Father NID validation (optional for all)
+        if (
+          formData.father.personNid &&
+          !validateNID(formData.father.personNid)
+        ) {
+          errors["father.personNid"] = "বৈধ জাতীয় পরিচয়পত্র নম্বর দিন";
+        }
+
+        // Father passport validation (optional for all)
+        if (
+          formData.father.passportNumber &&
+          !validatePassport(formData.father.passportNumber)
+        ) {
+          errors["father.passportNumber"] = "বৈধ পাসপোর্ট নম্বর দিন";
+        }
+
+        // Mother NID validation (optional for all)
         if (
           formData.mother.personNid &&
           !validateNID(formData.mother.personNid)
@@ -2007,7 +2022,7 @@ export default function BirthRegistrationForm() {
           errors["mother.personNid"] = "বৈধ জাতীয় পরিচয়পত্র নম্বর দিন";
         }
 
-        // Mother passport validation
+        // Mother passport validation (optional for all)
         if (
           formData.mother.passportNumber &&
           !validatePassport(formData.mother.passportNumber)
@@ -2846,43 +2861,60 @@ export default function BirthRegistrationForm() {
                     পিতার তথ্য
                   </h4>
 
-                  <div data-field="father.ubrn">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      পিতার জন্ম নিবন্ধন নম্বর
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.father.ubrn}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "father",
-                          "ubrn",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="জন্ম নিবন্ধন নম্বর"
-                    />
-                  </div>
+                  {/* Only show these fields if birth year is 2012 or later */}
+                  {(parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012) && (
+                    <>
+                      <div data-field="father.ubrn">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          পিতার জন্ম নিবন্ধন নম্বর <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.father.ubrn}
+                          onChange={(e) =>
+                            handleNestedInputChange(
+                              "father",
+                              "ubrn",
+                              e.target.value
+                            )
+                          }
+                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                            formErrors["father.ubrn"]
+                              ? "border-red-500"
+                              : "border-gray-300 dark:border-gray-600"
+                          }`}
+                          placeholder="জন্ম নিবন্ধন নম্বর"
+                          required={parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012}
+                        />
+                        {formErrors["father.ubrn"] && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {formErrors["father.ubrn"]}
+                          </p>
+                        )}
+                      </div>
 
-                  <div data-field="father.personBirthDate">
-                    <DateInput
-                      value={formData.father.personBirthDate}
-                      onChange={(value) =>
-                        handleNestedInputChange(
-                          "father",
-                          "personBirthDate",
-                          value
-                        )
-                      }
-                      label="জন্ম তারিখ (খ্রিঃ)"
-                    />
-                    {formErrors["father.personBirthDate"] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors["father.personBirthDate"]}
-                      </p>
-                    )}
-                  </div>
+                      <div data-field="father.personBirthDate">
+                        <DateInput
+                          value={formData.father.personBirthDate}
+                          onChange={(value) =>
+                            handleNestedInputChange(
+                              "father",
+                              "personBirthDate",
+                              value
+                            )
+                          }
+                          label="জন্ম তারিখ (খ্রিঃ)"
+                          required={true}
+                          maxDate={formData.personInfoForBirth.personBirthDate}
+                        />
+                        {formErrors["father.personBirthDate"] && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {formErrors["father.personBirthDate"]}
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                   <div data-field="father.personNameBn">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -2942,34 +2974,6 @@ export default function BirthRegistrationForm() {
                     )}
                   </div>
 
-                  {/* <div data-field="father.personNid">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      পিতার জাতীয় পরিচয়পত্র নম্বর
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.father.personNid}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "father",
-                          "personNid",
-                          e.target.value
-                        )
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                        formErrors["father.personNid"]
-                          ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                      placeholder="জাতীয় পরিচয়পত্র নম্বর"
-                    />
-                    {formErrors["father.personNid"] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors["father.personNid"]}
-                      </p>
-                    )}
-                  </div> */}
-
                   <div data-field="father.personNationality">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       পিতার জাতীয়তা <span className="text-red-500">*</span>
@@ -2993,7 +2997,7 @@ export default function BirthRegistrationForm() {
                       <option value="">---নির্বাচন করুন---</option>
                       {nationalityOptions.map((nationality) => (
                         <option
-                          key={nationality.value}
+                          key={nationality.id}
                           value={nationality.value}
                         >
                           {nationality.value}
@@ -3006,34 +3010,6 @@ export default function BirthRegistrationForm() {
                       </p>
                     )}
                   </div>
-
-                  {/* <div data-field="father.passportNumber">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      পিতার পাসপোর্ট নম্বর
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.father.passportNumber}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "father",
-                          "passportNumber",
-                          e.target.value
-                        )
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                        formErrors["father.passportNumber"]
-                          ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                      placeholder="বিদেশে অবস্থানের ক্ষেত্রে পাসপোর্ট নম্বর"
-                    />
-                    {formErrors["father.passportNumber"] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors["father.passportNumber"]}
-                      </p>
-                    )}
-                  </div> */}
                 </div>
 
                 {/* Mother's Information */}
@@ -3042,43 +3018,60 @@ export default function BirthRegistrationForm() {
                     মাতার তথ্য
                   </h4>
 
-                  <div data-field="mother.ubrn">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      মাতার জন্ম নিবন্ধন নম্বর
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.mother.ubrn}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mother",
-                          "ubrn",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="জন্ম নিবন্ধন নম্বর"
-                    />
-                  </div>
+                  {/* Only show these fields if birth year is 2012 or later */}
+                  {(parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012) && (
+                    <>
+                      <div data-field="mother.ubrn">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          মাতার জন্ম নিবন্ধন নম্বর <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.mother.ubrn}
+                          onChange={(e) =>
+                            handleNestedInputChange(
+                              "mother",
+                              "ubrn",
+                              e.target.value
+                            )
+                          }
+                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                            formErrors["mother.ubrn"]
+                              ? "border-red-500"
+                              : "border-gray-300 dark:border-gray-600"
+                          }`}
+                          placeholder="জন্ম নিবন্ধন নম্বর"
+                          required={parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012}
+                        />
+                        {formErrors["mother.ubrn"] && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {formErrors["mother.ubrn"]}
+                          </p>
+                        )}
+                      </div>
 
-                  <div data-field="mother.personBirthDate">
-                    <DateInput
-                      value={formData.mother.personBirthDate}
-                      onChange={(value) =>
-                        handleNestedInputChange(
-                          "mother",
-                          "personBirthDate",
-                          value
-                        )
-                      }
-                      label="জন্ম তারিখ (খ্রিঃ)"
-                    />
-                    {formErrors["mother.personBirthDate"] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors["mother.personBirthDate"]}
-                      </p>
-                    )}
-                  </div>
+                      <div data-field="mother.personBirthDate">
+                        <DateInput
+                          value={formData.mother.personBirthDate}
+                          onChange={(value) =>
+                            handleNestedInputChange(
+                              "mother",
+                              "personBirthDate",
+                              value
+                            )
+                          }
+                          label="জন্ম তারিখ (খ্রিঃ)"
+                          required={true}
+                          maxDate={formData.personInfoForBirth.personBirthDate}
+                        />
+                        {formErrors["mother.personBirthDate"] && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {formErrors["mother.personBirthDate"]}
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                   <div data-field="mother.personNameBn">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -3138,34 +3131,6 @@ export default function BirthRegistrationForm() {
                     )}
                   </div>
 
-                  {/* <div data-field="mother.personNid">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      মাতার জাতীয় পরিচয়পত্র নম্বর
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.mother.personNid}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mother",
-                          "personNid",
-                          e.target.value
-                        )
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                        formErrors["mother.personNid"]
-                          ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                      placeholder="জাতীয় পরিচয়পত্র নম্বর"
-                    />
-                    {formErrors["mother.personNid"] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors["mother.personNid"]}
-                      </p>
-                    )}
-                  </div> */}
-
                   <div data-field="mother.personNationality">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       মাতার জাতীয়তা <span className="text-red-500">*</span>
@@ -3189,7 +3154,7 @@ export default function BirthRegistrationForm() {
                       <option value="">---নির্বাচন করুন---</option>
                       {nationalityOptions.map((nationality) => (
                         <option
-                          key={nationality.value}
+                          key={nationality.id}
                           value={nationality.value}
                         >
                           {nationality.value}
@@ -3202,35 +3167,24 @@ export default function BirthRegistrationForm() {
                       </p>
                     )}
                   </div>
-
-                  {/* <div data-field="mother.passportNumber">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      মাতার পাসপোর্ট নম্বর
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.mother.passportNumber}
-                      onChange={(e) =>
-                        handleNestedInputChange(
-                          "mother",
-                          "passportNumber",
-                          e.target.value
-                        )
-                      }
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                        formErrors["mother.passportNumber"]
-                          ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                      placeholder="বিদেশে অবস্থানের ক্ষেত্রে পাসপোর্ট নম্বর"
-                    />
-                    {formErrors["mother.passportNumber"] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {formErrors["mother.passportNumber"]}
-                      </p>
-                    )}
-                  </div> */}
                 </div>
+              </div>
+
+              {/* Information notice based on birth year */}
+              <div className={`p-4 rounded-lg ${
+                parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012 
+                  ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800" 
+                  : "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
+              }`}>
+                <p className={`text-sm ${
+                  parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012 
+                    ? "text-blue-700 dark:text-blue-300" 
+                    : "text-yellow-700 dark:text-yellow-300"
+                }`}>
+                  {parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012 
+                    ? "২০১২ সাল বা তার পরে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক।" 
+                    : "২০১২ সালের আগে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক নয়।"}
+                </p>
               </div>
 
               <div className="flex justify-between pt-6">

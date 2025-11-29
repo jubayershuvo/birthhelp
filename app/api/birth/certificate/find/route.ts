@@ -52,13 +52,6 @@ export async function POST(req: Request) {
     }
     const serviceCost = userService.fee + service.fee;
 
-    if (user.balace < serviceCost) {
-      return NextResponse.json(
-        { success: false, error: "Insufficient balance" },
-        { status: 402 }
-      );
-    }
-    console.log(ubrn,dob)
     const response = await fetch(
       `http://api.sheva247.site/birth_test/api/birth_verification_get.php?ubrn=${ubrn}&dob=${dob}`
     );

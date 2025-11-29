@@ -1,13 +1,8 @@
 import QRCode from "qrcode";
 import { createCanvas, Canvas } from "canvas";
 import JsBarcode from "jsbarcode";
-
+import * as PDF417 from "pdf417-generator";
 // === Type Definitions ===
-interface QRBarcodeData {
-  barcodeData: string;
-  qrCodeData: string;
-}
-
 // === Helper Function: Clean URL ===
 function cleanUrl(rawUrl: string): string {
   if (!rawUrl || typeof rawUrl !== "string") return "";
@@ -47,7 +42,7 @@ export function generateBarcode(data: string): string | null {
 
     JsBarcode(canvas, data, {
       format: "CODE128",
-      displayValue: false, // ❌ hides the text under the barcode
+      displayValue: false, // hides the text under the barcode
       width: 2, // each bar width
       height: 100, // height of bars
       margin: 10, // small margin around
@@ -55,9 +50,21 @@ export function generateBarcode(data: string): string | null {
       lineColor: "#000000",
     });
 
-    return canvas.toDataURL("image/png");
+    return canvas.toBuffer("image/png").toString("base64");
   } catch (error) {
     console.error("Barcode generation failed:", error);
     return null;
+  }
+}
+
+export function generateNidBarcode(data: string): string {
+  try {
+    const canvas = createCanvas(454, 61);
+    PDF417.draw(data, canvas);
+
+    return canvas.toDataURL();
+  } catch (err) {
+    console.error("PDF417 error:", err);
+    return "";
   }
 }
