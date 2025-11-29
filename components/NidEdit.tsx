@@ -393,7 +393,7 @@ export default function EditNIDPage() {
               <FormField
                 label="Date of Birth"
                 name="dob"
-                type="date"
+                type="text"
                 value={formData?.dob || ""}
                 onChange={handleInputChange}
                 required

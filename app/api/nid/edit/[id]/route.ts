@@ -25,7 +25,7 @@ export async function POST(
       return NextResponse.json({ error: "NID not found" }, { status: 404 });
     }
 
-    const dataSet = {...body, photo:nid.photo, signature:nid.signature};
+    const dataSet = {...body, photo:nid.photo, signature:nid.signature, barcode:nid.barcode};
 
     await NidData.updateOne({ _id: id }, { $set: dataSet });
 
