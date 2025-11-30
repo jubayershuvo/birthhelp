@@ -63,20 +63,9 @@ export function generateNidBarcode(data: string): string {
     const width = 1364;
     const height = 185;
     const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext("2d");
-
-    // White background
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, width, height);
 
     // Draw PDF417 barcode
-    PDF417.draw(data, canvas, {
-      padding: 0,
-      ratio: 3,      // bar width ratio
-      scale: 3,      // module size
-      columns: 8,    // IMPORTANT: matches your example
-      ecl: 4         // NID uses ECL 4
-    });
+    PDF417.draw(data, canvas);
 
     return canvas.toDataURL();
   } catch (err) {

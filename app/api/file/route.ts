@@ -1,0 +1,21 @@
+import { getUser } from "@/lib/getUser";
+import { connectDB } from "@/lib/mongodb";
+import File from "@/models/ApplicationPDF";
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  try {
+    await connectDB();
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    const files = await File.find({ user: user._id });
+    return NextResponse.json({ files }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

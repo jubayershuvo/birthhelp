@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -17,14 +19,13 @@ export default function BDRISPrint() {
   const [data, setData] = useState({
     serviceCost: 0,
   });
+  const router = useRouter();
 
   const url = new URL(window.location.href);
   const error = url.searchParams.get("error");
   useEffect(() => {
     if (error) {
       toast.error(error);
-      url.searchParams.delete("error");
-      window.history.replaceState({}, "", url.href);
     }
   }, []);
 
@@ -49,13 +50,13 @@ export default function BDRISPrint() {
   // Function to parse various date formats and convert to DD/MM/YYYY
   const parseAndFormatDate = (inputDate: string): string => {
     if (!inputDate) return "";
-    
+
     // Remove any non-digit characters
     const digitsOnly = inputDate.replace(/\D/g, "");
-    
+
     // Don't format incomplete dates
     if (digitsOnly.length < 6) return inputDate;
-    
+
     // If input has exactly 8 digits, format as DD/MM/YYYY
     if (digitsOnly.length === 8) {
       const day = digitsOnly.substring(0, 2);
@@ -63,18 +64,18 @@ export default function BDRISPrint() {
       const year = digitsOnly.substring(4, 8);
       return `${day}/${month}/${year}`;
     }
-    
+
     // Try to parse with different separators
     const separators = ["/", "-", "."];
     let parts: string[] = [];
-    
+
     for (const sep of separators) {
       if (inputDate.includes(sep)) {
         parts = inputDate.split(sep);
         break;
       }
     }
-    
+
     // If no separators found, try to parse as 8 digits
     if (parts.length === 0 && digitsOnly.length >= 6) {
       // Try to infer the format
@@ -104,14 +105,14 @@ export default function BDRISPrint() {
         }
       }
     }
-    
+
     if (parts.length !== 3) return inputDate;
-    
+
     // Try to determine the format
     const first = parseInt(parts[0]);
     const second = parseInt(parts[1]);
     const third = parseInt(parts[2]);
-    
+
     // YYYY-MM-DD format
     if (first > 1000 && first < 3000) {
       const year = parts[0].padStart(4, "0");
@@ -119,7 +120,7 @@ export default function BDRISPrint() {
       const day = parts[2].padStart(2, "0");
       return `${day}/${month}/${year}`;
     }
-    
+
     // MM-DD-YYYY or DD-MM-YYYY format
     if (first <= 12 && second <= 31) {
       // Assume MM-DD-YYYY
@@ -134,7 +135,7 @@ export default function BDRISPrint() {
       const year = parts[2].padStart(4, "0");
       return `${day}/${month}/${year}`;
     }
-    
+
     // Default to DD/MM/YYYY format
     const day = parts[0].padStart(2, "0");
     const month = parts[1].padStart(2, "0");
@@ -145,7 +146,7 @@ export default function BDRISPrint() {
   // Handle date input change
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputDate = e.target.value;
-    
+
     // Only format when the user has finished typing (blur event) or when the date is complete
     // For now, we'll just store the input as is and format on blur
     setDob(inputDate);
@@ -166,37 +167,51 @@ export default function BDRISPrint() {
     const formattedDate = parseAndFormatDate(dob);
 
     try {
-      // Fetch the PDF as a blob
-      const response = await fetch(`/api/download/pdf?appId=${appId}&dob=${formattedDate}&appType=${appType}`);
-      
+      // Fetch the PDF
+      const response = await fetch(
+        `/api/download/pdf?appId=${appId}&dob=${formattedDate}&appType=${appType}`
+      );
+
+      // Check if the response is successful
       if (!response.ok) {
-        throw new Error('Failed to download PDF');
+        // Try to get error message from response
+        let errorMessage = "ডাউনলোড করতে সমস্যা হয়েছে";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // If response is not JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+
+        setLoading(false);
+        toast.error(errorMessage);
+        setResult({
+          type: "error",
+          message: errorMessage,
+        });
+        return;
       }
-      
-      // Get the blob from the response
-      const blob = await response.blob();
-      
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
-      
-      // Create a temporary link element
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `BDRIS_${appId}_${formattedDate.replace(/\//g, '-')}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up the URL
-      window.URL.revokeObjectURL(url);
-      
+
+      const resData = await response.json();
+
       setLoading(false);
       setAppId("");
       setDob("");
+
       toast.success("PDF ডাউনলোড সফল হয়েছে");
+      window.location.href = `/api/file/downloader/${resData.file._id}`;
+      setResult({
+        type: "success",
+        message: "PDF সফলভাবে ডাউনলোড হয়েছে",
+      });
     } catch (error) {
       setLoading(false);
       toast.error("ডাউনলোড করতে সমস্যা হয়েছে");
+      setResult({
+        type: "error",
+        message: "ডাউনলোড করতে সমস্যা হয়েছে",
+      });
     }
   };
 
@@ -249,8 +264,14 @@ export default function BDRISPrint() {
             </p>
             <div className="mt-4 flex space-x-2">
               <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div
+                className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                style={{ animationDelay: "0.1s" }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                style={{ animationDelay: "0.2s" }}
+              ></div>
             </div>
           </div>
         </div>
@@ -405,6 +426,14 @@ export default function BDRISPrint() {
                   </>
                 )}
               </button>
+              <div className="w-full text-center">
+                <Link
+                  className="px-4 py-2 w-2/3 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white"
+                  href="/file/history"
+                >
+                  History
+                </Link>
+              </div>
             </form>
 
             {/* Result Message */}
@@ -465,7 +494,10 @@ export default function BDRISPrint() {
                 <li>• PDF ডাউনলোড স্বয়ংক্রিয়ভাবে শুরু হবে</li>
                 <li>• যদি ডাউনলোড না হয়, ব্রাউজারের পপ-আপ ব্লকার চেক করুন</li>
                 <li>• ডাউনলোড লিঙ্ক ২৪ ঘন্টা বৈধ থাকবে</li>
-                <li>• তারিখ যেকোনো ফরম্যাটে দিতে পারেন, স্বয়ংক্রিয়ভাবে DD/MM/YYYY হবে</li>
+                <li>
+                  • তারিখ যেকোনো ফরম্যাটে দিতে পারেন, স্বয়ংক্রিয়ভাবে
+                  DD/MM/YYYY হবে
+                </li>
                 <li>• ফিল্ড থেকে বের হলে তারিখ স্বয়ংক্রিয়ভাবে ফরম্যাট হবে</li>
               </ul>
             </div>

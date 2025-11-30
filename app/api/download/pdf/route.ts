@@ -6,7 +6,9 @@ import { getUser } from "@/lib/getUser";
 import Reseller from "@/models/Reseller";
 import Spent from "@/models/Use";
 import Earnings from "@/models/Earnings";
-
+import File from "@/models/ApplicationPDF";
+import path from "path";
+import fs from "fs";
 export async function GET(request: NextRequest) {
   const urlParams = new URL(request.url);
   const appId = urlParams.searchParams.get("appId");
@@ -129,28 +131,19 @@ export async function GET(request: NextRequest) {
       throw new Error("Generated PDF is empty");
     }
 
-    // Create filename for download
-    const filename = `${appId}.pdf`;
+    // Folder: /upload/pdf/<user._id>/
+    const folderPath = path.join(process.cwd(), "upload", "pdf", `${user._id}`);
 
-    // Convert buffer to Blob or use ArrayBuffer for proper response
-    const pdfArrayBuffer = pdfBuffer.buffer.slice(
-      pdfBuffer.byteOffset,
-      pdfBuffer.byteOffset + pdfBuffer.byteLength
-    );
+    // Create folder if not exists
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
+    }
 
-    // Create response with proper body type
-    const response = new NextResponse(pdfArrayBuffer as ArrayBuffer, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-        "Content-Length": pdfBuffer.length.toString(),
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-        "X-Filename": filename,
-      },
-    });
+    // File path: /upload/pdf/<user._id>/<appId>.pdf
+    const filePath = path.join(folderPath, `${appId}.pdf`);
+
+    // Save file
+    fs.writeFileSync(filePath, pdfBuffer);
 
     // Deduct balance and create records after successful PDF generation
     user.balance -= serviceCost;
@@ -173,10 +166,18 @@ export async function GET(request: NextRequest) {
       dataSchema: "DownloadPDF",
     });
 
+    const file = await File.create({
+      user: user._id,
+      path: filePath,
+      name: appId,
+      type: "pdf",
+      title: `Application Pdf`,
+    });
+
     await reseller.save();
     await user.save();
 
-    return response;
+    return NextResponse.json({ file }, { status: 200 });
   } catch (err) {
     console.error("❌ PDF Generation Error:", err);
 
