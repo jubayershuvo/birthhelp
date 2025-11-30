@@ -221,30 +221,29 @@ const getIssueDate = () => {
           <div
             style={{
               position: "absolute",
-              top: "50px",
+              top: "46px",
               left: "100px",
               height: "65px",
               width: "297px",
               textAlign: "center",
-              fontFamily: "SolaimanLipi",
+              fontFamily: "Nikosh",
             }}
           >
             <h2
               style={{
-                fontSize: "13px",
+                fontSize: "16px",
                 letterSpacing: "0.2px",
                 fontWeight: "400",
               }}
             >
-              গণপ্রজাতন্ত্রী বাংলাদেশ সরকার
+              গণপ্রজাতন্ত্রী বাংলােদশ সরকার
             </h2>
             <h2
               style={{
-                fontFamily: "Arial",
+                fontFamily: "SolaimanLipi",
                 fontSize: "11px",
                 color: "#007700",
-                letterSpacing: "0.2px",
-                fontWeight: "400",
+                fontWeight: "550",
               }}
             >
               Government of the People&apos;s Republic of Bangladesh
@@ -403,7 +402,7 @@ const getIssueDate = () => {
                     <span
                       style={{
                         color: "#ff0000",
-                        fontWeight: "bold",
+                        fontWeight: "950",
                       }}
                     >
                       {nidData.nidNumber}
@@ -417,7 +416,7 @@ const getIssueDate = () => {
             style={{
               position: "absolute",
               top: "47px",
-              left: "401px",
+              left: "400px",
               height: "45px",
               width: "340px",
               letterSpacing: "0.2px",
@@ -427,11 +426,11 @@ const getIssueDate = () => {
             {" "}
             <p
               style={{
-                fontFamily: "SolaimanLipi",
-                fontSize: "8px",
-                width: "92%",
+                fontFamily: "Kalpurush",
+                fontSize: "10px",
+                width: "93%",
                 margin: "auto",
-                paddingTop: "5px",
+                paddingTop: "2px",
               }}
             >
               এই কার্ডটি গণপ্রজাতন্ত্রী বাংলাদেশ সরকারের সম্পত্তি। কার্ডটি
@@ -462,7 +461,7 @@ const getIssueDate = () => {
                   width: "90%",
                   margin: "auto",
                   fontFamily: "SolaimanLipi",
-                  fontSize: "8px",
+                  fontSize: "9px",
                   display: "flex",
                 }}
               >

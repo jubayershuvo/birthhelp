@@ -135,6 +135,7 @@ export async function POST(req: Request) {
 
     // Convert base64 to buffer
     function base64ToBuffer(dataUrl: string) {
+      console.log(dataUrl.slice(0, 100) + (dataUrl.length > 100 ? "..." : ""));
       const matches = dataUrl.match(/^data:(.+);base64,(.+)$/);
       if (!matches) throw new Error("Invalid data URL");
       const base64Data = matches[2]; // strip the prefix
@@ -161,6 +162,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(nid, { status: pdfResponse.status });
   } catch (error) {
+    console.log(error)
     return NextResponse.json(
       { error: "Internal server error", details: error },
       { status: 500 }

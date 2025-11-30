@@ -50,7 +50,7 @@ export function generateBarcode(data: string): string | null {
       lineColor: "#000000",
     });
 
-    return canvas.toBuffer("image/png").toString("base64");
+    return canvas.toDataURL("image/png");
   } catch (error) {
     console.error("Barcode generation failed:", error);
     return null;
@@ -59,8 +59,21 @@ export function generateBarcode(data: string): string | null {
 
 export function generateNidBarcode(data: string): string {
   try {
-    const canvas = createCanvas(454, 61);
-    PDF417.draw(data, canvas);
+    const width = 1364;
+    const height = 185;
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, width, height);
+
+    PDF417.draw(data, canvas, {
+      padding: 0,
+      ratio: 3,
+      scale: 3,
+      columns: 8,
+      ecl: 4,
+    });
 
     return canvas.toDataURL();
   } catch (err) {

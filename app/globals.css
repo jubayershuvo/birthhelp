@@ -40,20 +40,22 @@
 }
 @font-face {
   font-family: "SolaimanLipi";
-  src: url("/fonts/SolaimanLipi-normal.ttf") format("ttf");
+  src: url("/fonts/SolaimanLipi-normal.ttf") format("truetype");
 }
 @font-face {
   font-family: "Arial";
-  src: url("/fonts/ARIAL.TTF") format("ttf");
+  src: url("/fonts/ARIAL.TTF") format("truetype");
 }
 @font-face {
   font-family: "Nikosh";
-  src: url("/fonts/Nikosh.ttf") format("ttf");
+  src: url("/fonts/Nikosh.ttf") format("truetype");
 }
 @font-face {
   font-family: "Sans Serif Collection";
-  src: url("/fonts/SansSerifCollection.ttf") format("ttf");
+  src: url("/fonts/SansSerifCollection.ttf") format("truetype");
 }
+
+
 
 body {
   background: var(--background);
