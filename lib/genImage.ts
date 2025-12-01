@@ -1,5 +1,4 @@
-import { createCanvas, Canvas } from "canvas";
-import JsBarcode from "jsbarcode";
+;
 import bwipjs from "bwip-js";
 
 // === Type Definitions ==
