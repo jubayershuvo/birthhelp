@@ -253,7 +253,7 @@ const NIDCard: React.FC = () => {
                 color: "#ff0000",
                 fontWeight: "400",
                 fontFamily: "Arial",
-               marginTop:'-3px'
+               marginTop:'-5px'
               }}
             >
               National ID Card{" "}
@@ -387,8 +387,8 @@ const NIDCard: React.FC = () => {
                     fontWeight: "400",
                   }}
                 >
-                  <p>
-                    <span style={{ fontSize: "12px", marginTop:'-3px' }}>Date of Birth:</span>
+                  <p style={{marginTop:'-3px'}}>
+                    <span style={{ fontSize: "12px",  }}>Date of Birth:</span>
                     <span
                       style={{
                         color: "#ff0000",
@@ -406,8 +406,8 @@ const NIDCard: React.FC = () => {
                     fontWeight: "400",
                   }}
                 >
-                  <p>
-                    <span style={{ fontSize: "12px", marginTop:'-3px' }}>ID NO:</span>
+                  <p style={{marginTop:'-3px'}}>
+                    <span style={{ fontSize: "12px" }}>ID NO:</span>
                     <span
                       style={{
                         color: "#ff0000",
@@ -471,24 +471,23 @@ const NIDCard: React.FC = () => {
                   height: "50px",
                   width: "90%",
                   margin: "auto",
-                  fontFamily: "SolaimanLipi",
                   fontSize: "10px",
                   display: "flex",
                 }}
               >
                 <p style={{ marginLeft: "15px" }}>ঠিকানা: </p>
                 <p> </p>
-                <p>{nidData.addressBn}</p>
+                <p style={{paddingLeft:'2px'}}>{nidData.addressBn}</p>
               </div>
               <div
                 style={{
                   position: "absolute",
-                  top: "49px",
+                  top: "45px",
                   height: "30px",
                   width: "91%",
                   margin: "auto",
                   fontFamily: "SolaimanLipi",
-                  fontSize: "9px",
+                  fontSize: "12px",
                   display: "flex",
                 }}
               >
@@ -497,10 +496,11 @@ const NIDCard: React.FC = () => {
                     width: "75%",
                     display: "flex",
                     paddingLeft: "15px",
+                     fontSize: "12px",
                   }}
                 >
                   <p>
-                    রক্তের গ্রুপ <span>/ Blood Group:</span>
+                    রক্তের গ্রুপ <span style={{fontSize:'10px'}}>/ Blood Group:</span>
                     <span
                       style={{
                         color: "#ff0000",
@@ -576,7 +576,7 @@ const NIDCard: React.FC = () => {
                   position: "absolute",
                   bottom: "0px",
                   left: "15px",
-                  fontSize: "12px",
+                  fontSize: "14px",
                 }}
               >
                 প্রদানকারী কর্তৃপক্ষের স্বাক্ষর
