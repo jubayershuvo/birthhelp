@@ -10,7 +10,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const files = await File.find({ user: user._id });
+    const files = await File.find({ user: user._id }).sort({ createdAt: -1 });
     return NextResponse.json({ files }, { status: 200 });
   } catch (error) {
     return NextResponse.json(

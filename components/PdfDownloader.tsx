@@ -19,7 +19,6 @@ export default function BDRISPrint() {
   const [data, setData] = useState({
     serviceCost: 0,
   });
-  const router = useRouter();
 
   const url = new URL(window.location.href);
   const error = url.searchParams.get("error");
@@ -157,6 +156,29 @@ export default function BDRISPrint() {
     const formattedDate = parseAndFormatDate(dob);
     setDob(formattedDate);
   };
+   const handleDownload = async (fileId: string, fileName: string) => {
+    try {
+      const response = await fetch(`/api/file/downloader/${fileId}`);
+
+      if (!response.ok) {
+        throw new Error("Download failed");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = `${fileName}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("Failed to download file");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,7 +222,7 @@ export default function BDRISPrint() {
       setDob("");
 
       toast.success("PDF ডাউনলোড সফল হয়েছে");
-      window.location.href = `/api/file/downloader/${resData.file._id}`;
+      handleDownload(resData.file._id, resData.file.name);
       setResult({
         type: "success",
         message: "PDF সফলভাবে ডাউনলোড হয়েছে",
