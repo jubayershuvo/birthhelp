@@ -31,16 +31,15 @@ const NIDCard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const id = params.id as string;
 
-const getIssueDate = () => {
-  const date = new Date();
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = String(date.getFullYear());
+  const getIssueDate = () => {
+    const date = new Date();
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear());
 
-  const englishDate = `${day}/${month}/${year}`;
-  return englishDate.replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]);
-};
-
+    const englishDate = `${day}/${month}/${year}`;
+    return englishDate.replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]);
+  };
 
   const fetchNidData = async () => {
     try {
@@ -65,9 +64,9 @@ const getIssueDate = () => {
         addressBn: resData.data.permanent_address_full,
         photo: resData.data.photo,
         signature: resData.data.signature,
-        adminSignature: '/images/sign-administrator.jpg',
+        adminSignature: "/images/sign-administrator.jpg",
         issueDate: getIssueDate(),
-        barcode: resData.data.barcode
+        barcode: resData.data.barcode,
       };
 
       if (!data || Object.keys(data).length === 0) {
@@ -199,7 +198,7 @@ const getIssueDate = () => {
             padding: "20px",
             position: "relative",
             color: "#000000",
-            fontFamily: "'Kalpurush', 'Arial', sans-serif",
+            fontFamily: "Kalpurush",
           }}
         >
           <div
@@ -226,20 +225,21 @@ const getIssueDate = () => {
               height: "65px",
               width: "297px",
               textAlign: "center",
-              fontFamily: "Nikosh",
+              fontFamily: "Kalpurush",
             }}
           >
             <h2
               style={{
-                fontSize: "16px",
+                fontSize: "18px",
                 fontWeight: "400",
+                marginBottom: "-3px",
               }}
             >
               গণপ্রজাতন্ত্রী বাংলাদেশ সরকার
             </h2>
             <h2
               style={{
-                fontFamily: "SolaimanLipi",
+                fontFamily: "Arial",
                 fontSize: "11px",
                 color: "#007700",
                 fontWeight: "550",
@@ -249,18 +249,19 @@ const getIssueDate = () => {
             </h2>
             <h3
               style={{
-                fontSize: "12px",
+                fontSize: "11px",
                 color: "#ff0000",
                 fontWeight: "400",
-                marginTop: "2px",
                 fontFamily: "Arial",
+               marginTop:'-3px'
               }}
             >
               National ID Card{" "}
               <span
                 style={{
                   color: "black",
-                  fontFamily: "Nikosh",
+                  fontFamily: "SolaimanLipi",
+                  fontSize: "16px",
                 }}
               >
                 {" "}
@@ -310,24 +311,23 @@ const getIssueDate = () => {
                 style={{
                   position: "absolute",
                   left: "110px",
-                  top: "10px",
+                  top: "4px",
                   width: "277px",
                   height: "100%",
                   textAlign: "left",
-                  fontFamily: "Nikosh",
-                  fontSize: "12px",
                 }}
               >
                 <div
                   style={{
-                    paddingBottom: "5px",
+                    paddingBottom: "0px",
                   }}
                 >
                   <p>
-                    নাম:{" "}
+                    <span>নাম:</span>
                     <span
                       style={{
-                        fontWeight: "800",
+                        fontWeight: "bold",
+                        paddingLeft: "16px",
                       }}
                     >
                       {nidData.nameBn}
@@ -338,14 +338,15 @@ const getIssueDate = () => {
                 <div
                   style={{
                     fontFamily: "Arial",
-                    paddingBottom: "5px",
                   }}
                 >
                   <p>
-                    Name:{" "}
+                    <span style={{ fontSize: "11px" }}>Name:</span>
                     <span
                       style={{
                         fontWeight: "bold",
+                        paddingLeft: "6px",
+                        fontSize: "11px",
                       }}
                     >
                       {nidData.nameEn}
@@ -355,36 +356,44 @@ const getIssueDate = () => {
 
                 <div
                   style={{
-                    paddingBottom: "5px",
+                    paddingBottom: "0px",
+                    marginTop: "-2px",
                   }}
                 >
                   <p>
-                    পিতা: <span>{nidData.fatherNameBn}</span>
+                    <span>পিতা:</span>
+                    <span style={{ paddingLeft: "10px" }}>
+                      {nidData.fatherNameBn}
+                    </span>
                   </p>
                 </div>
 
                 <div
                   style={{
-                    paddingBottom: "5px",
+                    paddingBottom: "0px",
                   }}
                 >
-                  <p>
-                    মাতা: <span>{nidData.motherNameBn}</span>
+                  <p style={{ marginTop: "-3px" }}>
+                    <span>মাতা:</span>
+                    <span style={{ paddingLeft: "10px" }}>
+                      {nidData.motherNameBn}
+                    </span>
                   </p>
                 </div>
 
                 <div
                   style={{
                     fontFamily: "Arial",
-                    paddingBottom: "5px",
                     fontWeight: "400",
                   }}
                 >
                   <p>
-                    Date of Birth:{" "}
+                    <span style={{ fontSize: "12px", marginTop:'-3px' }}>Date of Birth:</span>
                     <span
                       style={{
                         color: "#ff0000",
+                        fontSize: "12px",
+                        paddingLeft: "3px",
                       }}
                     >
                       {nidData.dateOfBirth}
@@ -398,12 +407,14 @@ const getIssueDate = () => {
                   }}
                 >
                   <p>
-                    ID NO:{" "}
+                    <span style={{ fontSize: "12px", marginTop:'-3px' }}>ID NO:</span>
                     <span
                       style={{
                         color: "#ff0000",
-                        fontFamily: 'Arial',
+                        fontFamily: "Arial",
                         fontWeight: "990",
+                        fontSize: "12px",
+                        paddingLeft: "6px",
                       }}
                     >
                       {nidData.nidNumber?.toString()}
@@ -461,7 +472,7 @@ const getIssueDate = () => {
                   width: "90%",
                   margin: "auto",
                   fontFamily: "SolaimanLipi",
-                  fontSize: "9px",
+                  fontSize: "10px",
                   display: "flex",
                 }}
               >
@@ -554,8 +565,8 @@ const getIssueDate = () => {
                 style={{
                   width: "80px",
                   position: "absolute",
-                  bottom: "15px",
-                  left: "28px",
+                  bottom: "10px",
+                  left: "23px",
                 }}
                 src={nidData.adminSignature}
                 alt="adminSignature"
@@ -565,10 +576,10 @@ const getIssueDate = () => {
                   position: "absolute",
                   bottom: "0px",
                   left: "15px",
-                  fontSize: "10px",
+                  fontSize: "12px",
                 }}
               >
-                প্রদানকারী কর্তৃপক্ষের স্বাক্ষর{" "}
+                প্রদানকারী কর্তৃপক্ষের স্বাক্ষর
               </p>
 
               <div
@@ -577,6 +588,7 @@ const getIssueDate = () => {
                   bottom: "1px",
                   left: "190px",
                   display: "flex",
+                  fontSize: "12px",
                 }}
               >
                 <span>প্রদানের তারিখ:</span>
@@ -602,7 +614,11 @@ const getIssueDate = () => {
                   marginTop: "5px",
                 }}
               >
-                <img style={{ width: "100%" }} src={nidData.barcode} alt="barcode" />
+                <img
+                  style={{ width: "100%" }}
+                  src={nidData.barcode}
+                  alt="barcode"
+                />
               </div>
             </div>
           </div>

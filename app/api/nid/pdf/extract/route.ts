@@ -19,6 +19,8 @@ export async function POST(req: Request) {
     const formDataBody = await req.formData();
     const profilePdf = formDataBody.get("profile_pdf") as File | null;
 
+
+
     if (!profilePdf) {
       console.error("Error: PDF file not found in request.");
       return NextResponse.json(
@@ -45,7 +47,6 @@ export async function POST(req: Request) {
     }
 
     if (!pdfResponse.ok) {
-      console.error("Failed to send PDF to server:", pdfResponse.statusText);
       return NextResponse.json(
         {
           error: "Failed to send PDF to server",
@@ -59,7 +60,6 @@ export async function POST(req: Request) {
     try {
       pdfResult = await pdfResponse.json();
     } catch (jsonError) {
-      console.error("Failed to parse JSON response:", jsonError);
       return NextResponse.json(
         { error: "Invalid JSON response from server", details: jsonError },
         { status: 502 }
@@ -81,14 +81,16 @@ export async function POST(req: Request) {
 
       const res = await fetch("https://api.applicationzone.top/extract", {
         method: "POST",
-        body: imageFormData, // fetch auto sets correct headers for FormData
+        body: imageFormData, 
       });
 
       if (!res.ok) {
+        console.log(res)
         throw new Error(`HTTP ${res.status}`);
       }
 
       imageResponse = await res.json();
+      console.log(imageResponse)
     } catch (error) {
       console.error("Failed to extract images:", error);
       return NextResponse.json(
@@ -102,7 +104,7 @@ export async function POST(req: Request) {
 
     if (!photoBase64 || !signatureBase64) {
       return NextResponse.json(
-        { error: "Photo or signature not returned from API" },
+        { error: "Photo or signature not returned from SUB-API" },
         { status: 502 }
       );
     }

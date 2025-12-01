@@ -1729,7 +1729,7 @@ export default function BirthCorrectionForm() {
       setBirthRecord(userData.data);
 
       if (userData.success === false) {
-        toast.error(userData.error.message);
+        toast.error(userData.message || userData.error || "অনুসন্ধান ব্যর্থ");
         return;
       }
 

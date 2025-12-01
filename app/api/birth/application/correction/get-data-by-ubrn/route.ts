@@ -60,9 +60,9 @@ export async function POST(req: NextRequest) {
     // Make the request
     const response = await fetch(url, { headers });
     if (!response.ok) {
-      console.log(response);
+        const errorData = await response.json(); 
       return NextResponse.json(
-        { success: false, error: "Failed to fetch data" },
+        { success: false, error: errorData.message || "Failed to fetch data" },
         { status: 500 }
       );
     }
