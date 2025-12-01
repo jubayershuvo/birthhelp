@@ -28,7 +28,6 @@
     "pdf417-generator": "^1.0.5",
     "puppeteer": "^24.29.1",
     "puppeteer-extra": "^3.3.6",
-    "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.6.0",

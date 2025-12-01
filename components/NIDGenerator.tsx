@@ -529,8 +529,8 @@ const NIDCard: React.FC = () => {
                   <span
                     style={{
                       position: "absolute",
-                      top: "0px",
-                      right: "02px",
+                      top: "3px",
+                      right: "04px",
                       color: "#fff",
                       paddingTop: "4px",
                     }}

@@ -41,7 +41,7 @@ export async function GET(
     }
 
     const qrCode = await generateQRCode(certificate.qrCodeData);
-    const barCode = generateBarcode(certificate.barcodeData);
+    const barCode = await generateBarcode(certificate.barcodeData);
 
     // Create a properly typed certificate object
     const certificateData = {

@@ -1,33 +1,24 @@
-import QRCode from "qrcode";
 import { createCanvas, Canvas } from "canvas";
 import JsBarcode from "jsbarcode";
 import bwipjs from "bwip-js";
-// === Type Definitions ===
-// === Helper Function: Clean URL ===
-function cleanUrl(rawUrl: string): string {
-  if (!rawUrl || typeof rawUrl !== "string") return "";
 
-  // Replace all escaped slashes (\/) with /
-  let cleaned = rawUrl.replace(/\\\//g, "/");
-
-  // If the URL came from a JSON string, parse it safely
-  try {
-    cleaned = JSON.parse(`"${cleaned}"`);
-  } catch {
-    // ignore if not JSON-escaped
-  }
-
-  return cleaned;
-}
-
+// === Type Definitions ==
 // === Function 1: Generate QR Code (base64 or PNG) ===
 export async function generateQRCode(data: string): Promise<string | null> {
   try {
-    const qrImage = await QRCode.toDataURL(cleanUrl(data), {
-      errorCorrectionLevel: "H", // High error correction
-      width: 200,
+    const png: Buffer = await bwipjs.toBuffer({
+      bcid: "qrcode",
+      text: data,
+      scale: 4,
+      version: 6,
+      includetext: false,
+      eclevel: "M",
+      padding: 4,
     });
-    return qrImage; // Base64 string
+
+    // Convert buffer → base64 → Data URL
+    const base64 = png.toString("base64");
+    return `data:image/png;base64,${base64}`;
   } catch (error) {
     console.error("QR generation failed:", error);
     return null;
@@ -35,27 +26,45 @@ export async function generateQRCode(data: string): Promise<string | null> {
 }
 
 // === Function 2: Generate Barcode (base64 or PNG) ===
-export function generateBarcode(data: string): string | null {
+export async function generateBarcode(data: string): Promise<string | null> {
   try {
-    // Create a larger canvas for sharper resolution
-    const canvas: Canvas = createCanvas(600, 120);
-
-    JsBarcode(canvas, data, {
-      format: "CODE128",
-      displayValue: false, // hides the text under the barcode
-      width: 2, // each bar width
-      height: 100, // height of bars
-      margin: 10, // small margin around
-      background: "#ffffff",
-      lineColor: "#000000",
+     const png = await bwipjs.toBuffer({
+      bcid: "code128",   // BD Birth Certificate uses Code128
+      text: data,
+      scale: 3,          // HD quality (3 = sharp, not thick)
+      height: 30,        // line height
+      includetext: false, // no text below barcode
+      paddingwidth: 0,
+      paddingheight: 0,
     });
 
-    return canvas.toDataURL("image/png");
+    return "data:image/png;base64," + png.toString("base64");
   } catch (error) {
     console.error("Barcode generation failed:", error);
     return null;
   }
 }
+// export function generateBarcode(data: string): string | null {
+//   try {
+//     // Create a larger canvas for sharper resolution
+//     const canvas: Canvas = createCanvas(600, 120);
+
+//     JsBarcode(canvas, data, {
+//       format: "CODE128",
+//       displayValue: false, // hides the text under the barcode
+//       width: 2, // each bar width
+//       height: 100, // height of bars
+//       margin: 10, // small margin around
+//       background: "#ffffff",
+//       lineColor: "#000000",
+//     });
+
+//     return canvas.toDataURL("image/png");
+//   } catch (error) {
+//     console.error("Barcode generation failed:", error);
+//     return null;
+//   }
+// }
 
 export async function generateNidBarcode(data: string): Promise<Buffer | null> {
   return new Promise((resolve) => {
