@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const servicePath = "/birth/certificate";
+
+    const servicePath = "/birth/application/correction";
 
     const service = await Services.findOne({ href: servicePath });
     if (!service) {

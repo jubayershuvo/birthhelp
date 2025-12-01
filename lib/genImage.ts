@@ -1,7 +1,7 @@
 import QRCode from "qrcode";
 import { createCanvas, Canvas } from "canvas";
 import JsBarcode from "jsbarcode";
-import * as PDF417 from "pdf417-generator";
+import bwipjs from "bwip-js";
 // === Type Definitions ===
 // === Helper Function: Clean URL ===
 function cleanUrl(rawUrl: string): string {
@@ -57,19 +57,31 @@ export function generateBarcode(data: string): string | null {
   }
 }
 
-export function generateNidBarcode(data: string): string {
-  try {
-    // Create large HD canvas like NID barcode
-    const width = 1364;
-    const height = 185;
-    const canvas = createCanvas(width, height);
-
-    // Draw PDF417 barcode
-    PDF417.draw(data, canvas);
-
-    return canvas.toDataURL();
-  } catch (err) {
-    console.error("PDF417 error:", err);
-    return "";
-  }
+export async function generateNidBarcode(data: string): Promise<Buffer | null> {
+  return new Promise((resolve) => {
+    bwipjs.toBuffer(
+      {
+        bcid: "pdf417", // Barcode type
+        text: data, // Data to encode
+        scale: 3, // 1..10 (scale of modules)
+        paddingwidth: 20,
+        paddingheight: 20,
+        includetext: false, // PDF417 typically doesn't include human text
+        width: 1364, // Width of canvas in pixels
+        height: 185,
+      },
+      function (err: Error, pngBuffer: Buffer) {
+        if (err) {
+          console.error("bwip-js error:", err);
+          resolve(null);
+        } else {
+          // fs.writeFileSync(path, pngBuffer);
+          // console.log("Saved dl-pdf417.png (size:", pngBuffer.length, "bytes)");
+          // also show a data URI if you need to embed in HTML:
+          // const dataUri = "data:image/png;base64," + pngBuffer.toString("base64");
+          resolve(pngBuffer);
+        }
+      }
+    );
+  });
 }

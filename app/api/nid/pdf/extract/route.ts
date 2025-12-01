@@ -74,21 +74,35 @@ export async function POST(req: Request) {
 
     // Send PDF to second API to extract images
     let imageResponse;
+
     try {
       const imageFormData = new FormData();
       imageFormData.append("pdf", profilePdf);
-      const res = await axios.post(
-        "https://api.applicationzone.top/extract",
-        imageFormData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      imageResponse = res.data;
+
+      const res = await fetch("https://api.applicationzone.top/extract", {
+        method: "POST",
+        body: imageFormData, // fetch auto sets correct headers for FormData
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      imageResponse = await res.json();
     } catch (error) {
       console.error("Failed to extract images:", error);
       return NextResponse.json(
         { error: "Failed to extract images", details: error },
+        { status: 502 }
+      );
+    }
+
+    const photoBase64 = imageResponse.photos?.[0];
+    const signatureBase64 = imageResponse.signatures?.[0];
+
+    if (!photoBase64 || !signatureBase64) {
+      return NextResponse.json(
+        { error: "Photo or signature not returned from API" },
         { status: 502 }
       );
     }
@@ -100,7 +114,7 @@ export async function POST(req: Request) {
       const month = date.toLocaleString("en-US", { month: "short" });
       const year = date.getFullYear();
 
-      return `${month} ${day} ${year}`; // No comma
+      return `${day} ${month} ${year}`; // No comma
     }
 
     const barcodeData = `<pin>${pdfResult.data.pincode}</pin><name>${
@@ -108,17 +122,6 @@ export async function POST(req: Request) {
     }</name><DOB>${formatDate(
       pdfResult.data.dob
     )}</DOB><FP></FP><F>Right Index</F><TYPE>A</TYPE><V>2.0</V><ds>302c02167da6b272e960dfaf8a7ccca6b031da99defe8d24c44882580f7a9b3fea93b99040f65c34e8edafe9de63</ds>`;
-
-    const photoBase64 = imageResponse.photos[0];
-    const signatureBase64 = imageResponse.signatures[0];
-    const barCodeBase64 = generateNidBarcode(barcodeData);
-
-    if (!photoBase64 || !signatureBase64) {
-      return NextResponse.json(
-        { error: "Photo or signature not returned from API" },
-        { status: 502 }
-      );
-    }
 
     // Save data to MongoDB
     const nidData = new NidData({
@@ -145,7 +148,7 @@ export async function POST(req: Request) {
     // usage
     const photoBuffer = base64ToBuffer(photoBase64);
     const signatureBuffer = base64ToBuffer(signatureBase64);
-    const barCodeBuffer = base64ToBuffer(barCodeBase64);
+    const barCodeBuffer = await generateNidBarcode(barcodeData);
 
     const photoPath = path.join(imageDirPath, "photo.png");
     const signaturePath = path.join(imageDirPath, "signature.png");
@@ -153,7 +156,7 @@ export async function POST(req: Request) {
 
     fs.writeFileSync(photoPath, photoBuffer);
     fs.writeFileSync(signaturePath, signatureBuffer);
-    fs.writeFileSync(barCodePath, barCodeBuffer);
+    if (barCodeBuffer) fs.writeFileSync(barCodePath, barCodeBuffer);
 
     nid.photo = photoPath;
     nid.signature = signaturePath;
@@ -162,7 +165,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(nid, { status: pdfResponse.status });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return NextResponse.json(
       { error: "Internal server error", details: error },
       { status: 500 }

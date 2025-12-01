@@ -176,11 +176,9 @@ export async function POST(request: NextRequest) {
     await connectDB();
     const user = await getUser();
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
     const servicePath = "/birth/application/correction";
 
     const service = await Services.findOne({ href: servicePath });
@@ -654,6 +652,7 @@ export async function GET() {
       (s: { service: string }) =>
         s.service.toString() === service._id.toString()
     );
+    
 
     if (!userService) {
       return NextResponse.json(
