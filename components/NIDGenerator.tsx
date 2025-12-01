@@ -232,11 +232,10 @@ const getIssueDate = () => {
             <h2
               style={{
                 fontSize: "16px",
-                letterSpacing: "0.2px",
                 fontWeight: "400",
               }}
             >
-              গণপ্রজাতন্ত্রী বাংলােদশ সরকার
+              গণপ্রজাতন্ত্রী বাংলাদেশ সরকার
             </h2>
             <h2
               style={{
@@ -252,15 +251,16 @@ const getIssueDate = () => {
               style={{
                 fontSize: "12px",
                 color: "#ff0000",
-                letterSpacing: "0.2px",
                 fontWeight: "400",
                 marginTop: "2px",
+                fontFamily: "Arial",
               }}
             >
               National ID Card{" "}
               <span
                 style={{
                   color: "black",
+                  fontFamily: "Nikosh",
                 }}
               >
                 {" "}
@@ -402,10 +402,11 @@ const getIssueDate = () => {
                     <span
                       style={{
                         color: "#ff0000",
-                        fontWeight: "950",
+                        fontFamily: 'Arial',
+                        fontWeight: "990",
                       }}
                     >
-                      {nidData.nidNumber}
+                      {nidData.nidNumber?.toString()}
                     </span>
                   </p>
                 </div>
@@ -415,19 +416,18 @@ const getIssueDate = () => {
           <div
             style={{
               position: "absolute",
-              top: "47px",
-              left: "400px",
+              top: "50px",
+              left: "402px",
               height: "45px",
               width: "340px",
-              letterSpacing: "0.2px",
               fontWeight: "500",
             }}
           >
             {" "}
             <p
               style={{
-                fontFamily: "Kalpurush",
-                fontSize: "10px",
+                fontFamily: "Nikosh",
+                fontSize: "8.5px",
                 width: "93%",
                 margin: "auto",
                 paddingTop: "2px",

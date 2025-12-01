@@ -54,6 +54,18 @@
   font-family: "Sans Serif Collection";
   src: url("/fonts/SansSerifCollection.ttf") format("truetype");
 }
+@font-face {
+  font-family: "Shonar Bangla";
+  src: url("/fonts/ShonarBanglaRegular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "UntitledTTF2";
+  src: url("/fonts/UntitledTTF_2.ttf") format("truetype");
+}
+@font-face {
+  font-family: "UntitledTTF";
+  src: url("/fonts/UntitledTTF.ttf") format("truetype");
+}
 
 
 
