@@ -99,7 +99,7 @@ export async function POST(
         service: userService._id,
         amount: serviceCost,
         data: id,
-        dataSchema: "CurrectionApplication",
+        dataSchema: "NIDMake",
       });
       await Earnings.create({
         user: user._id,
@@ -107,7 +107,7 @@ export async function POST(
         service: userService._id,
         amount: userService.fee,
         data: id,
-        dataSchema: "CurrectionApplication",
+        dataSchema: "NIDMake",
       });
       await reseller.save();
       await user.save();
