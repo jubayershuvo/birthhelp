@@ -199,7 +199,7 @@ export default function BDRISPrint() {
         let errorMessage = "ডাউনলোড করতে সমস্যা হয়েছে";
         try {
           const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
+          errorMessage = errorData.error || errorMessage;
         } catch (e) {
           // If response is not JSON, use status text
           errorMessage = response.statusText || errorMessage;

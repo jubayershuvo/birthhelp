@@ -14,12 +14,12 @@ export async function GET(request: NextRequest) {
   const appId = urlParams.searchParams.get("appId");
   const dob = urlParams.searchParams.get("dob");
   const appType = urlParams.searchParams.get("appType");
-  const redirectUrl = new URL(process.env.NEXT_PUBLIC_SERVER_URL!);
-  redirectUrl.pathname = "/application/download/pdf";
 
   if (!appId || !dob || !appType) {
-    redirectUrl.searchParams.set("error", "Missing required fields");
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.json(
+      { error: "Missing required parameters" },
+      { status: 400 }
+    );
   }
 
   await connectDB();
@@ -31,26 +31,29 @@ export async function GET(request: NextRequest) {
   const servicePath = "/application/download/pdf";
   const service = await Services.findOne({ href: servicePath });
   if (!service) {
-    redirectUrl.searchParams.set("error", "Service not found");
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.json(
+      { success: false, error: "Service not found" },
+      { status: 404 }
+    );
   }
 
   const userService = user.services.find(
     (s: { service: string }) => s.service.toString() === service._id.toString()
   );
   if (!userService) {
-    redirectUrl.searchParams.set(
-      "error",
-      "User does not have access to this service"
+    return NextResponse.json(
+      { success: false, error: "User does not have access to this service" },
+      { status: 403 }
     );
-    return NextResponse.redirect(redirectUrl);
   }
 
   const serviceCost = userService.fee + service.fee;
 
   if (user.balance < serviceCost) {
-    redirectUrl.searchParams.set("error", "Insufficient balance");
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.json(
+      { success: false, error: "Insufficient balance" },
+      { status: 402 }
+    );
   }
 
   const reseller = await Reseller.findById(user.reseller);
@@ -65,13 +68,6 @@ export async function GET(request: NextRequest) {
     });
 
     const page = await browser.newPage();
-    await page.setExtraHTTPHeaders({
-      "Accept-Language": "en-US,en;q=0.9",
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      "Upgrade-Insecure-Requests": "1",
-      Referer: "http://api.sheva247.site",
-    });
 
     await page.setViewport({ width: 1200, height: 2000 });
 
@@ -99,8 +95,10 @@ export async function GET(request: NextRequest) {
     const html = await page.content();
 
     if (html.includes("session has expired")) {
-      redirectUrl.searchParams.set("error", "Session has expired");
-      return NextResponse.redirect(redirectUrl);
+      return NextResponse.json(
+        { success: false, error: "Session has expired cookie" },
+        { status: 401 }
+      );
     }
 
     if (
@@ -108,15 +106,20 @@ export async function GET(request: NextRequest) {
       html.includes("not found") ||
       html.includes("কোনও অ্যাপ্লিকেশন পাওয়া যায় নাই")
     ) {
-      redirectUrl.searchParams.set("error", "Application not found");
-      return NextResponse.redirect(redirectUrl);
+     
+      return NextResponse.json(
+        { success: false, error: "Try again" },
+        { status: 404 }
+      );
     }
 
     // Check if we actually got valid content
     const bodyText = await page.evaluate(() => document.body.innerText);
     if (!bodyText || bodyText.length < 100) {
-      redirectUrl.searchParams.set("error", "Invalid content");
-      return NextResponse.redirect(redirectUrl);
+      return NextResponse.json(
+        { success: false, error: "Invalid content" },
+        { status: 500 }
+      );
     }
 
     // Generate PDF as buffer
@@ -128,7 +131,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (!pdfBuffer || pdfBuffer.length === 0) {
-      throw new Error("Generated PDF is empty");
+      return NextResponse.json(
+        { success: false, error: "Failed to generate PDF" },
+        { status: 500 }
+      );
     }
 
     // Folder: /upload/pdf/<user._id>/
@@ -184,16 +190,22 @@ export async function GET(request: NextRequest) {
     // More specific error messages
     if (err instanceof Error) {
       if (err.message.includes("timeout")) {
-        redirectUrl.searchParams.set("error", "Request timed out");
-        return NextResponse.redirect(redirectUrl);
+        return NextResponse.json(
+          { success: false, error: "Request timed out" },
+          { status: 408 }
+        );
       }
       if (err.message.includes("net::ERR")) {
-        redirectUrl.searchParams.set("error", "Network error");
-        return NextResponse.redirect(redirectUrl);
+        return NextResponse.json(
+          { success: false, error: "Network error" },
+          { status: 500 }
+        );
       }
     }
-    redirectUrl.searchParams.set("error", "Unknown error");
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
   } finally {
     if (browser) {
       await browser.close().catch(console.error);

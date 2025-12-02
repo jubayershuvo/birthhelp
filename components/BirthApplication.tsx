@@ -1318,7 +1318,7 @@ export default function BirthRegistrationForm() {
     csrf: "",
     serviceCost: 0,
   });
-  const [currentStep, setCurrentStep] = useState(3);
+  const [currentStep, setCurrentStep] = useState(4);
   const [formData, setFormData] = useState<FormData>({
     officeAddressType: "",
     officeAddrCountry: "",
@@ -1938,6 +1938,15 @@ export default function BirthRegistrationForm() {
           errors["personInfoForBirth.gender"] = "লিঙ্গ নির্বাচন করুন";
         }
 
+        // Optional NID validation only if provided and age is 18+
+        if (
+          age.years >= 18 &&
+          formData.personInfoForBirth.personNid &&
+          !validateNID(formData.personInfoForBirth.personNid)
+        ) {
+          errors["personInfoForBirth.personNid"] = "বৈধ জাতীয় পরিচয়পত্র নম্বর দিন";
+        }
+
         // Birth place address validation
         if (!formData.birthPlaceAddress) {
           errors.birthPlaceAddress = "জন্মস্থানের ঠিকানা নির্বাচন করুন";
@@ -2159,26 +2168,28 @@ export default function BirthRegistrationForm() {
           religion: formData.personInfoForBirth.religion,
           religionOther: formData.personInfoForBirth.religionOther,
           personNid: formData.personInfoForBirth.personNid,
+        },
 
-          // Parents information
-          father: {
-            personNameBn: formData.father.personNameBn,
-            personNameEn: formData.father.personNameEn,
-            personNationality: formData.father.personNationality,
-            personNid: formData.father.personNid,
-            passportNumber: formData.father.passportNumber,
-            ubrn: formData.father.ubrn,
-            personBirthDate: formData.father.personBirthDate,
-          },
-          mother: {
-            personNameBn: formData.mother.personNameBn,
-            personNameEn: formData.mother.personNameEn,
-            personNationality: formData.mother.personNationality,
-            personNid: formData.mother.personNid,
-            passportNumber: formData.mother.passportNumber,
-            ubrn: formData.mother.ubrn,
-            personBirthDate: formData.mother.personBirthDate,
-          },
+        // Father's information (separate from personInfoForBirth)
+        father: {
+          personNameBn: formData.father.personNameBn,
+          personNameEn: formData.father.personNameEn,
+          personNationality: formData.father.personNationality,
+          personNid: formData.father.personNid,
+          passportNumber: formData.father.passportNumber,
+          ubrn: formData.father.ubrn,
+          personBirthDate: formData.father.personBirthDate,
+        },
+
+        // Mother's information (separate from personInfoForBirth)
+        mother: {
+          personNameBn: formData.mother.personNameBn,
+          personNameEn: formData.mother.personNameEn,
+          personNationality: formData.mother.personNationality,
+          personNid: formData.mother.personNid,
+          passportNumber: formData.mother.passportNumber,
+          ubrn: formData.mother.ubrn,
+          personBirthDate: formData.mother.personBirthDate,
         },
 
         // Birth Place Address
@@ -2731,8 +2742,8 @@ export default function BirthRegistrationForm() {
                     {age &&
                       (age.years > 0 || age.months > 0 || age.days > 0) && (
                         <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                          বয়স: {age.years} বছর, {age.months} মাস, {age.days}{" "}
-                          দিন
+                          বয়স: {age.years} বছর, {age.months} মাস, {age.days} দিন
+                          {age.years >= 18 && " (১৮ বা তার বেশি বয়স)"}
                         </p>
                       )}
                   </div>
@@ -2805,6 +2816,40 @@ export default function BirthRegistrationForm() {
                       </p>
                     )}
                   </div>
+
+                  {/* NID Field for 18+ years old (optional) */}
+                  {age.years >= 18 && (
+                    <div data-field="personInfoForBirth.personNid">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        জাতীয় পরিচয়পত্র নম্বর (যদি থাকে)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.personInfoForBirth.personNid}
+                        onChange={(e) =>
+                          handleNestedInputChange(
+                            "personInfoForBirth",
+                            "personNid",
+                            e.target.value
+                          )
+                        }
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                          formErrors["personInfoForBirth.personNid"]
+                            ? "border-red-500"
+                            : "border-gray-300 dark:border-gray-600"
+                        }`}
+                        placeholder="জাতীয় পরিচয়পত্র নম্বর"
+                      />
+                      {formErrors["personInfoForBirth.personNid"] && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {formErrors["personInfoForBirth.personNid"]}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        আপনার বয়স ১৮ বা তার বেশি, আপনি জাতীয় পরিচয়পত্র নম্বর দিতে পারেন (ঐচ্ছিক)
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -3036,10 +3081,10 @@ export default function BirthRegistrationForm() {
                             )
                           }
                           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                            formErrors["mother.ubrn"]
-                              ? "border-red-500"
-                              : "border-gray-300 dark:border-gray-600"
-                          }`}
+                                formErrors["mother.ubrn"]
+                                  ? "border-red-500"
+                                  : "border-gray-300 dark:border-gray-600"
+                              }`}
                           placeholder="জন্ম নিবন্ধন নম্বর"
                           required={parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012}
                         />
@@ -3698,6 +3743,17 @@ export default function BirthRegistrationForm() {
                             : "তৃতীয় লিঙ্গ"}
                         </p>
                       </div>
+                      {/* Show NID in review if age is 18+ and NID is provided */}
+                      {age.years >= 18 && formData.personInfoForBirth.personNid && (
+                        <div className="md:col-span-2">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            জাতীয় পরিচয়পত্র নম্বর:
+                          </span>
+                          <p className="font-medium">
+                            {formData.personInfoForBirth.personNid}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
