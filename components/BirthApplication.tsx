@@ -1224,6 +1224,9 @@ interface FormData {
 
   copyBirthPlaceToPermAddr: boolean;
   permAddrAddress: Address | null;
+  
+  copyPermAddrToPrsntAddr: boolean; // NEW: স্থায়ী ঠিকানা ও বর্তমান ঠিকানা একই
+  prsntAddrAddress: Address | null; // NEW: বর্তমান ঠিকানা
 
   applicant: ApplicantInfo;
 }
@@ -1367,6 +1370,8 @@ export default function BirthRegistrationForm() {
     },
     copyBirthPlaceToPermAddr: false,
     permAddrAddress: null,
+    copyPermAddrToPrsntAddr: false, // NEW
+    prsntAddrAddress: null, // NEW
     applicant: {
       name: "",
       nid: "",
@@ -1413,6 +1418,7 @@ export default function BirthRegistrationForm() {
   // Validation triggers for geo selectors
   const [validateBirthPlace, setValidateBirthPlace] = useState(false);
   const [validatePermAddress, setValidatePermAddress] = useState(false);
+  const [validatePrsntAddress, setValidatePrsntAddress] = useState(false); // NEW
 
   // BD Mission Office Selection States
   const [officeCities, setOfficeCities] = useState<GeoLocation[]>([]);
@@ -1528,6 +1534,14 @@ export default function BirthRegistrationForm() {
       permAddrAddress: address,
     }));
     setValidatePermAddress(false);
+  };
+
+  const handlePrsntAddrAddress = (address: Address) => { // NEW
+    setFormData((prev) => ({
+      ...prev,
+      prsntAddrAddress: address,
+    }));
+    setValidatePrsntAddress(false);
   };
 
   const handleBirthDateChange = (birthDate: string) => {
@@ -2046,6 +2060,32 @@ export default function BirthRegistrationForm() {
           errors.permAddrAddress = "স্থায়ী ঠিকানা নির্বাচন করুন";
         }
 
+        // Present address validation
+        if (!formData.copyPermAddrToPrsntAddr && !formData.prsntAddrAddress) {
+          errors.prsntAddrAddress = "বর্তমান ঠিকানা নির্বাচন করুন";
+        }
+
+        // File upload validation
+        if (uploadedFiles.length === 0) {
+          errors.attachments = "কমপক্ষে একটি ডকুমেন্ট আপলোড করুন";
+        } else {
+          // Check if all files have file types selected and are uploaded
+          const filesWithoutTypes = uploadedFiles.filter(
+            (file) => !file.fileType
+          );
+          const pendingUploads = uploadedFiles.filter(
+            (file) => !file.uploadedId
+          );
+
+          if (filesWithoutTypes.length > 0) {
+            errors.attachments = "সকল ফাইলের জন্য ফাইল টাইপ নির্বাচন করুন";
+          } else if (pendingUploads.length > 0) {
+            errors.attachments = "সকল ফাইল আপলোড সম্পন্ন করুন";
+          }
+        }
+        break;
+
+      case 5:
         // Applicant information validation
         if (!formData.applicant.name.trim()) {
           errors["applicant.name"] = "আবেদনকারীর নাম প্রয়োজন";
@@ -2071,24 +2111,14 @@ export default function BirthRegistrationForm() {
         if (formData.applicant.nid && !validateNID(formData.applicant.nid)) {
           errors["applicant.nid"] = "বৈধ জাতীয় পরিচয়পত্র নম্বর দিন";
         }
+        break;
 
-        // File upload validation
-        if (uploadedFiles.length === 0) {
-          errors.attachments = "কমপক্ষে একটি ডকুমেন্ট আপলোড করুন";
-        } else {
-          // Check if all files have file types selected and are uploaded
-          const filesWithoutTypes = uploadedFiles.filter(
-            (file) => !file.fileType
-          );
-          const pendingUploads = uploadedFiles.filter(
-            (file) => !file.uploadedId
-          );
-
-          if (filesWithoutTypes.length > 0) {
-            errors.attachments = "সকল ফাইলের জন্য ফাইল টাইপ নির্বাচন করুন";
-          } else if (pendingUploads.length > 0) {
-            errors.attachments = "সকল ফাইল আপলোড সম্পন্ন করুন";
-          }
+      case 6:
+        // OTP validation
+        if (!formData.applicant.otp) {
+          errors.otp = "OTP প্রয়োজন";
+        } else if (!otpVerified) {
+          errors.otp = "OTP যাচাই করুন";
         }
         break;
     }
@@ -2115,6 +2145,7 @@ export default function BirthRegistrationForm() {
       // Reset validation triggers
       setValidateBirthPlace(false);
       setValidatePermAddress(false);
+      setValidatePrsntAddress(false);
 
       setCurrentStep((prev) => prev + 1);
     }
@@ -2124,6 +2155,7 @@ export default function BirthRegistrationForm() {
     // Reset validation triggers
     setValidateBirthPlace(false);
     setValidatePermAddress(false);
+    setValidatePrsntAddress(false);
 
     setCurrentStep((prev) => prev - 1);
   };
@@ -2234,6 +2266,41 @@ export default function BirthRegistrationForm() {
           ? formData.birthPlaceAddress?.ward
           : formData.permAddrAddress?.ward || "-1",
 
+        // Present Address
+        copyPermAddrToPrsntAddr: formData.copyPermAddrToPrsntAddr
+          ? "yes"
+          : "no",
+        prsntAddrCountry: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.country
+            : formData.permAddrAddress?.country) || "1"
+          : formData.prsntAddrAddress?.country || "1",
+        prsntAddrDiv: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.division
+            : formData.permAddrAddress?.division) || "-1"
+          : formData.prsntAddrAddress?.division || "-1",
+        prsntAddrDist: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.district
+            : formData.permAddrAddress?.district) || "-1"
+          : formData.prsntAddrAddress?.district || "-1",
+        prsntAddrCityCorpCantOrUpazila: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.cityCorpCantOrUpazila
+            : formData.permAddrAddress?.cityCorpCantOrUpazila) || "-1"
+          : formData.prsntAddrAddress?.cityCorpCantOrUpazila || "-1",
+        prsntAddrPaurasavaOrUnion: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.paurasavaOrUnion
+            : formData.permAddrAddress?.paurasavaOrUnion) || "-1"
+          : formData.prsntAddrAddress?.paurasavaOrUnion || "-1",
+        prsntAddrWardInPaurasavaOrUnion: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.ward
+            : formData.permAddrAddress?.ward) || "-1"
+          : formData.prsntAddrAddress?.ward || "-1",
+
         // Applicant Information
         applicantName: formData.applicant.name,
         phone: formData.applicant.phone,
@@ -2251,7 +2318,6 @@ export default function BirthRegistrationForm() {
 
         // Other required fields
         declaration: "on",
-        copyPermAddrToPrsntAddr: "yes",
         personImage: "",
       };
 
@@ -2281,8 +2347,9 @@ export default function BirthRegistrationForm() {
     "অফিস নির্বাচন",
     "ব্যক্তির তথ্য",
     "পিতা-মাতার তথ্য",
-    "ঠিকানা ও আবেদনকারী",
-    "পর্যালোচনা ও OTP",
+    "ঠিকানা ও ফাইল",
+    "আবেদনকারীর তথ্য", // NEW STEP
+    "পর্যালোচনা ও OTP", // CHANGED TO STEP 6
   ];
 
   // Format address for display
@@ -2323,14 +2390,14 @@ export default function BirthRegistrationForm() {
               <div
                 className="absolute top-1/2 left-0 h-1 bg-blue-600 transform -translate-y-1/2 -z-10 transition-all duration-300"
                 style={{
-                  width: `${((currentStep - 1) / 4) * 100}%`,
+                  width: `${((currentStep - 1) / 5) * 100}%`,
                   maxWidth: "100%",
                 }}
               />
 
               {/* Steps Container */}
               <div className="flex justify-between items-center relative">
-                {[1, 2, 3, 4, 5].map((step) => (
+                {[1, 2, 3, 4, 5, 6].map((step) => (
                   <div
                     key={step}
                     className="flex flex-col items-center relative"
@@ -2372,7 +2439,7 @@ export default function BirthRegistrationForm() {
                 ধাপ {currentStep}: {stepTitles[currentStep - 1]}
               </p>
               <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                মোট ৫টি ধাপের {currentStep} নং ধাপ
+                মোট ৬টি ধাপের {currentStep} নং ধাপ
               </p>
             </div>
           </div>
@@ -3255,7 +3322,7 @@ export default function BirthRegistrationForm() {
           {currentStep === 4 && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-                ঠিকানা ও আবেদনকারীর তথ্য
+                ঠিকানা ও ফাইল আপলোড
               </h3>
 
               <div className="space-y-6">
@@ -3294,6 +3361,45 @@ export default function BirthRegistrationForm() {
                   {formErrors.permAddrAddress && (
                     <p className="text-red-500 text-sm mt-1">
                       {formErrors.permAddrAddress}
+                    </p>
+                  )}
+                </div>
+
+                {/* Present Address */}
+                <div
+                  className="border-b dark:border-gray-700 pb-6"
+                  data-field="prsntAddrAddress"
+                >
+                  <label className="flex items-center space-x-3 mb-4">
+                    <input
+                      type="checkbox"
+                      checked={formData.copyPermAddrToPrsntAddr}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "copyPermAddrToPrsntAddr",
+                          e.target.checked
+                        )
+                      }
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">
+                      স্থায়ী ঠিকানা ও বর্তমান ঠিকানা একই
+                    </span>
+                  </label>
+
+                  {!formData.copyPermAddrToPrsntAddr && (
+                    <BDRISGeoSelector
+                      onApply={handlePrsntAddrAddress}
+                      initial={formData.prsntAddrAddress || undefined}
+                      label="বর্তমান ঠিকানা"
+                      validateOnNext={validatePrsntAddress}
+                      buttonText="বর্তমান ঠিকানা নির্বাচন করুন"
+                      isBdMission={bdMissionChecked}
+                    />
+                  )}
+                  {formErrors.prsntAddrAddress && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {formErrors.prsntAddrAddress}
                     </p>
                   )}
                 </div>
@@ -3488,6 +3594,49 @@ export default function BirthRegistrationForm() {
                   )}
                 </div>
 
+                {/* Terms and Conditions */}
+                <div>
+                  <label className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      required
+                      className="text-blue-600 focus:ring-blue-500 mt-1"
+                    />
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">
+                      আমি ঘোষণা করছি যে, উপরে বর্ণিত সকল তথ্য সঠিক ও বস্তুনিষ্ঠ।
+                      ভুল তথ্য প্রদানের জন্য আমি আইনত দায়ী থাকব।
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-6 border-t dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                >
+                  পূর্ববর্তী
+                </button>
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                >
+                  পরবর্তী
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Applicant Information (NEW STEP) */}
+          {currentStep === 5 && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                আবেদনকারীর তথ্য
+              </h3>
+
+              <div className="space-y-6">
                 {/* Applicant Information */}
                 <div className="border-b dark:border-gray-700 pb-6">
                   <h4 className="font-semibold text-gray-800 dark:text-white mb-4">
@@ -3649,21 +3798,6 @@ export default function BirthRegistrationForm() {
                     </div>
                   </div>
                 </div>
-
-                {/* Terms and Conditions */}
-                <div>
-                  <label className="flex items-start space-x-3">
-                    <input
-                      type="checkbox"
-                      required
-                      className="text-blue-600 focus:ring-blue-500 mt-1"
-                    />
-                    <span className="text-gray-700 dark:text-gray-300 text-sm">
-                      আমি ঘোষণা করছি যে, উপরে বর্ণিত সকল তথ্য সঠিক ও বস্তুনিষ্ঠ।
-                      ভুল তথ্য প্রদানের জন্য আমি আইনত দায়ী থাকব।
-                    </span>
-                  </label>
-                </div>
               </div>
 
               <div className="flex justify-between pt-6 border-t dark:border-gray-700">
@@ -3685,8 +3819,8 @@ export default function BirthRegistrationForm() {
             </div>
           )}
 
-          {/* Step 5: Review and OTP Verification */}
-          {currentStep === 5 && (
+          {/* Step 6: Review and OTP Verification */}
+          {currentStep === 6 && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                 তথ্য পর্যালোচনা ও OTP যাচাই
@@ -3804,6 +3938,16 @@ export default function BirthRegistrationForm() {
                           {formData.copyBirthPlaceToPermAddr
                             ? "জন্মস্থানের মতো একই"
                             : getAddressDisplay(formData.permAddrAddress)}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          বর্তমান ঠিকানা:
+                        </span>
+                        <p className="font-medium">
+                          {formData.copyPermAddrToPrsntAddr
+                            ? "স্থায়ী ঠিকানার মতো একই"
+                            : getAddressDisplay(formData.prsntAddrAddress)}
                         </p>
                       </div>
                     </div>
