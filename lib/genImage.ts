@@ -1,7 +1,5 @@
-;
 import bwipjs from "bwip-js";
 
-// === Type Definitions ==
 // === Function 1: Generate QR Code (base64 or PNG) ===
 export async function generateQRCode(data: string): Promise<string | null> {
   try {
@@ -23,15 +21,14 @@ export async function generateQRCode(data: string): Promise<string | null> {
     return null;
   }
 }
-
 // === Function 2: Generate Barcode (base64 or PNG) ===
 export async function generateBarcode(data: string): Promise<string | null> {
   try {
-     const png = await bwipjs.toBuffer({
-      bcid: "code128",   // BD Birth Certificate uses Code128
+    const png = await bwipjs.toBuffer({
+      bcid: "code128", // BD Birth Certificate uses Code128
       text: data,
-      scale: 3,          // HD quality (3 = sharp, not thick)
-      height: 30,        // line height
+      scale: 3, // HD quality (3 = sharp, not thick)
+      height: 30, // line height
       includetext: false, // no text below barcode
       paddingwidth: 0,
       paddingheight: 0,
@@ -43,28 +40,7 @@ export async function generateBarcode(data: string): Promise<string | null> {
     return null;
   }
 }
-// export function generateBarcode(data: string): string | null {
-//   try {
-//     // Create a larger canvas for sharper resolution
-//     const canvas: Canvas = createCanvas(600, 120);
-
-//     JsBarcode(canvas, data, {
-//       format: "CODE128",
-//       displayValue: false, // hides the text under the barcode
-//       width: 2, // each bar width
-//       height: 100, // height of bars
-//       margin: 10, // small margin around
-//       background: "#ffffff",
-//       lineColor: "#000000",
-//     });
-
-//     return canvas.toDataURL("image/png");
-//   } catch (error) {
-//     console.error("Barcode generation failed:", error);
-//     return null;
-//   }
-// }
-
+// === Function 3: Generate PDF417 Barcode (base64 or PNG) ===
 export async function generateNidBarcode(data: string): Promise<Buffer | null> {
   return new Promise((resolve) => {
     bwipjs.toBuffer(
@@ -83,10 +59,6 @@ export async function generateNidBarcode(data: string): Promise<Buffer | null> {
           console.error("bwip-js error:", err);
           resolve(null);
         } else {
-          // fs.writeFileSync(path, pngBuffer);
-          // console.log("Saved dl-pdf417.png (size:", pngBuffer.length, "bytes)");
-          // also show a data URI if you need to embed in HTML:
-          // const dataUri = "data:image/png;base64," + pngBuffer.toString("base64");
           resolve(pngBuffer);
         }
       }

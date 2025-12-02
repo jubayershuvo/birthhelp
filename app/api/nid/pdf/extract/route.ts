@@ -1,7 +1,6 @@
 import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
 import NidData from "@/models/NidData";
-import axios from "axios";
 import { NextResponse } from "next/server";
 import path from "path";
 import fs from "fs";
@@ -128,7 +127,6 @@ export async function POST(req: Request) {
     // Save data to MongoDB
     const nidData = new NidData({
       ...pdfResult.data,
-      user: user._id,
       dob: formatDate(pdfResult.data.dob),
     });
     const nid = await nidData.save();

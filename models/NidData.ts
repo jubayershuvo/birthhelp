@@ -20,7 +20,7 @@ export interface IAddress {
 
 export interface INidData extends Document {
   citizen_status: string;
-  user: Types.ObjectId;
+  user?: Types.ObjectId;
   signature: string;
   photo: string;
   nid: string;

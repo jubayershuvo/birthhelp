@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 interface Address {
@@ -48,6 +48,8 @@ interface NIDData {
   present_address_full: string;
   permanent_address_full: string;
   addresses_same: boolean;
+  photo: string;
+  signature: string;
   __v: number;
 }
 
@@ -55,6 +57,8 @@ interface ApiResponse {
   success: boolean;
   error: string | null;
   data: NIDData | null;
+  message: string | null;
+  serviceCost: number;
 }
 
 export default function EditNIDPage() {
@@ -63,10 +67,18 @@ export default function EditNIDPage() {
   const nidId = params.id as string;
 
   const [formData, setFormData] = useState<NIDData | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [signatureFile, setSignatureFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [signaturePreview, setSignaturePreview] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [cost, setCost] = useState(0);
+
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch NID data on component mount
   useEffect(() => {
@@ -77,6 +89,14 @@ export default function EditNIDPage() {
 
         if (result.success && result.data) {
           setFormData(result.data);
+          setCost(Number(result.serviceCost) || 0);
+          // Set preview URLs for existing images
+          if (result.data.photo) {
+            setPhotoPreview(result.data.photo);
+          }
+          if (result.data.signature) {
+            setSignaturePreview(result.data.signature);
+          }
         } else {
           setError("Failed to fetch NID data");
         }
@@ -144,6 +164,50 @@ export default function EditNIDPage() {
     });
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError("Please select an image file for photo");
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setError("Photo file size must be less than 2MB");
+        return;
+      }
+
+      setPhotoFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setPhotoPreview(previewUrl);
+      setError(null);
+    }
+  };
+
+  const handleSignatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError("Please select an image file for signature");
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setError("Signature file size must be less than 2MB");
+        return;
+      }
+
+      setSignatureFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setSignaturePreview(previewUrl);
+      setError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -157,18 +221,45 @@ export default function EditNIDPage() {
     setSuccess(false);
 
     try {
+      // Create FormData to handle both JSON data and files
+      const formDataToSend = new FormData();
+
+      // Add all form fields as JSON string
+      const jsonData = {
+        ...formData,
+        // Remove photo and signature from JSON data as they'll be sent as files
+        photo: photoFile ? undefined : formData.photo,
+        signature: signatureFile ? undefined : formData.signature,
+      };
+
+      formDataToSend.append("data", JSON.stringify(jsonData));
+
+      // Add photo file if selected
+      if (photoFile) {
+        formDataToSend.append("photo", photoFile);
+      }
+
+      // Add signature file if selected
+      if (signatureFile) {
+        formDataToSend.append("signature", signatureFile);
+      }
+
       const response = await fetch(`/api/nid/edit/${nidId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        body: formDataToSend,
       });
 
       const result = await response.json();
 
       if (result.success) {
         setSuccess(true);
+        // Clean up object URLs
+        if (photoFile) {
+          URL.revokeObjectURL(photoPreview);
+        }
+        if (signatureFile) {
+          URL.revokeObjectURL(signaturePreview);
+        }
         router.push(`/nid/pdf/${nidId}`);
       } else {
         setError(result.error || "Failed to update NID data");
@@ -178,6 +269,22 @@ export default function EditNIDPage() {
       console.error("Save error:", err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview("");
+    if (photoInputRef.current) {
+      photoInputRef.current.value = "";
+    }
+  };
+
+  const removeSignature = () => {
+    setSignatureFile(null);
+    setSignaturePreview("");
+    if (signatureInputRef.current) {
+      signatureInputRef.current.value = "";
     }
   };
 
@@ -191,6 +298,18 @@ export default function EditNIDPage() {
       });
     }
   };
+
+  // Clean up object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (photoFile) {
+        URL.revokeObjectURL(photoPreview);
+      }
+      if (signatureFile) {
+        URL.revokeObjectURL(signaturePreview);
+      }
+    };
+  }, [photoFile, signatureFile]);
 
   if (isLoading) {
     return (
@@ -253,6 +372,11 @@ export default function EditNIDPage() {
                 <p className="text-blue-100 mt-1">
                   Update all National ID details
                 </p>
+                {!formData?.user && (
+                  <p className="text-red-600 mt-1">
+                    প্রতি বার {cost} টাকা করে কাটা হবে
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => router.back()}
@@ -321,6 +445,169 @@ export default function EditNIDPage() {
               </div>
             )}
 
+            {/* Photo and Signature Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Photo Upload */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Photo
+                  </h3>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Max 2MB, JPG/PNG
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative w-48 h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                    {photoPreview ? (
+                      <div className="relative w-full h-full">
+                        <img
+                          src={photoPreview}
+                          alt="Photo Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={removePhoto}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                        <svg
+                          className="w-12 h-12 mb-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <span className="text-sm">No photo selected</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="w-full">
+                    <input
+                      type="file"
+                      ref={photoInputRef}
+                      onChange={handlePhotoChange}
+                      accept="image/*"
+                      className="hidden"
+                      id="photo-upload"
+                    />
+                    <label
+                      htmlFor="photo-upload"
+                      className="block w-full px-4 py-2 text-center bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded-md cursor-pointer transition-colors dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-300 dark:border-blue-700"
+                    >
+                      {photoPreview ? "Change Photo" : "Upload Photo"}
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Signature Upload */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Signature
+                  </h3>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Max 2MB, JPG/PNG
+                  </span>
+                </div>
+
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative w-48 h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                    {signaturePreview ? (
+                      <div className="relative w-full h-full">
+                        <img
+                          src={signaturePreview}
+                          alt="Signature Preview"
+                          className="w-full h-full object-contain"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeSignature}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                        <svg
+                          className="w-12 h-12 mb-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                          />
+                        </svg>
+                        <span className="text-sm">No signature selected</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="w-full">
+                    <input
+                      type="file"
+                      ref={signatureInputRef}
+                      onChange={handleSignatureChange}
+                      accept="image/*"
+                      className="hidden"
+                      id="signature-upload"
+                    />
+                    <label
+                      htmlFor="signature-upload"
+                      className="block w-full px-4 py-2 text-center bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded-md cursor-pointer transition-colors dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-300 dark:border-blue-700"
+                    >
+                      {signaturePreview
+                        ? "Change Signature"
+                        : "Upload Signature"}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
@@ -330,39 +617,11 @@ export default function EditNIDPage() {
               </div>
 
               <FormField
-                label="Citizen Status"
-                name="citizen_status"
-                value={formData?.citizen_status || ""}
-                onChange={handleInputChange}
-              />
-
-              <FormField
                 label="NID Number"
                 name="nid"
                 value={formData?.nid || ""}
                 onChange={handleInputChange}
                 required
-              />
-
-              <FormField
-                label="PIN Code"
-                name="pincode"
-                value={formData?.pincode || ""}
-                onChange={handleInputChange}
-              />
-
-              <FormField
-                label="Status"
-                name="status"
-                value={formData?.status || ""}
-                onChange={handleInputChange}
-              />
-
-              <FormField
-                label="Voter Number"
-                name="voter_no"
-                value={formData?.voter_no || ""}
-                onChange={handleInputChange}
               />
             </div>
 
@@ -787,21 +1046,6 @@ export default function EditNIDPage() {
                   placeholder="Full address in text format"
                   rows={3}
                 />
-              </div>
-
-              <div className="mt-4">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="addresses_same"
-                    checked={formData?.addresses_same || false}
-                    onChange={handleInputChange}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    Permanent address is same as present address
-                  </span>
-                </label>
               </div>
             </div>
 

@@ -8,7 +8,7 @@ server {
 
 server {
     listen 443 ssl;
-    server_name my.birthhelp.top www.my.birthhelp.top;
+    server_name my.birthhelp.top;
 
     ssl_certificate /etc/letsencrypt/live/my.birthhelp.top/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/my.birthhelp.top/privkey.pem;

@@ -2,8 +2,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useAppSelector } from "@/lib/hooks";
 
 interface NIDData {
   nameBn?: string;
@@ -30,7 +31,8 @@ const NIDCard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const id = params.id as string;
-
+  const {user} = useAppSelector((state) => state.userAuth);
+const router = useRouter();
   const getIssueDate = () => {
     const date = new Date();
     const day = String(date.getDate()).padStart(2, "0");
@@ -52,6 +54,9 @@ const NIDCard: React.FC = () => {
         throw new Error(`Failed to fetch NID data: ${response.status}`);
       }
       const resData = await response.json();
+      if(user._id !== resData.data.user) {
+        router.push(`/nid/edit/${id}`);
+      }
       const data: NIDData = {
         nameBn: resData.data.name_bn,
         nameEn: resData.data.name_en,
@@ -414,7 +419,7 @@ const NIDCard: React.FC = () => {
                         fontFamily: "Arial",
                         fontWeight: "990",
                         fontSize: "12px",
-                        paddingLeft: "6px",
+                        paddingLeft: "2px",
                       }}
                     >
                       {nidData.nidNumber?.toString()}
