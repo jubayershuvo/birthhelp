@@ -166,7 +166,7 @@ const SearchPage = () => {
   // Search options
   const [searchOptions, setSearchOptions] = useState({
     fields: "personNameEn,personNameBn,ubrn",
-    match: "prefix",
+    match: "exact",
     limit: "20",
     skip: "0",
     sort: "score",
@@ -338,7 +338,7 @@ const SearchPage = () => {
   const resetOptions = () => {
     setSearchOptions({
       fields: "personNameEn,personNameBn,ubrn",
-      match: "prefix",
+      match: "exact",
       limit: "20",
       skip: "0",
       sort: "score",
@@ -487,40 +487,7 @@ const SearchPage = () => {
         {/* Search Form */}
         <div className="mb-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Main Search Bar */}
-            {/* <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Search Query
-                </label>
-                <div className="flex">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Enter search terms (name, UBRN, etc.)"
-                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-l-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="inline-flex items-center px-6 py-3 border border-transparent rounded-r-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Searching...
-                      </>
-                    ) : (
-                      <>
-                        <Search className="h-4 w-4 mr-2" />
-                        Search
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div> */}
+       
 
             {/* Filters Panel */}
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
@@ -531,19 +498,6 @@ const SearchPage = () => {
                     Basic Filters
                   </h3>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      UBRN
-                    </label>
-                    <input
-                      type="text"
-                      name="ubrn"
-                      value={filters.ubrn}
-                      onChange={handleFilterChange}
-                      placeholder="Enter UBRN"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -610,36 +564,6 @@ const SearchPage = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Reg Year From
-                      </label>
-                      <input
-                        type="number"
-                        name="regYearFrom"
-                        value={advancedFilters.regYearFrom}
-                        onChange={handleAdvancedFilterChange}
-                        placeholder="YYYY"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Reg Year To
-                      </label>
-                      <input
-                        type="number"
-                        name="regYearTo"
-                        value={advancedFilters.regYearTo}
-                        onChange={handleAdvancedFilterChange}
-                        placeholder="YYYY"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Gender
@@ -689,23 +613,6 @@ const SearchPage = () => {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Sort By
-                    </label>
-                    <select
-                      name="sort"
-                      value={searchOptions.sort}
-                      onChange={handleOptionChange}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {sortOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -724,22 +631,6 @@ const SearchPage = () => {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Fields to Search
-                    </label>
-                    <input
-                      type="text"
-                      name="fields"
-                      value={searchOptions.fields}
-                      onChange={handleOptionChange}
-                      placeholder="Comma-separated fields"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Available: {fieldOptions.join(", ")}
-                    </p>
-                  </div>
                 </div>
               </div>
 
@@ -901,9 +792,7 @@ const SearchPage = () => {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      UBRN
-                    </th>
+
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Name (English)
                     </th>
@@ -917,9 +806,6 @@ const SearchPage = () => {
                       Gender
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Registration Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -930,11 +816,7 @@ const SearchPage = () => {
                       key={`${person.ubrn}-${index}`}
                       className="hover:bg-gray-50 dark:hover:bg-gray-900/50"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-mono font-medium text-gray-900 dark:text-white">
-                          {person.ubrn}
-                        </div>
-                      </td>
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-white">
                           {person.personNameEn}
@@ -948,9 +830,6 @@ const SearchPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-white">
                           {person.personBirthDate}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {extractYear(person.personBirthDate)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -967,14 +846,7 @@ const SearchPage = () => {
                           {formatGender(person.gender)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {person.dateOfRegistration}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {extractYear(person.dateOfRegistration)}
-                        </div>
-                      </td>
+  
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => openPersonModal(person)}
