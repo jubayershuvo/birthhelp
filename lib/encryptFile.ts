@@ -6,7 +6,7 @@ const SECRET_KEY = crypto
   .update(process.env.NEXT_PUBLIC_ENCRYPT_KEY!)
   .digest();
 
-export type Encryptable = string | object | unknown[];
+export type Encryptable = string | object | string[] | object[];
 
 export function encryptFile(data: Encryptable): Buffer {
   // Generate random IV
