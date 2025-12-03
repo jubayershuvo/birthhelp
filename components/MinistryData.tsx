@@ -25,6 +25,7 @@ import {
 import axios from "axios";
 import { decryptFile } from "@/lib/decryptFile";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 // Updated Types matching your actual API response
 interface Person {
@@ -175,6 +176,7 @@ const SearchPage = () => {
   // UI state
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [serviceCost, setServiceCost] = useState(0);
 
   // Field options
   const fieldOptions = [
@@ -361,13 +363,16 @@ const SearchPage = () => {
   const openPersonModal = async (person: Person) => {
     try {
       setBuyLoading(true);
+      toast.loading("ক্রয় হচ্ছে...", { id: "buyLoading" });
       await axios.get(`/api/data/ministry/buy/${person.ubrn}`);
       setSelectedPerson(person);
       setIsModalOpen(true);
       setBuyLoading(false);
+      toast.success("ক্রয় সফল হয়েছে", { id: "buyLoading" });
       document.body.style.overflow = "hidden";
     } catch (error) {
       setBuyLoading(false);
+      toast.error("ক্রয় ব্যর্থ হয়েছে", { id: "buyLoading" });
       console.log(error);
     }
   };
@@ -440,7 +445,24 @@ const SearchPage = () => {
       document.removeEventListener("keydown", handleEscKey);
     };
   }, [isModalOpen]);
+  const sessionReload = async () => {
+    if (loading) return;
+    try {
+      const response = await fetch("/api/data/ministry/session");
 
+      if (response.ok) {
+        const newData = await response.json();
+        setServiceCost(newData.serviceCost);
+      } else {
+        toast.error("সেশন রিলোড করতে সমস্যা হয়েছে");
+      }
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    sessionReload();
+  }, []);
+  console.log(serviceCost);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -453,9 +475,12 @@ const SearchPage = () => {
             <p className="text-gray-600 dark:text-gray-300">
               Search through the people database with advanced filtering options
             </p>
+            <p className="text-red-500 dark:text-red-400 mt-2">
+              প্রতি বার {serviceCost} টাকা করে কাটা হবে
+            </p>
           </div>
           <Link href="/data/ministry/history" className="">
-            <History/>
+            <History />
           </Link>
         </div>
 
