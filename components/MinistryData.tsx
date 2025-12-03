@@ -196,9 +196,9 @@ const SearchPage = () => {
   ];
 
   const genderOptions = [
-    { value: "M", label: "Male" },
-    { value: "F", label: "Female" },
-    { value: "O", label: "Other" },
+    { value: "MALE", label: "Male" },
+    { value: "FEMALE", label: "Female" },
+    { value: "OTHER", label: "Other" },
   ];
 
   const sortOptions = [
@@ -405,23 +405,12 @@ const SearchPage = () => {
       return dateString;
     }
   };
-
-  // Extract year from date
-  const extractYear = (dateString: string) => {
-    if (!dateString) return "";
-    const match = dateString.match(/\d{4}/);
-    return match ? match[0] : "";
-  };
-
   // Format gender display
   const formatGender = (gender: string) => {
     const genderMap: Record<string, string> = {
       MALE: "Male",
       FEMALE: "Female",
       OTHER: "Other",
-      M: "Male",
-      F: "Female",
-      O: "Other",
     };
     return genderMap[gender] || gender;
   };
