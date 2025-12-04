@@ -476,8 +476,6 @@ const SearchPage = () => {
         {/* Search Form */}
         <div className="mb-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-       
-
             {/* Filters Panel */}
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -486,7 +484,6 @@ const SearchPage = () => {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     Basic Filters
                   </h3>
-
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -602,7 +599,6 @@ const SearchPage = () => {
                     </select>
                   </div>
 
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Results Per Page
@@ -619,34 +615,33 @@ const SearchPage = () => {
                       <option value="100">100</option>
                     </select>
                   </div>
-
                 </div>
               </div>
 
-              {/* Options Reset */}
-              <div className="mt-6 pt-6 flex justify-between border-t border-gray-200 dark:border-gray-700">
+              <div className="mt-6 pt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={resetOptions}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
+                  className="w-full md:w-auto inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Reset Options to Default
                 </button>
 
-                <div className="space-x-2">
+                <div className="flex flex-col md:flex-row md:space-x-2 gap-3 w-full md:w-auto">
                   <button
                     type="button"
                     onClick={clearFilters}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
+                    className="w-full md:w-auto inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
                   >
                     <X className="h-4 w-4 mr-2" />
                     Clear All
                   </button>
+
                   <button
                     type="submit"
                     disabled={loading}
-                    className="inline-flex items-center px-6 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full md:w-auto inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <>
@@ -781,7 +776,6 @@ const SearchPage = () => {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
-
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Name (English)
                     </th>
@@ -805,7 +799,6 @@ const SearchPage = () => {
                       key={`${person.ubrn}-${index}`}
                       className="hover:bg-gray-50 dark:hover:bg-gray-900/50"
                     >
-
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900 dark:text-white">
                           {person.personNameEn}
@@ -835,7 +828,7 @@ const SearchPage = () => {
                           {formatGender(person.gender)}
                         </span>
                       </td>
-  
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => openPersonModal(person)}

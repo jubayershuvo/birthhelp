@@ -400,6 +400,7 @@ const AddressSelectorModal: React.FC<{
 
       const safeList = list.map((item) => ({
         ...item,
+        id: item.id.toString(),
         nameBn: (item.nameBn || "").replace(/</g, "&lt;"),
         nameEn: (item.nameEn || "").replace(/</g, "&lt;"),
       }));
@@ -566,6 +567,7 @@ const AddressSelectorModal: React.FC<{
           list.forEach((item) =>
             allGeoLocations.push({
               ...item,
+              id: item.id.toString(),
               nameBn: (item.nameBn || "").replace(/</g, "&lt;"),
               nameEn: (item.nameEn || "").replace(/</g, "&lt;"),
             })
@@ -1224,7 +1226,7 @@ interface FormData {
 
   copyBirthPlaceToPermAddr: boolean;
   permAddrAddress: Address | null;
-  
+
   copyPermAddrToPrsntAddr: boolean; // NEW: স্থায়ী ঠিকানা ও বর্তমান ঠিকানা একই
   prsntAddrAddress: Address | null; // NEW: বর্তমান ঠিকানা
 
@@ -1321,7 +1323,7 @@ export default function BirthRegistrationForm() {
     csrf: "",
     serviceCost: 0,
   });
-  const [currentStep, setCurrentStep] = useState(4);
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     officeAddressType: "",
     officeAddrCountry: "",
@@ -1382,26 +1384,6 @@ export default function BirthRegistrationForm() {
     },
   });
 
-  const fetchSession = async () => {
-    toast.loading("Loading session data...",{id: "sessionReload"});
-    try {
-
-      const response = await fetch("/api/birth/application/registration");
-      const data = await response.json();
-      setSessionData(data);
-      toast.success("Session data loaded successfully",{id: "sessionReload"});
-    } catch (error) {
-      console.error("Error fetching session data:", error);
-      toast.error("Failed to load session data",{id: "sessionReload"});
-    }
-  };
-
-  useEffect(() => {
-    fetchSession();
-  }, []);
-
-  console.log(sessionData);
-
   const [bdMissionChecked, setBdMissionChecked] = useState(false);
   const [age, setAge] = useState<{
     years: number;
@@ -1435,12 +1417,16 @@ export default function BirthRegistrationForm() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
 
-  // Mock file types
+  // File Types - only 40 and 41 are required
   const fileTypes: FileType[] = [
-    { id: "1", name: "জন্ম সনদ" },
-    { id: "2", name: "জাতীয় পরিচয়পত্র" },
-    { id: "3", name: "পাসপোর্ট" },
-    { id: "4", name: "ছবি" },
+    {
+      id: "40",
+      name: "চিকিৎসক কর্তৃক প্রত্যায়ন পত্র (বাংলাদেশ মেডিক্যাল এন্ড ডেন্টাল কাউন্সিল কর্তৃক স্বীকৃত এমবিবিএস বা তদূর্ধ্ব ডিগ্রিধারী) বা সরকার কর্তৃক পরিচালিত প্রথমিক শিক্ষা সমাপনী, জুনিয়র স্কুল সার্টিফিকেট এবং শিক্ষা বোর্ড কর্তৃক পরিচালিত মাধ্যমিক স্কুল সার্টিফিকেট ",
+    },
+    {
+      id: "41",
+      name: "পিতা / মাতা/ পিতামহ / পিতামহীর দ্বারা স্বনামে স্থায়ী ঠিকানা হিসেবে ঘোষিত আবাস স্থলের বিপরীতে হালনাগাদ কর পরিশোধের প্রমানপত্র বা পিতা / মাতা/ পিতামহ / পিতামহীর জাতীয় পরিচয়পত্র বা পাসপোর্ট ঘোষিত স্থায়ী ঠিকানা বা জমি অথবা বাড়ি ক্রয়ের দলিল , খাজনা ও কর পরিশোধ রশিদ। (নদীভাঙ্গন অন্য কোন কারনে স্থায়ী ঠিকানা বিলুপ্ত হলে)",
+    },
   ];
 
   const handleInputChange = (
@@ -1536,7 +1522,7 @@ export default function BirthRegistrationForm() {
     setValidatePermAddress(false);
   };
 
-  const handlePrsntAddrAddress = (address: Address) => { // NEW
+  const handlePrsntAddrAddress = (address: Address) => {
     setFormData((prev) => ({
       ...prev,
       prsntAddrAddress: address,
@@ -1546,8 +1532,66 @@ export default function BirthRegistrationForm() {
 
   const handleBirthDateChange = (birthDate: string) => {
     handleNestedInputChange("personInfoForBirth", "personBirthDate", birthDate);
-    setAge(calculateAgeFromDDMMYYYY(birthDate));
+    const newAge = calculateAgeFromDDMMYYYY(birthDate);
+    setAge(newAge);
   };
+
+  const fetchSession = async () => {
+    toast.loading("Loading session data...", { id: "sessionReload" });
+    try {
+      const response = await fetch("/api/birth/application/registration");
+      const data = await response.json();
+      setSessionData(data);
+      toast.success("Session data loaded successfully", {
+        id: "sessionReload",
+      });
+    } catch (error) {
+      console.error("Error fetching session data:", error);
+      toast.error("Failed to load session data", { id: "sessionReload" });
+    }
+  };
+
+  useEffect(() => {
+    fetchSession();
+  }, []);
+
+  // Auto-populate applicant when moving to step 5
+  useEffect(() => {
+    if (currentStep === 5) {
+      if (age.years < 18) {
+        // For babies under 18: use father as applicant
+        setFormData((prev) => ({
+          ...prev,
+          applicant: {
+            ...prev.applicant,
+            name: prev.father.personNameBn,
+            relation: "FATHER",
+            nid: prev.father.personNid || "",
+            phone: prev.applicant.phone || "",
+            email: prev.applicant.email || "",
+            otp: prev.applicant.otp || "",
+          },
+        }));
+      } else {
+        // For adults 18+: use self as applicant
+        const fullNameBn =
+          `${formData.personInfoForBirth.personFirstNameBn} ${formData.personInfoForBirth.personLastNameBn}`.trim();
+
+        setFormData((prev) => ({
+          ...prev,
+          applicant: {
+            ...prev.applicant,
+            name: fullNameBn,
+            relation: "SELF",
+            nid: prev.personInfoForBirth.personNid || "",
+            phone: prev.applicant.phone || "",
+            email: prev.applicant.email || "",
+            otp: prev.applicant.otp || "",
+          },
+        }));
+      }
+    }
+  }, [currentStep, age.years]);
 
   // BD Mission Office Selection Handlers - UPDATED with dynamic targetGeoOrder
   const handleOfficeCountryChange = async (
@@ -1736,16 +1780,13 @@ export default function BirthRegistrationForm() {
 
   const handleFilesSelection = (files: File[]) => {
     const validFiles = files.filter((file) => {
-      const isValidType = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "application/pdf",
-      ].includes(file.type);
+      const isValidType = ["image/jpeg", "image/jpg", "image/png"].includes(
+        file.type
+      );
       const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
 
       if (!isValidType) {
-        toast.error(`${file.name}: শুধুমাত্র JPG, PNG, PDF ফাইল গ্রহণযোগ্য`);
+        toast.error(`${file.name}: শুধুমাত্র JPG, PNG ফাইল গ্রহণযোগ্য`);
         return false;
       }
       if (!isValidSize) {
@@ -1775,6 +1816,33 @@ export default function BirthRegistrationForm() {
     const uploadingFile = uploadingFiles[index];
     if (!uploadingFile || uploadingFile.fileTypeId === "-1") {
       toast.error("দয়া করে ফাইল টাইপ নির্বাচন করুন");
+      return;
+    }
+
+    // Check if this file type is already uploaded
+    const alreadyUploadedFileType = uploadedFiles.find(
+      (file) => file.attachmentTypeId === uploadingFile.fileTypeId
+    );
+
+    if (alreadyUploadedFileType) {
+      toast.error(
+        `এই ফাইল টাইপ (${
+          fileTypes.find((t) => t.id === uploadingFile.fileTypeId)?.name
+        }) ইতিমধ্যে আপলোড করা হয়েছে`
+      );
+      return;
+    }
+
+    // Check if we have both required file types (40 and 41)
+    const uploadedFileTypeIds = uploadedFiles.map((f) => f.attachmentTypeId);
+    const remainingRequiredTypes = ["40", "41"].filter(
+      (id) => !uploadedFileTypeIds.includes(id)
+    );
+
+    if (uploadedFileTypeIds.length >= 2) {
+      toast.error(
+        "আপনি সর্বোচ্চ ২টি ফাইল আপলোড করতে পারেন (ফাইল টাইপ ৪০ এবং ৪১)"
+      );
       return;
     }
 
@@ -1815,6 +1883,19 @@ export default function BirthRegistrationForm() {
       setUploadingFiles((prev) => prev.filter((_, idx) => idx !== index));
 
       toast.success("ফাইল সফলভাবে আপলোড হয়েছে");
+
+      // Check if both required files are uploaded
+      const newUploadedFileTypeIds = [
+        ...uploadedFileTypeIds,
+        uploadingFile.fileTypeId,
+      ];
+      const allRequiredTypesUploaded = ["40", "41"].every((id) =>
+        newUploadedFileTypeIds.includes(id)
+      );
+
+      if (allRequiredTypesUploaded) {
+        toast.success("সকল প্রয়োজনীয় ফাইল সফলভাবে আপলোড হয়েছে!");
+      }
     } catch (error) {
       toast.error("ফাইল আপলোড ব্যর্থ হয়েছে");
       setUploadingFiles((prev) =>
@@ -1958,7 +2039,8 @@ export default function BirthRegistrationForm() {
           formData.personInfoForBirth.personNid &&
           !validateNID(formData.personInfoForBirth.personNid)
         ) {
-          errors["personInfoForBirth.personNid"] = "বৈধ জাতীয় পরিচয়পত্র নম্বর দিন";
+          errors["personInfoForBirth.personNid"] =
+            "বৈধ জাতীয় পরিচয়পত্র নম্বর দিন";
         }
 
         // Birth place address validation
@@ -1991,8 +2073,10 @@ export default function BirthRegistrationForm() {
         }
 
         // Only validate parent birth registration and dates if person's birth year is 2012 or later
-        const birthYear = parseDateString(formData.personInfoForBirth.personBirthDate).year;
-        
+        const birthYear = parseDateString(
+          formData.personInfoForBirth.personBirthDate
+        ).year;
+
         if (birthYear >= 2012) {
           // Father birth registration validation for 2012 and later
           if (!formData.father.ubrn.trim()) {
@@ -2065,27 +2149,54 @@ export default function BirthRegistrationForm() {
           errors.prsntAddrAddress = "বর্তমান ঠিকানা নির্বাচন করুন";
         }
 
-        // File upload validation
-        if (uploadedFiles.length === 0) {
-          errors.attachments = "কমপক্ষে একটি ডকুমেন্ট আপলোড করুন";
-        } else {
-          // Check if all files have file types selected and are uploaded
-          const filesWithoutTypes = uploadedFiles.filter(
-            (file) => !file.fileType
-          );
-          const pendingUploads = uploadedFiles.filter(
-            (file) => !file.uploadedId
-          );
+        // File upload validation - require exactly 2 files with IDs 40 and 41
+        const uploadedFileTypeIds = uploadedFiles.map(
+          (f) => f.attachmentTypeId
+        );
+        const hasFile40 = uploadedFileTypeIds.includes("40");
+        const hasFile41 = uploadedFileTypeIds.includes("41");
 
-          if (filesWithoutTypes.length > 0) {
-            errors.attachments = "সকল ফাইলের জন্য ফাইল টাইপ নির্বাচন করুন";
-          } else if (pendingUploads.length > 0) {
-            errors.attachments = "সকল ফাইল আপলোড সম্পন্ন করুন";
-          }
+        if (uploadedFiles.length !== 2) {
+          errors.attachments = "ঠিক ২টি ফাইল আপলোড করুন (ফাইল টাইপ ৪০ এবং ৪১)";
+        } else if (!hasFile40 || !hasFile41) {
+          errors.attachments = "ফাইল টাইপ ৪০ এবং ৪১ উভয়ই আপলোড করতে হবে";
         }
         break;
 
       case 5:
+        // First ensure applicant is auto-populated
+        if (age.years < 18) {
+          // For babies under 18: validate father's information is available
+          if (!formData.father.personNameBn.trim()) {
+            errors["applicant.name"] =
+              "পিতার নাম প্রয়োজন (বাচ্চার বয়স ১৮ বছরের কম)";
+          }
+          // Set relation to FATHER
+          setFormData((prev) => ({
+            ...prev,
+            applicant: {
+              ...prev.applicant,
+              relation: "FATHER",
+            },
+          }));
+        } else {
+          // For adults 18+: validate self information
+          const fullNameBn =
+            `${formData.personInfoForBirth.personFirstNameBn} ${formData.personInfoForBirth.personLastNameBn}`.trim();
+          if (!fullNameBn) {
+            errors["applicant.name"] =
+              "আপনার নাম প্রয়োজন (আপনার বয়স ১৮ বা তার বেশি)";
+          }
+          // Set relation to SELF
+          setFormData((prev) => ({
+            ...prev,
+            applicant: {
+              ...prev.applicant,
+              relation: "SELF",
+            },
+          }));
+        }
+
         // Applicant information validation
         if (!formData.applicant.name.trim()) {
           errors["applicant.name"] = "আবেদনকারীর নাম প্রয়োজন";
@@ -2111,14 +2222,10 @@ export default function BirthRegistrationForm() {
         if (formData.applicant.nid && !validateNID(formData.applicant.nid)) {
           errors["applicant.nid"] = "বৈধ জাতীয় পরিচয়পত্র নম্বর দিন";
         }
-        break;
 
-      case 6:
         // OTP validation
         if (!formData.applicant.otp) {
           errors.otp = "OTP প্রয়োজন";
-        } else if (!otpVerified) {
-          errors.otp = "OTP যাচাই করুন";
         }
         break;
     }
@@ -2272,33 +2379,33 @@ export default function BirthRegistrationForm() {
           : "no",
         prsntAddrCountry: formData.copyPermAddrToPrsntAddr
           ? (formData.copyBirthPlaceToPermAddr
-            ? formData.birthPlaceAddress?.country
-            : formData.permAddrAddress?.country) || "1"
+              ? formData.birthPlaceAddress?.country
+              : formData.permAddrAddress?.country) || "1"
           : formData.prsntAddrAddress?.country || "1",
         prsntAddrDiv: formData.copyPermAddrToPrsntAddr
           ? (formData.copyBirthPlaceToPermAddr
-            ? formData.birthPlaceAddress?.division
-            : formData.permAddrAddress?.division) || "-1"
+              ? formData.birthPlaceAddress?.division
+              : formData.permAddrAddress?.division) || "-1"
           : formData.prsntAddrAddress?.division || "-1",
         prsntAddrDist: formData.copyPermAddrToPrsntAddr
           ? (formData.copyBirthPlaceToPermAddr
-            ? formData.birthPlaceAddress?.district
-            : formData.permAddrAddress?.district) || "-1"
+              ? formData.birthPlaceAddress?.district
+              : formData.permAddrAddress?.district) || "-1"
           : formData.prsntAddrAddress?.district || "-1",
         prsntAddrCityCorpCantOrUpazila: formData.copyPermAddrToPrsntAddr
           ? (formData.copyBirthPlaceToPermAddr
-            ? formData.birthPlaceAddress?.cityCorpCantOrUpazila
-            : formData.permAddrAddress?.cityCorpCantOrUpazila) || "-1"
+              ? formData.birthPlaceAddress?.cityCorpCantOrUpazila
+              : formData.permAddrAddress?.cityCorpCantOrUpazila) || "-1"
           : formData.prsntAddrAddress?.cityCorpCantOrUpazila || "-1",
         prsntAddrPaurasavaOrUnion: formData.copyPermAddrToPrsntAddr
           ? (formData.copyBirthPlaceToPermAddr
-            ? formData.birthPlaceAddress?.paurasavaOrUnion
-            : formData.permAddrAddress?.paurasavaOrUnion) || "-1"
+              ? formData.birthPlaceAddress?.paurasavaOrUnion
+              : formData.permAddrAddress?.paurasavaOrUnion) || "-1"
           : formData.prsntAddrAddress?.paurasavaOrUnion || "-1",
         prsntAddrWardInPaurasavaOrUnion: formData.copyPermAddrToPrsntAddr
           ? (formData.copyBirthPlaceToPermAddr
-            ? formData.birthPlaceAddress?.ward
-            : formData.permAddrAddress?.ward) || "-1"
+              ? formData.birthPlaceAddress?.ward
+              : formData.permAddrAddress?.ward) || "-1"
           : formData.prsntAddrAddress?.ward || "-1",
 
         // Applicant Information
@@ -2343,13 +2450,13 @@ export default function BirthRegistrationForm() {
     }
   };
 
+  // Step titles - always 5 steps now
   const stepTitles = [
     "অফিস নির্বাচন",
     "ব্যক্তির তথ্য",
     "পিতা-মাতার তথ্য",
     "ঠিকানা ও ফাইল",
-    "আবেদনকারীর তথ্য", // NEW STEP
-    "পর্যালোচনা ও OTP", // CHANGED TO STEP 6
+    "পর্যালোচনা ও OTP",
   ];
 
   // Format address for display
@@ -2375,10 +2482,12 @@ export default function BirthRegistrationForm() {
           <p className="text-gray-600 dark:text-gray-300 text-center text-sm sm:text-base">
             Birth Registration Application Form
           </p>
-          <p className="text-red-600 text-center text-sm mt-2">প্রতি আবেদনে {sessionData.serviceCost} টাকা করে কাটা হবে</p>
+          <p className="text-red-600 text-center text-sm mt-2">
+            প্রতি আবেদনে {sessionData.serviceCost} টাকা করে কাটা হবে
+          </p>
         </div>
 
-        {/* Progress Steps - Made Responsive */}
+        {/* Progress Steps - Always 5 steps */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
           {/* Step Circles with Perfect Alignment */}
           <div className="flex justify-center w-full">
@@ -2390,14 +2499,14 @@ export default function BirthRegistrationForm() {
               <div
                 className="absolute top-1/2 left-0 h-1 bg-blue-600 transform -translate-y-1/2 -z-10 transition-all duration-300"
                 style={{
-                  width: `${((currentStep - 1) / 5) * 100}%`,
+                  width: `${((currentStep - 1) / 4) * 100}%`,
                   maxWidth: "100%",
                 }}
               />
 
               {/* Steps Container */}
               <div className="flex justify-between items-center relative">
-                {[1, 2, 3, 4, 5, 6].map((step) => (
+                {[1, 2, 3, 4, 5].map((step) => (
                   <div
                     key={step}
                     className="flex flex-col items-center relative"
@@ -2439,7 +2548,7 @@ export default function BirthRegistrationForm() {
                 ধাপ {currentStep}: {stepTitles[currentStep - 1]}
               </p>
               <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                মোট ৬টি ধাপের {currentStep} নং ধাপ
+                মোট ৫টি ধাপের {currentStep} নং ধাপ
               </p>
             </div>
           </div>
@@ -2809,7 +2918,8 @@ export default function BirthRegistrationForm() {
                     {age &&
                       (age.years > 0 || age.months > 0 || age.days > 0) && (
                         <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                          বয়স: {age.years} বছর, {age.months} মাস, {age.days} দিন
+                          বয়স: {age.years} বছর, {age.months} মাস, {age.days}{" "}
+                          দিন
                           {age.years >= 18 && " (১৮ বা তার বেশি বয়স)"}
                         </p>
                       )}
@@ -2913,7 +3023,8 @@ export default function BirthRegistrationForm() {
                         </p>
                       )}
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        আপনার বয়স ১৮ বা তার বেশি, আপনি জাতীয় পরিচয়পত্র নম্বর দিতে পারেন (ঐচ্ছিক)
+                        আপনার বয়স ১৮ বা তার বেশি, আপনি জাতীয় পরিচয়পত্র নম্বর
+                        দিতে পারেন (ঐচ্ছিক)
                       </p>
                     </div>
                   )}
@@ -2974,11 +3085,13 @@ export default function BirthRegistrationForm() {
                   </h4>
 
                   {/* Only show these fields if birth year is 2012 or later */}
-                  {(parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012) && (
+                  {parseDateString(formData.personInfoForBirth.personBirthDate)
+                    .year >= 2012 && (
                     <>
                       <div data-field="father.ubrn">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          পিতার জন্ম নিবন্ধন নম্বর <span className="text-red-500">*</span>
+                          পিতার জন্ম নিবন্ধন নম্বর{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -2996,7 +3109,11 @@ export default function BirthRegistrationForm() {
                               : "border-gray-300 dark:border-gray-600"
                           }`}
                           placeholder="জন্ম নিবন্ধন নম্বর"
-                          required={parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012}
+                          required={
+                            parseDateString(
+                              formData.personInfoForBirth.personBirthDate
+                            ).year >= 2012
+                          }
                         />
                         {formErrors["father.ubrn"] && (
                           <p className="text-red-500 text-sm mt-1">
@@ -3108,10 +3225,7 @@ export default function BirthRegistrationForm() {
                     >
                       <option value="">---নির্বাচন করুন---</option>
                       {nationalityOptions.map((nationality) => (
-                        <option
-                          key={nationality.id}
-                          value={nationality.value}
-                        >
+                        <option key={nationality.id} value={nationality.value}>
                           {nationality.value}
                         </option>
                       ))}
@@ -3131,11 +3245,13 @@ export default function BirthRegistrationForm() {
                   </h4>
 
                   {/* Only show these fields if birth year is 2012 or later */}
-                  {(parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012) && (
+                  {parseDateString(formData.personInfoForBirth.personBirthDate)
+                    .year >= 2012 && (
                     <>
                       <div data-field="mother.ubrn">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          মাতার জন্ম নিবন্ধন নম্বর <span className="text-red-500">*</span>
+                          মাতার জন্ম নিবন্ধন নম্বর{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -3148,12 +3264,16 @@ export default function BirthRegistrationForm() {
                             )
                           }
                           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                                formErrors["mother.ubrn"]
-                                  ? "border-red-500"
-                                  : "border-gray-300 dark:border-gray-600"
-                              }`}
+                            formErrors["mother.ubrn"]
+                              ? "border-red-500"
+                              : "border-gray-300 dark:border-gray-600"
+                          }`}
                           placeholder="জন্ম নিবন্ধন নম্বর"
-                          required={parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012}
+                          required={
+                            parseDateString(
+                              formData.personInfoForBirth.personBirthDate
+                            ).year >= 2012
+                          }
                         />
                         {formErrors["mother.ubrn"] && (
                           <p className="text-red-500 text-sm mt-1">
@@ -3265,10 +3385,7 @@ export default function BirthRegistrationForm() {
                     >
                       <option value="">---নির্বাচন করুন---</option>
                       {nationalityOptions.map((nationality) => (
-                        <option
-                          key={nationality.id}
-                          value={nationality.value}
-                        >
+                        <option key={nationality.id} value={nationality.value}>
                           {nationality.value}
                         </option>
                       ))}
@@ -3283,18 +3400,25 @@ export default function BirthRegistrationForm() {
               </div>
 
               {/* Information notice based on birth year */}
-              <div className={`p-4 rounded-lg ${
-                parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012 
-                  ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800" 
-                  : "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
-              }`}>
-                <p className={`text-sm ${
-                  parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012 
-                    ? "text-blue-700 dark:text-blue-300" 
-                    : "text-yellow-700 dark:text-yellow-300"
-                }`}>
-                  {parseDateString(formData.personInfoForBirth.personBirthDate).year >= 2012 
-                    ? "২০১২ সাল বা তার পরে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক।" 
+              <div
+                className={`p-4 rounded-lg ${
+                  parseDateString(formData.personInfoForBirth.personBirthDate)
+                    .year >= 2012
+                    ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+                    : "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
+                }`}
+              >
+                <p
+                  className={`text-sm ${
+                    parseDateString(formData.personInfoForBirth.personBirthDate)
+                      .year >= 2012
+                      ? "text-blue-700 dark:text-blue-300"
+                      : "text-yellow-700 dark:text-yellow-300"
+                  }`}
+                >
+                  {parseDateString(formData.personInfoForBirth.personBirthDate)
+                    .year >= 2012
+                    ? "২০১২ সাল বা তার পরে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক।"
                     : "২০১২ সালের আগে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক নয়।"}
                 </p>
               </div>
@@ -3410,9 +3534,38 @@ export default function BirthRegistrationForm() {
                     ফাইল আপলোড
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
-                    শুধুমাত্র ইমেজ ফাইল (.jpg, .jpeg, .png) আপলোড করা যাবে।
-                    (প্রতিটি ফাইলের জন্য সর্বোচ্চ ফাইল সাইজ 2 মেগা বাইট)
+                    <span className="text-red-500 font-bold">
+                      * প্রয়োজনীয়:
+                    </span>{" "}
+                    নিম্নলিখিত ২টি ফাইল আপলোড করুন:
                   </p>
+
+                  <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <h4 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+                      প্রয়োজনীয় ফাইল তালিকা:
+                    </h4>
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-yellow-700 dark:text-yellow-400">
+                      {fileTypes.map((fileType) => (
+                        <li key={fileType.id} className="ml-2">
+                          <span className="font-medium">
+                            ফাইল টাইপ {fileType.id}:
+                          </span>{" "}
+                          {fileType.name}
+                          {uploadedFiles.some(
+                            (f) => f.attachmentTypeId === fileType.id
+                          ) && (
+                            <span className="ml-2 text-green-600 dark:text-green-400">
+                              ✓ আপলোড করা হয়েছে
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-300 mt-2">
+                      শুধুমাত্র ইমেজ ফাইল (.jpg, .jpeg, .png) আপলোড করা যাবে।
+                      (প্রতিটি ফাইলের জন্য সর্বোচ্চ ফাইল সাইজ 2 মেগা বাইট)
+                    </p>
+                  </div>
 
                   {/* Drag & Drop Area */}
                   <div
@@ -3452,7 +3605,7 @@ export default function BirthRegistrationForm() {
                         ref={fileInputRef}
                         className="hidden"
                         multiple
-                        accept="image/*,.pdf"
+                        accept="image/*"
                         onChange={handleFileSelect}
                       />
                       <button
@@ -3463,7 +3616,7 @@ export default function BirthRegistrationForm() {
                         ফাইল নির্বাচন করুন
                       </button>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        JPG, PNG, PDF ফাইল সমর্থিত • সর্বোচ্চ 2MB প্রতি ফাইল
+                        JPG, PNG ফাইল সমর্থিত • সর্বোচ্চ 2MB প্রতি ফাইল
                       </p>
                     </div>
                   </div>
@@ -3493,12 +3646,26 @@ export default function BirthRegistrationForm() {
                               onChange={(e) =>
                                 updateUploadingFileType(idx, e.target.value)
                               }
-                              className="px-3 py-2 border dark:border-gray-600 rounded text-sm dark:bg-gray-600 dark:text-white w-full sm:w-auto"
+                              className="px-3 md:w-1/2 py-2 border dark:border-gray-600 rounded text-sm dark:bg-gray-600 dark:text-white w-full sm:w-auto"
+                              disabled={uploadedFiles.some(
+                                (f) => f.attachmentTypeId === item.fileTypeId
+                              )}
                             >
                               <option value="-1">---টাইপ নির্বাচন---</option>
                               {fileTypes.map((t) => (
-                                <option key={`filetype-${t.id}`} value={t.id}>
-                                  {t.name}
+                                <option
+                                  key={`filetype-${t.id}`}
+                                  value={t.id}
+                                  disabled={uploadedFiles.some(
+                                    (f) => f.attachmentTypeId === t.id
+                                  )}
+                                >
+                                  {t.name}{" "}
+                                  {uploadedFiles.some(
+                                    (f) => f.attachmentTypeId === t.id
+                                  )
+                                    ? "(ইতিমধ্যে আপলোড হয়েছে)"
+                                    : ""}
                                 </option>
                               ))}
                             </select>
@@ -3506,7 +3673,22 @@ export default function BirthRegistrationForm() {
                               <button
                                 type="button"
                                 onClick={() => handleFileUpload(idx)}
-                                className="px-4 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors flex-1 sm:flex-none"
+                                disabled={
+                                  item.fileTypeId === "-1" ||
+                                  uploadedFiles.some(
+                                    (f) =>
+                                      f.attachmentTypeId === item.fileTypeId
+                                  )
+                                }
+                                className={`px-4 py-2 rounded text-sm flex-1 sm:flex-none transition-colors ${
+                                  item.fileTypeId === "-1" ||
+                                  uploadedFiles.some(
+                                    (f) =>
+                                      f.attachmentTypeId === item.fileTypeId
+                                  )
+                                    ? "bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400"
+                                    : "bg-green-600 hover:bg-green-700 text-white"
+                                }`}
                               >
                                 আপলোড
                               </button>
@@ -3541,7 +3723,7 @@ export default function BirthRegistrationForm() {
                   {uploadedFiles.length > 0 && (
                     <div className="mt-6">
                       <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-3">
-                        আপলোডকৃত ফাইল ({uploadedFiles.length})
+                        আপলোডকৃত ফাইল ({uploadedFiles.length}/2)
                       </h4>
                       <div className="space-y-2">
                         {uploadedFiles.map((f) => (
@@ -3559,7 +3741,7 @@ export default function BirthRegistrationForm() {
                                 {f.name}
                               </a>
                               <p className="text-xs text-green-600 dark:text-green-400">
-                                {f.fileType}
+                                ফাইল টাইপ {f.attachmentTypeId}: {f.fileType}
                               </p>
                             </div>
                             <button
@@ -3585,6 +3767,13 @@ export default function BirthRegistrationForm() {
                           </div>
                         ))}
                       </div>
+                      {uploadedFiles.length === 2 && (
+                        <div className="mt-3 p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                          <p className="text-green-700 dark:text-green-400 text-sm font-medium">
+                            ✓ সকল প্রয়োজনীয় ফাইল সফলভাবে আপলোড হয়েছে
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                   {formErrors.attachments && (
@@ -3629,202 +3818,31 @@ export default function BirthRegistrationForm() {
             </div>
           )}
 
-          {/* Step 5: Applicant Information (NEW STEP) */}
+          {/* Step 5: Review and OTP Verification (Combined step) */}
           {currentStep === 5 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-                আবেদনকারীর তথ্য
-              </h3>
-
-              <div className="space-y-6">
-                {/* Applicant Information */}
-                <div className="border-b dark:border-gray-700 pb-6">
-                  <h4 className="font-semibold text-gray-800 dark:text-white mb-4">
-                    আবেদনকারীর তথ্য
-                  </h4>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div data-field="applicant.name">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        আবেদনকারীর নাম <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.applicant.name}
-                        onChange={(e) =>
-                          handleNestedInputChange(
-                            "applicant",
-                            "name",
-                            e.target.value
-                          )
-                        }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                          formErrors["applicant.name"]
-                            ? "border-red-500"
-                            : "border-gray-300 dark:border-gray-600"
-                        }`}
-                        placeholder="আবেদনকারীর নাম"
-                        required
-                      />
-                      {formErrors["applicant.name"] && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {formErrors["applicant.name"]}
-                        </p>
-                      )}
-                    </div>
-
-                    <div data-field="applicant.nid">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        জাতীয় পরিচয়পত্র নম্বর
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.applicant.nid}
-                        onChange={(e) =>
-                          handleNestedInputChange(
-                            "applicant",
-                            "nid",
-                            e.target.value
-                          )
-                        }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                          formErrors["applicant.nid"]
-                            ? "border-red-500"
-                            : "border-gray-300 dark:border-gray-600"
-                        }`}
-                        placeholder="জাতীয় পরিচয়পত্র নম্বর"
-                      />
-                      {formErrors["applicant.nid"] && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {formErrors["applicant.nid"]}
-                        </p>
-                      )}
-                    </div>
-
-                    <div data-field="applicant.phone">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        মোবাইল নম্বর <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.applicant.phone}
-                        onChange={(e) =>
-                          handleNestedInputChange(
-                            "applicant",
-                            "phone",
-                            e.target.value
-                          )
-                        }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                          formErrors["applicant.phone"]
-                            ? "border-red-500"
-                            : "border-gray-300 dark:border-gray-600"
-                        }`}
-                        placeholder="মোবাইল নম্বর"
-                        required
-                      />
-                      {formErrors["applicant.phone"] && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {formErrors["applicant.phone"]}
-                        </p>
-                      )}
-                    </div>
-
-                    <div data-field="applicant.email">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        ইমেইল ঠিকানা
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.applicant.email}
-                        onChange={(e) =>
-                          handleNestedInputChange(
-                            "applicant",
-                            "email",
-                            e.target.value
-                          )
-                        }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                          formErrors["applicant.email"]
-                            ? "border-red-500"
-                            : "border-gray-300 dark:border-gray-600"
-                        }`}
-                        placeholder="ইমেইল ঠিকানা"
-                      />
-                      {formErrors["applicant.email"] && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {formErrors["applicant.email"]}
-                        </p>
-                      )}
-                    </div>
-
-                    <div
-                      className="md:col-span-2"
-                      data-field="applicant.relation"
-                    >
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        নিবন্ধনাধীন ব্যক্তির সাথে সম্পর্ক{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={formData.applicant.relation}
-                        onChange={(e) =>
-                          handleNestedInputChange(
-                            "applicant",
-                            "relation",
-                            e.target.value
-                          )
-                        }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                          formErrors["applicant.relation"]
-                            ? "border-red-500"
-                            : "border-gray-300 dark:border-gray-600"
-                        }`}
-                        required
-                      >
-                        <option value="">---সম্পর্ক নির্বাচন করুন---</option>
-                        <option value="FATHER">পিতা</option>
-                        <option value="MOTHER">মাতা</option>
-                        <option value="GUARDIAN">অভিভাবক</option>
-                        <option value="RELATIVE">আত্মীয়</option>
-                        <option value="SELF">নিজে</option>
-                        <option value="OTHER">অন্যান্য</option>
-                      </select>
-                      {formErrors["applicant.relation"] && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {formErrors["applicant.relation"]}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-between pt-6 border-t dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                >
-                  পূর্ববর্তী
-                </button>
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                >
-                  পরবর্তী
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Review and OTP Verification */}
-          {currentStep === 6 && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
                 তথ্য পর্যালোচনা ও OTP যাচাই
               </h3>
+
+              {/* Auto-populate applicant information based on age */}
+              {age.years < 18 ? (
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-blue-700 dark:text-blue-300 text-sm">
+                    <span className="font-semibold">নোট:</span> নিবন্ধনাধীন
+                    ব্যক্তির বয়স ১৮ বছরের কম হওয়ায় পিতার তথ্য আবেদনকারী
+                    হিসেবে ব্যবহৃত হচ্ছে।
+                  </p>
+                </div>
+              ) : (
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-blue-700 dark:text-blue-300 text-sm">
+                    <span className="font-semibold">নোট:</span> নিবন্ধনাধীন
+                    ব্যক্তির বয়স ১৮ বা তার বেশি হওয়ায় নিজের তথ্য আবেদনকারী
+                    হিসেবে ব্যবহৃত হচ্ছে।
+                  </p>
+                </div>
+              )}
 
               {/* Review Section */}
               <div className="bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border dark:border-gray-700">
@@ -3867,6 +3885,15 @@ export default function BirthRegistrationForm() {
                       </div>
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">
+                          বয়স:
+                        </span>
+                        <p className="font-medium">
+                          {age.years} বছর, {age.months} মাস, {age.days} দিন
+                          {age.years < 18 && " (১৮ বছরের কম)"}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">
                           লিঙ্গ:
                         </span>
                         <p className="font-medium">
@@ -3878,16 +3905,17 @@ export default function BirthRegistrationForm() {
                         </p>
                       </div>
                       {/* Show NID in review if age is 18+ and NID is provided */}
-                      {age.years >= 18 && formData.personInfoForBirth.personNid && (
-                        <div className="md:col-span-2">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            জাতীয় পরিচয়পত্র নম্বর:
-                          </span>
-                          <p className="font-medium">
-                            {formData.personInfoForBirth.personNid}
-                          </p>
-                        </div>
-                      )}
+                      {age.years >= 18 &&
+                        formData.personInfoForBirth.personNid && (
+                          <div className="md:col-span-2">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              জাতীয় পরিচয়পত্র নম্বর:
+                            </span>
+                            <p className="font-medium">
+                              {formData.personInfoForBirth.personNid}
+                            </p>
+                          </div>
+                        )}
                     </div>
                   </div>
 
@@ -3978,19 +4006,19 @@ export default function BirthRegistrationForm() {
                           সম্পর্ক:
                         </span>
                         <p className="font-medium">
-                          {formData.applicant.relation === "FATHER"
-                            ? "পিতা"
-                            : formData.applicant.relation === "MOTHER"
-                            ? "মাতা"
-                            : formData.applicant.relation === "GUARDIAN"
-                            ? "অভিভাবক"
-                            : formData.applicant.relation === "RELATIVE"
-                            ? "আত্মীয়"
-                            : formData.applicant.relation === "SELF"
-                            ? "নিজে"
-                            : "অন্যান্য"}
+                          {age.years < 18 ? "পিতা" : "নিজে"}
                         </p>
                       </div>
+                      {formData.applicant.nid && (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            জাতীয় পরিচয়পত্র নম্বর:
+                          </span>
+                          <p className="font-medium">
+                            {formData.applicant.nid}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -4002,12 +4030,12 @@ export default function BirthRegistrationForm() {
                       </h5>
                       <div className="text-sm">
                         <p className="text-gray-600 dark:text-gray-400">
-                          মোট ফাইল: {uploadedFiles.length}টি
+                          মোট ফাইল: {uploadedFiles.length}টি (২টি প্রয়োজনীয়)
                         </p>
                         <ul className="list-disc list-inside mt-1 text-gray-700 dark:text-gray-300">
                           {uploadedFiles.map((file, index) => (
                             <li key={file.id}>
-                              {file.name} - {file.fileType}
+                              {file.name} - ফাইল টাইপ {file.attachmentTypeId}
                             </li>
                           ))}
                         </ul>
@@ -4151,12 +4179,7 @@ export default function BirthRegistrationForm() {
                 </button>
                 <button
                   type="submit"
-                  disabled={!otpVerified}
-                  className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
-                    otpVerified
-                      ? "bg-green-600 hover:bg-green-700 text-white focus:ring-green-500"
-                      : "bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400"
-                  }`}
+                  className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 bg-green-600 hover:bg-green-700 text-white focus:ring-green-500`}
                 >
                   আবেদন জমা দিন
                 </button>
