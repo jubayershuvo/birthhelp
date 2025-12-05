@@ -24,7 +24,7 @@ export default function ViewCorrectionPage({
             Application Not Found
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            The requested correction application could not be found.
+            The requested register application could not be found.
           </p>
         </div>
       </div>
@@ -38,10 +38,10 @@ export default function ViewCorrectionPage({
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Correction Application Details
+              Birth Registration Application Details
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              View correction information and details
+              View registration information and details
             </p>
           </div>
 
