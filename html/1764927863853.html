@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta content="Birth and Death Registration Information System (BDRIS)" name="description">
+    <meta content="Birth, Death, Birth Registration, Death Registration, Birth Registration Online, Death Registration Online, Birth and Death Registration Information System, BDRIS"
+          name="keywords">
+    <meta content="Office of the Registrar General, Birth and Death Registration" name="author">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control">
+    <meta content="no-cache" http-equiv="Pragma">
+    <meta content="0" http-equiv="Expires">
+    <meta name="_csrf" content="SmIBVMoSZDZdhzhjP-K_K3lOgf92sPkjbAx-j-V045Bh7E84LFczMasrAANwsQwHCs-LThotrMYU1cwOVDRI64dGgvNR1XsL">
+    <meta name="_csrf_headerName" content="X-CSRF-TOKEN">
+    <meta content="default-src 'self'; form-action 'self' *; script-src 'unsafe-inline' 'unsafe-eval' 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https; font-src 'self' https://fonts.gstatic.com; media-src 'self'; connect-src 'self'; frame-src 'self'; manifest-src 'self';"
+          http-equiv="Content-Security-Policy">
+    <link href="https://bdris.gov.bd/br/application" rel="canonical">
+    <link rel="icon" sizes="16x16" href="/assets/img/favicon.ico" type="image/png"/>
+
+    
+    <title>জন্ম নিবন্ধনের জন্য আবেদন</title>
+
+    <link rel="stylesheet" href="/assets/vendors/material-icons/material-icons.css" type="text/css"/>
+    <!-- Bootstrap CSS-->
+    <link rel="stylesheet" href="/css/bootstrap/3.3.4/bootstrap.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/css/bootstrap/3.3.4/bootstrap-theme.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/css/font-awesome/4.7.0/font-awesome.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/css/jquery-toast-plugin/1.3.1/jquery.toast.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/css/sweetalert/sweetalert2.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/css/bootstrap-datepicker/1.6.4/bootstrap-datepicker.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/assets/css/public/brisstyle.css" type="text/css"/>
+    <link rel="stylesheet" href="/css/google-nato-serif-bengali-font.css" type="text/css">
+    <link rel="stylesheet" href="/css/jquery-fileupload/blueimp-gallery.min.css" type="text/css"/><link rel="stylesheet" href="/css/jquery-fileupload/jquery.fileupload.css" type="text/css"/><link rel="stylesheet" href="/css/jquery-fileupload/jquery.fileupload-ui.css" type="text/css"/><link rel="stylesheet" href="/css/select2/select2.min.css" type="text/css"/>
+
+    <style>
+        .inactiveLink {
+            pointer-events: none;
+            cursor: default;
+        }
+
+        div.modal-dialog {
+            z-index: 20000 !important;
+        }
+
+        .required-field:after {
+            content: " *";
+            color: red;
+        }
+    </style>
+
+    
+        <style rel="stylesheet" type="text/css">
+
+.page-loader {
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.page-loader.page-loader-hidden {
+    display: none;
+}
+
+.page-loader.page-loader-show {
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-loader-circle {
+    width: 20px;
+    height: 20px;
+    background-color: #d2d2d2;
+    border-radius: 50%;
+}
+
+.page-loader-circle:not(:last-child) {
+    margin-right: 1rem;
+}
+
+.page-loader-circle:nth-child(1) {
+    animation: hop 1s ease-in-out infinite;
+}
+
+.page-loader-circle:nth-child(2) {
+    animation: hop 1s ease-in-out infinite 0.1s;
+}
+
+.page-loader-circle:nth-child(3) {
+    animation: hop 1s ease-in-out infinite 0.2s;
+}
+
+@keyframes hop {
+0% {
+transform: scale(1) translateY(0);
+}
+25% {
+transform: scale(1.1) translateY(10px);
+}
+50% {
+transform: scale(1.2) translateY(20px);
+}
+75% {
+transform: scale(1.1) translateY(10px);
+}
+100% {
+transform: scale(1) translateY(0px);
+}
+}</style>
+    
+
+    <script>
+    const localhost = "bdris.gov.bd";
+    const localPort = "443";
+    const csrf = "SmIBVMoSZDZdhzhjP-K_K3lOgf92sPkjbAx-j-V045Bh7E84LFczMasrAANwsQwHCs-LThotrMYU1cwOVDRI64dGgvNR1XsL";
+    const csrfParamName = '_csrf';
+    const bothParentsBangladeshi = 1;
+    const atLeastOneParentBangladeshi = 2;
+    const maxAllowedFileSize = null;
+    const parentsRestriction = null;
+
+    const context = "";
+    const languageChangeUrl = "\/language\/change\/";
+    const brBookSearchUrl = "\/api\/br\/book\/search";
+    const deduplicationSearchUrl = "\/admin\/de-duplication\/search";
+
+    const dhis2NotificationSearch = "\/api\/br\/dhis2\/search";
+
+    const brSearchPageUrl = "\/admin\/br\/search";
+
+    const brOnlineApplicationsSearchUrl = "\/api\/br\/applications\/search";
+    const brReprintApplicationsSearchUrl = "\/api\/br\/reprint\/applications\/search";
+    const drReprintApplicationsSearchUrl = "\/api\/dr\/reprint\/applications\/search";
+
+    const brOnlineCorrectionApplicationsSearchUrl = "\/api\/br\/correction-applications\/search";
+    const drOnlineCorrectionApplicationsSearchUrl = "\/api\/dr\/correction-applications\/search";
+
+    const brOnlineCertificateCancellationApplicationsSearchUrl = "\/api\/br\/certificate-cancellation-applications\/search";
+    const drOnlineCertificateCancellationApplicationsSearchUrl = "\/api\/dr\/certificate-cancellation-applications\/search";
+
+    const brInfoSearchByUbrn = "\/api\/br\/register\/search\/by-ubrn";
+
+    const parentProjectionByUbrnAndDobUrl = "\/api\/br\/parent-info";
+
+    const fatherProjectionForApplicantByUbrnAndDobUrl = "\/api\/br\/father-info-for-applicant-by-ubrn-and-dob";
+    const motherProjectionForApplicantByUbrnAndDobUrl = "\/api\/br\/mother-info-for-applicant-by-ubrn-and-dob";
+    const personProjectionForApplicantByUbrnAndDobUrl = "\/api\/br\/person-info-for-applicant-by-ubrn-and-dob";
+
+    const fatherProjectionForApplicantByBirthRegisterIdUrl = "\/api\/br\/father-info-for-applicant-by-birth-register-id";
+    const motherProjectionForApplicantByBirthRegisterIdUrl = "\/api\/br\/mother-info-for-applicant-by-birth-register-id";
+    const personProjectionForApplicantByBirthRegisterIdUrl = "\/api\/br\/person-info-for-applicant-by-birth-register-id";
+
+    const fatherProjectionForApplicantByUdrnAndDodUrl = "\/api\/dr\/father-info-for-applicant-by-udrn-and-dod";
+    const motherProjectionForApplicantByUdrnAndDodUrl = "\/api\/dr\/mother-info-for-applicant-by-udrn-and-dod";
+
+    const fatherProjectionForApplicantByDeathRegisterIdUrl = "\/api\/dr\/father-info-for-applicant-by-death-register-id";
+    const motherProjectionForApplicantByDeathRegisterIdUrl = "\/api\/dr\/mother-info-for-applicant-by-death-register-id";
+
+    const parentProjectionByUbrnUrl = "\/api\/br\/parent-projection-by-ubrn";
+
+    const getPersonInfoForBirthProjectionsForTopFivePossibleDuplicatesByBirthRegistrationApplicationIdUrl = "\/api\/br\/top-five-possible-duplicates-by-birth-registration-application-id";
+    const getPersonInfoForBirthProjectionsForAllPossibleDuplicatesByBirthRegistrationApplicationIdUrl = "\/api\/br\/all-possible-duplicates-by-birth-registration-application-id";
+
+    const brInfoSearchByUbrnAndDob = "\/api\/br\/search-by-ubrn-and-dob";
+    const brInfoSearchByUbrnAndDobForBrCancellationApp = "\/api\/br\/br-projection-list-by-ubrn-and-dob-for-br-cancel-app";
+    const drInfoSearchByUbrnAndDob = "\/api\/dr\/register\/search\/by-ubrnanddob";
+
+    const drOnlineApplicationsSearchUrl = "\/api\/dr\/applications\/search";
+
+    const birthRecordSearchByUbrnUrl = "\/api\/br\/info\/ubrn\/";
+    const birthRecordSearchByUbrnUniqueUrl = "\/api\/br\/search-by-ubrn";
+    const isPersonAliveSearchByUbrnUrl = "\/api\/br\/is-person-alive-by-ubrn";
+
+    const isGapBetweenUterineSiblingsAccToPolicyUrl = "\/api\/br\/is-gap-between-uterine-siblings-acc-to-policy";
+    const isThChildAvailableUrl = "\/api\/br\/is-th-child-available";
+
+    const isUsernameAvailableSearchUrl = "\/api\/user\/is-username-available";
+
+    const userAddRequestRejectUrl = "\/api\/user\/request\/reject";
+
+    const deathRecordSearchByUdrnAndDodUrl = "\/api\/dr\/info\/udrn\/";
+    const deathRegisterIdSearhByUdrnAndDod = "\/api\/dr\/deathRegisterId\/byUdrnDod";
+
+    const birthRecordSearchByBirthRecordInfoUrl = "\/api\/br\/info\/br-record-info";
+    const birthRecordSearchByAdvancedSearchUrl = "\/api\/br\/advanced-search";
+    const deathApplicationStatusSearchByappIdAndDodUrl = "\/api\/dr\/info\/status\/";
+    const birthApplicationStatusSearchByappIdAndDobUrl = "\/api\/br\/info\/status\/";
+    const searchGeoLocationByParentGeoIdRestUrl = "\/api\/geo\/parentGeoId";
+    const searchGeoLocationHashMapByParentGeoIdGeoGroupAndGeoOrderRestUrl = "\/v1\/api\/geo\/parentGeoIdWithGeoGroupAndGeoOrder";
+    const findOfficeByParentGeoIdRestUrl = "\/api\/office\/find-by-geo-id";
+    const findOfficeGeoProjectionByParentGeoIdRestUrl = "\/api\/office\/find-office-geo-projection-by-geo-id";
+    const geoLocationTextIdHashMapUrl = "\/api\/geo\/geolocation-text-id-hashmap-by-id";
+
+    const searchLogUrl = "\/api\/user\/log";
+    const searchActivityLogUrl = "\/api\/user\/activity-log";
+    const searchActivityLogByRelatedUserIdUrl = "\/api\/user\/activity-log-by-action-taken-for";
+    const searchUserUrl = "\/api\/user\/all";
+    const searchRequestUserUrl = "\/api\/user\/request\/search";
+    const enableUserUrl = "\/api\/user\/enable";
+    const disableUserUrl = "\/api\/user\/disable";
+    const enableIssueResolverUrl = "\/api\/user\/issue-resolver-enable";
+    const disableIssueResolverUrl = "\/api\/user\/issue-resolver-disable";
+    const releaseUserUrl = "\/api\/user\/release";
+    const assignUserUrl = "\/api\/user\/assign";
+    const transferUserUrl = "\/api\/user\/transfer";
+    const alternateLogin = "\/api\/user\/alternate\/login";
+
+    const userAddRequestApprovalUrl = "\/admin\/user\/request\/approve";
+
+    const officeNameByIdUrl = "\/api\/office\/name";
+
+    const brBookEdit = "\/api\/br\/book\/edit";
+    const brBookSearch = "\/api\/br\/book\/list\/by-office";
+
+    const drBookEdit = "\/api\/dr\/book\/edit";
+    const drBookSearch = "\/api\/dr\/book\/list\/by-office";
+
+    const brCorrectionAppCorrectUrl = "\/api\/br\/correction\/application\/correct";
+    const drCorrectionAppCorrectUrl = "\/api\/dr\/correction\/application\/correct";
+
+    const brCertificateCancellationAppRegisterUrl = "\/api\/br\/certificate-cancellation\/application\/register";
+    const drCertificateCancellationAppRegisterUrl = "\/api\/dr\/certificate-cancellation\/application\/register";
+    const brCertificateCancellationAppApproveUrl = "\/api\/br\/certificate-cancellation\/application\/approve";
+    const drCertificateCancellationAppApproveUrl = "\/api\/dr\/certificate-cancellation\/application\/approve";
+
+    const brCorrectionAppReceiveUrl = "\/api\/br\/correction\/application\/receive";
+    const drCorrectionAppReceiveUrl = "\/api\/dr\/correction\/application\/receive";
+
+    const brCorrectionSendOtpAgainUrl = "\/api\/br\/correction\/sent-otp";
+
+    const brCertificateCancellationAppReceiveUrl = "\/api\/br\/certificate-cancellation\/application\/receive";
+    const drCertificateCancellationAppReceiveUrl = "\/api\/dr\/certificate-cancellation\/application\/receive";
+
+    const possibleDuplicateAppApproveUrl = "\/api\/br\/application\/approve-in-possible-duplicate-status";
+    const withoutParentsUbrnAppApproveUrl = "\/api\/br\/application\/approve-without-parent-ubrn";
+    const brAppRegisterUrl = "\/api\/br\/application\/register";
+    const brAppReceiveUrl = "\/api\/br\/application\/receive";
+    const brAppRejectUrl = "\/api\/br\/application\/reject";
+    const brReprintAppRejectUrl = "\/api\/br\/reprint\/application\/reject";
+    const brReprintAppReceiveUrl = "\/api\/br\/reprint\/application\/receive";
+    const brReprintAppApproveUrl = "\/api\/br\/reprint\/application\/approve";
+    const brReprintAppDetails = "\/api\/br\/reprint-application\/details";
+
+    const brCorrectionAppOfRemoteOfficeApproveUrl = "\/api\/br\/correction\/application\/remote-office-approve";
+    const drCorrectionAppOfRemoteOfficeApproveUrl = "\/api\/dr\/correction\/application\/remote-office-approve";
+
+    const brCorrectionAppApproveAsHigherAuthorityUrl = "\/api\/br\/correction\/application\/approve-as-higher-authority";
+    const brCorrectionNationalityApproveUrl = "\/api\/br\/correction\/application\/nationality-approve";
+    const brCorrectionSpecialDobApproveUrl = "\/api\/br\/correction\/application\/special-dob-approve";
+    const drCorrectionAppApproveAsHigherAuthorityUrl = "\/api\/dr\/correction\/application\/higher-authority-approve";
+
+    const brCorrectionAppRejectUrl = "\/api\/br\/correction-application\/reject";
+    const drCorrectionAppRejectUrl = "\/api\/dr\/correction-application\/reject";
+    const brCertificateCancellationAppRejectUrl = "\/api\/br\/certificate-cancellation\/application\/reject";
+    const drCertificateCancellationAppRejectUrl = "\/api\/dr\/certificate-cancellation\/application\/reject";
+    const brCorrectionAppPayment = "\/api\/payment\/br-correction\/new";
+    const drCorrectionAppPayment = "\/api\/payment\/dr-correction\/new";
+    const brCertificateCancellationAppPayment = "\/api\/payment\/br-cert-cancellation\/new";
+    const drCertificateCancellationAppPayment = "\/api\/payment\/dr-cert-cancellation\/new";
+    const drReprintAppDetails = "\/api\/dr\/reprint-application\/details";
+
+    const brAppDetailsUrl = "\/api\/br\/application\/details";
+    const brCorrectionAppDetailsUrl = "\/api\/br\/correction-application\/details";
+    const brCertificateCancellationAppDetailsUrl = "\/api\/br\/certificate-cancellation-application\/details";
+    const drCertificateCancellationAppDetailsUrl = "\/api\/dr\/certificate-cancellation-application\/details";
+    const drCorrectionAppDetailsUrl = "\/api\/dr\/correction-application\/details";
+    const brAppPayment = "\/api\/payment\/br\/new";
+    const brReprintAppPayment = "\/api\/payment\/br\/reprint\/new";
+
+    const drBookSearchUrl = "\/api\/dr\/book\/search";
+    const drAppPayment = "\/api\/payment\/dr\/new";
+    const drReprintAppPayment = "\/api\/payment\/dr\/reprint\/new";
+    const drAppDetailsUrl = "\/api\/dr\/application\/details";
+    const drAppRegisterUrl = "\/api\/dr\/application\/register";
+    const drAppReceiveUrl = "\/api\/dr\/application\/receive";
+    const drAppRejectUrl = "\/api\/dr\/application\/reject";
+    const drReprintAppRejectUrl = "\/api\/dr\/reprint\/application\/reject";
+    const drReprintAppReceiveUrl = "\/api\/dr\/reprint\/application\/receive";
+    const drReprintAppApproveUrl = "\/api\/dr\/reprint\/application\/approve";
+
+    const brRegisterDetailsUrl = "\/api\/br\/birth\/details";
+
+    const getPersonNameEnBnPairByUbrnUrl = "\/api\/br\/info\/person-name-en-bn-pair-by-ubrn";
+
+    const getPersonInfoByUbrnAndDataGroupUrl = "\/api\/br\/info\/person-info-by-ubrn-and-data-group";
+    const getPersonInfoWithNationalityByUbrnAndDataGroupUrl = "\/api\/br\/info\/person-info-with-nationality-by-ubrn-and-data-group";
+    const getPersonInfoByNidDateOfBirthAndDataGroupUrl = "\/api\/uid\/get-nid-verification-by-nid-dob-data-group";
+
+    const getAttachmentTypeListByDoBUrl = "\/api\/br\/attachment-types-by-dob";
+
+    const getAgeByDoBUrl = "\/api\/br\/get-age-by-dob";
+
+    const searchGeoLocationUrl = "\/api\/geo\/search";
+
+    const geolocationRequestApproveUrl = "\/api\/geo\/request\/approve";
+    const geolocationRequestRejectUrl = "\/api\/geo\/request\/reject";
+
+    const addTemplateElementUrl = "\/api\/certificate\/templateElement\/add";
+    const editTemplateElementUrl = "\/api\/certificate\/templateElement\/edit";
+
+    const cityCorporationIds = null;
+    const cantonmentIds = null;
+    const bangladeshId = null;
+
+    const geoLocationTypeList = null;
+
+    const divisionText = null;
+    const divisionId = null;
+
+    const missionText = null;
+    const missionId = null;
+
+    const districtText = null;
+    let districtId = null;
+
+    const countryText = null;
+    let countryId = null;
+
+    const cityCorporationText = null;
+    let cityCorporationId = null;
+
+    const cantonmentText = null;
+    let cantonmentId = null;
+
+    const upazilaText = null;
+    let upazilaId = null;
+
+    const cityText = null;
+    let cityId = null;
+
+    const wardInCityCorporationText = null;
+    let wardInCityCorporationId = null;
+
+    const officeText = null;
+
+    const paurasavaOrUnionText = null;
+    let paurasavaOrUnionId = null;
+    let addressLocationId = null;
+    let lastPopulatedGeoLocationElementLevel = null;
+    const activeBrChargeUrl = "\/api\/payment\/br\/config\/active";
+    const upcomingBrChargeProjectionUrl = "\/api\/payment\/br\/config-projection\/upcoming";
+    const upcomingDrChargeProjectionUrl = "\/api\/payment\/dr\/config-projection\/upcoming";
+    const upcomingBrChargeUrl = "\/api\/payment\/br\/config\/upcoming";
+    const brChargeConfigByIdUrl = "\/api\/payment\/br\/config-by-id";
+    const drChargeConfigByIdUrl = "\/api\/payment\/dr\/config-by-id";
+    const settingKeyValUrl = "\/api\/setting\/set";
+    const userOfficePermissionUrl = "\/api\/office\/permission";
+    const brOnlineApplicationsSearchPageUrl = "\/admin\/br\/applications";
+    const drOnlineApplicationsSearchPageUrl = "\/admin\/dr\/applications";
+    const brOnlineCorrectionApplicationsSearchPageUrl = "\/admin\/br\/correction-applications";
+    const drOnlineCorrectionApplicationsSearchPageUrl = "\/admin\/dr\/correction-applications";
+
+    const brOnlineCertificateCancellationApplicationsSearchPageUrl = "\/admin\/br\/certificate-cancellation-applications";
+    const drOnlineCertificateCancellationApplicationsSearchPageUrl = "\/admin\/dr\/certificate-cancellation-applications";
+
+    const brOnlineReprintApplicationsSearchPageUrl = "\/admin\/br\/reprint\/view\/applications";
+    const drOnlineReprintApplicationsSearchPageUrl = "\/admin\/dr\/reprint\/view\/applications";
+
+    const applicationVerifierSearchPageUrl = "\/admin\/office\/application-verifier\/search";
+    const applicationVerifierDeleteUrl = "\/api\/office\/application-verifier\/delete";
+
+    const issueStatusUpdateUrl = "\/api\/issue\/update-status";
+
+    const drApplicationPrintUrl = "\/admin\/dr\/application\/print";
+    const brApplicationPrintUrl = "\/admin\/br\/application\/print";
+    const cancelBirthCertificateUrl = "\/api\/br\/certificate\/cancel";
+    const cancelDeathCertificateUrl = "\/api\/dr\/certificate\/cancel";
+
+    const haltBirthCertificateUrl = "\/api\/br\/certificate\/halt";
+    const unhaltBirthCertificateUrl = "\/api\/br\/certificate\/unhalt";
+    const printBirthCertificateUrl = "\/admin\/certificate\/print\/birth";
+    const haltDeathCertificateUrl = "\/api\/dr\/certificate\/halt";
+    const unhaltDeathCertificateUrl = "\/api\/dr\/certificate\/unhalt";
+    const printDeathCertificateUrl = "\/admin\/certificate\/print\/death";
+
+    const sweetAlertTitle = null;
+    const sweetAlertConfirmBtnText = null;
+    const sweetAlertCancelBtnText = null;
+
+    const informationTypeMsg = "\u09AC\u09BF\u09B7\u09DF";
+    const informationValMsg = "\u099A\u09BE\u09B9\u09BF\u09A4 \u09B8\u0982\u09B6\u09CB\u09A7\u09BF\u09A4 \u09A4\u09A5\u09CD\u09AF";
+    const informationValCause = "\u09B8\u0982\u09B6\u09CB\u09A7\u09A8\u09C7\u09B0 \u0995\u09BE\u09B0\u09A3";
+
+    const nameBnMsg = "\u09A8\u09BE\u09AE \u09AC\u09BE\u0982\u09B2\u09BE\u09AF\u09BC";
+    const nameEnMsg = "\u09A8\u09BE\u09AE \u0987\u0982\u09B0\u09C7\u099C\u09BF\u09A4\u09C7";
+    const birthDateMsg = "\u099C\u09A8\u09CD\u09AE \u09A4\u09BE\u09B0\u09BF\u0996 (\u0996\u09CD\u09B0\u09BF\u0983)";
+    const thChildMsg = "\u09AA\u09BF\u09A4\u09BE \u0993 \u09AE\u09BE\u09A4\u09BE\u09B0 \u0995\u09A4\u09A4\u09AE \u09B8\u09A8\u09CD\u09A4\u09BE\u09A8";
+    const genderMsg = "\u09B2\u09BF\u0999\u09CD\u0997";
+
+    const fatherNameBnMsg = "\u09AA\u09BF\u09A4\u09BE\u09B0 \u09A8\u09BE\u09AE \u09AC\u09BE\u0982\u09B2\u09BE\u09AF\u09BC";
+    const fatherNameEnMsg = "\u09AA\u09BF\u09A4\u09BE\u09B0 \u09A8\u09BE\u09AE \u0987\u0982\u09B0\u09C7\u099C\u09BF\u09A4\u09C7";
+    const fatherBrnMsg = "\u09AA\u09BF\u09A4\u09BE\u09B0 \u099C\u09A8\u09CD\u09AE \u09A8\u09BF\u09AC\u09A8\u09CD\u09A7\u09A8 \u09A8\u09AE\u09CD\u09AC\u09B0";
+    const fatherNidMsg = "\u09AA\u09BF\u09A4\u09BE\u09B0 \u099C\u09BE\u09A4\u09C0\u09DF \u09AA\u09B0\u09BF\u099A\u09DF\u09AA\u09A4\u09CD\u09B0 \u09A8\u09AE\u09CD\u09AC\u09B0";
+    const fatherPassportMsg = "\u09AA\u09BF\u09A4\u09BE\u09B0 \u09AA\u09BE\u09B8\u09AA\u09CB\u09B0\u09CD\u099F \u09A8\u09AE\u09CD\u09AC\u09B0";
+    const fatherNationalityMsg = "\u09AA\u09BF\u09A4\u09BE\u09B0 \u099C\u09BE\u09A4\u09C0\u09DF\u09A4\u09BE";
+
+    const motherNameBnMsg = "\u09AE\u09BE\u09A4\u09BE\u09B0 \u09A8\u09BE\u09AE \u09AC\u09BE\u0982\u09B2\u09BE\u09DF";
+    const motherNameEnMsg = "\u09AE\u09BE\u09A4\u09BE\u09B0 \u09A8\u09BE\u09AE \u0987\u0982\u09B0\u09C7\u099C\u09BF\u09A4\u09C7";
+    const motherBrnMsg = "\u09AE\u09BE\u09A4\u09BE\u09B0 \u099C\u09A8\u09CD\u09AE \u09A8\u09BF\u09AC\u09A8\u09CD\u09A7\u09A8 \u09A8\u09AE\u09CD\u09AC\u09B0";
+    const motherNidMsg = "\u09AE\u09BE\u09A4\u09BE\u09B0 \u099C\u09BE\u09A4\u09C0\u09DF \u09AA\u09B0\u09BF\u099A\u09DF\u09AA\u09A4\u09CD\u09B0 \u09A8\u09AE\u09CD\u09AC\u09B0";
+    const motherPassportMsg = "\u09AE\u09BE\u09A4\u09BE\u09B0 \u09AA\u09BE\u09B8\u09AA\u09CB\u09B0\u09CD\u099F \u09A8\u09AE\u09CD\u09AC\u09B0";
+    const motherNationalityMsg = "\u09AE\u09BE\u09A4\u09BE\u09B0 \u099C\u09BE\u09A4\u09C0\u09DF\u09A4\u09BE";
+
+    const phoneMsg = "\u09AB\u09CB\u09A8 \u09A8\u09AE\u09CD\u09AC\u09B0";
+
+    const deathDateMsg = "\u09AE\u09C3\u09A4\u09CD\u09AF\u09C1\u09B0 \u09A4\u09BE\u09B0\u09BF\u0996 (\u0996\u09CD\u09B0\u09BF\u0983)";
+    const causeOfDeathMsg = "\u09AE\u09C3\u09A4\u09CD\u09AF\u09C1\u09B0 \u0995\u09BE\u09B0\u09A8";
+    const spouseNameMsg = "\u09B8\u09CD\u09AC\u09BE\u09AE\u09C0\/\u09B8\u09CD\u09A4\u09CD\u09B0\u09C0\u09B0 \u09A8\u09BE\u09AE (\u09AC\u09BE\u0982\u09B2\u09BE\u09DF)";
+    const spouseBrnMsg = "\u09B8\u09CD\u09AC\u09BE\u09AE\u09C0\/\u09B8\u09CD\u09A4\u09CD\u09B0\u09C0\u09B0  \u099C\u09A8\u09CD\u09AE \u09A8\u09BF\u09AC\u09A8\u09CD\u09A7\u09A8 \u09A8\u09AE\u09CD\u09AC\u09B0";
+    const spouseNidMsg = "\u09B8\u09CD\u09AC\u09BE\u09AE\u09C0\/\u09B8\u09CD\u09A4\u09CD\u09B0\u09C0\u09B0 \u099C\u09BE\u09A4\u09C0\u09DF \u09AA\u09B0\u09BF\u099A\u09DF\u09AA\u09A4\u09CD\u09B0 \u09A8\u09AE\u09CD\u09AC\u09B0";
+
+    const geolocationSelectOption = "---\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8 \u0995\u09B0\u09C1\u09A8---";
+
+    const selectMsg = "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8 \u0995\u09B0\u09C1\u09A8";
+
+    const dataTableCopyBtnText = "\u0995\u09AA\u09BF";
+    const dataTablePrintBtnText = "\u09AA\u09CD\u09B0\u09BF\u09A8\u09CD\u099F";
+    const dataTableColumnVisibilityBtnText = "\u0995\u09B2\u09BE\u09AE \u09AA\u09CD\u09B0\u09A6\u09B0\u09CD\u09B6\u09A8";
+    const dataTableEditBookBtnText = "\u09AC\u0987 \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE";
+
+    const lang = "bn";
+    const brNotificationsSearch = "\/api\/br\/notifications\/search";
+    const brNotificationsDetails = "\/api\/br\/notifications";
+    const drNotificationsSearch = "\/api\/dr\/notifications\/search";
+    const drNotificationsDetails = "\/api\/dr\/notifications";
+
+    const brDuplicateCancellationList = "\/api\/br\/cancellation-list";
+    const drDuplicateCancellationList = "\/api\/dr\/cancellation-list";
+    const brCancellationApplicationIsExist = "\/api\/br\/cancellation\/isExist";
+    const brCancellationApplicationIsExistInPassport = "\/api\/br\/isUserUsedInPassport\/";
+    const drCancellationApplicationIsExist = "\/api\/dr\/cancellation\/isExist";
+    const drSearchRegisterIdByUdrnUrl = "\/api\/dr\/get-death-register-id-by-udrn\/";
+    const drIsDeathRegisterMappedApiUrl = "\/api\/dr\/is-death-register-mapped\/";
+    const drCancellationApplicationIsExistInPassport = "\/api\/dr\/isUserUsedInPassport\/";
+    const getBrBookRegisterOnlineOrManualApiUrl = "\/api\/special-correction\/info\/br-book\/";
+    const getDrBookRegisterOnlineOrManualApiUrl = "\/api\/special-correction\/info\/dr-book\/";
+    const brSpecialCorrectionDetailsUrl = "\/api\/special-correction\/issue-date-correction-application\/details\/";
+    const brSpecialCorrectionSearchUrl = "\/api\/special-correction\/issue-date-correction-applications\/search\/";
+    const brSpecialCorrectionSearchPageUrl = "\/admin\/special-correction\/birth-applications\/";
+    const brSpecialCorrectionSearchByPhoneUrl = "\/api\/special-correction\/search-by-phone-no\/";
+    const brSpecialCorrectionPaymentUrl = "\/api\/payment\/br-special-correction\/new";
+    const brSpecialCorrectionPrintUrl = "\/admin\/special-correction\/birth\/application-print\/";
+    const brSpecialCorrectionReceiveUrl = "\/api\/special-correction\/birth\/application\/receive\/";
+    const brSpecialCorrectionRejectUrl = "\/api\/special-correction\/birth\/application\/reject\/";
+    const brSpecialCorrectionApproveUrl = "\/api\/special-correction\/birth\/application\/approve\/";
+    const brSendOtp = "\/api\/otp\/sent";
+    const brSendOtpToEmail = "\/api\/otp\/sent-email";
+    const brVerifyOtp = "\/api\/otp\/verify";
+    const ePayLink = "https:\/\/epay.bdris.gov.bd\/payment\/search";
+
+</script>
+
+
+    <script src="/js/jquery/3.7.1/jquery.min.js"></script>
+    <script src="/js/bootstrap/3.3.7/bootstrap.min.js"></script>
+
+    <script src="/js/language-selector.js"></script>
+    <script src="/js/bootstrap-datepicker/1.6.4/bootstrap-datepicker.min.js"></script>
+
+    <script src="/js/jquery-toast-plugin/1.3.1/jquery.toast.min.js"></script>
+    <script src="/js/sweetalert/sweetalert2.min.js"></script>
+    <script src="/js/moment/moment.min.js"></script>
+    <script src="/js/avro/avro.min.js"></script>
+
+<script type="text/javascript">
+(function(){
+window["loaderConfig"] = "/TSPD/?type=21";
+})();
+
+</script>
+
+<script type="text/javascript" src="/TSPD/?type=18"></script>
+</head>
+
+
+<body>
+<!-- header part start -->
+<!--Top-bar Start-->
+<div class="container-fluid">
+   <div class="row">
+       <div class="col-xs-5 col-sm-5 col-md-8 col-lg-8 top-header">
+
+           <div class="row">
+               <div class="col-xs-offset-3 col-sm-offset-3 col-md-offset-3 col-lg-offset-3 col-xs-9 col-sm-9 col-md-9 col-lg-9">
+<!--                   <p style="font-size: 13px;font-weight: bold;color:#4072b7;margin-top: 1px;"><i class="fa fa-phone fa-lg"></i>&nbsp;১৬১৫২</p>-->
+               </div>
+           </div>
+
+       </div>
+
+       <div class="col-xs-7 col-sm-7 col-md-4 col-lg-4 top-header custom-top-menue">
+           <ul class="pull-right top-menu-left-align">
+               <li style="margin-top: -3px">
+                   <a href="/login" class="btn"> লগইন
+                       <span class="fa-stack fa-md">
+                              <i class="fa fa-circle fa-stack-2x" style="color:#f0f0f0;"></i>
+                              <i class="fa fa-user fa-stack-1x fa-inverse" style="color: #999999"></i>
+                            </span>
+                   </a>
+               </li>
+
+               
+
+               <li>
+                   <a onclick="languageChange('en')" class="btn">English</a>
+               </li>
+
+           </ul>
+       </div>
+   </div>
+</div>
+
+<div class="page-loader">
+    <div class="page-loader-circle"></div>
+    <div class="page-loader-circle"></div>
+    <div class="page-loader-circle"></div>
+</div>
+
+<header class="container-fluid main-header">
+    <div class="row">
+    <div class="col-lg-offset-1 col-md-offset-1 col-xs-12 col-sm-12 col-md-10 col-lg-10">
+
+        <div class="row">
+            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+                <a href="#">
+                    <img class="logo" style="" id="imageSlider" src="/images/logo/logo.png" width="80px" height="80px" />
+                </a>
+            </div>
+
+            <div class="col-lg-offset-0 col-md-offset-0 col-xs-offset-2 col-sm-offset-2 col-xs-6 col-sm-6 col-md-8 col-lg-10">
+
+                <nav class="navbar navbar-static-top top-btn-panel">
+
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed top-menu-button" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar" style="margin-top: 20px">
+                            <i class="fa fa-bars" style="color: #4072b7;"></i>
+                        </button>
+                    </div>
+                    <div id="navbar" class="navbar-collapse collapse yamm">
+                        <ul class="nav navbar-nav navbar-left top-btn-panel">
+                            <li class="dropdown yamm-fw">
+
+                                
+
+                                <a  class="selected "  href="" >হোম</a>
+
+                                
+
+                            </li>
+                            <li class="dropdown yamm-fw">
+
+                                
+
+                                <a  class=" "  href="/br/application" >জন্ম নিবন্ধন</a>
+
+                                <ul class="dropdown-menu" id="ulId" >
+                                    <li>
+                                        <div class="row">
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/br/application/status">জন্ম নিবন্ধন আবেদনের বর্তমান অবস্থা</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/br/reprint/add">জন্ম নিবন্ধন  সনদ পুনঃ মুদ্রন</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   inactiveLink"  href="">সার্টিফিকেট বাতিলের আবেদন</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="https://everify.bdris.gov.bd">জন্ম নিবন্ধন তথ্য অনুসন্ধান</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/br/application">জন্ম নিবন্ধন আবেদন</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/br/correction">জন্ম  নিবন্ধন তথ্য সংশোধন আবেদন</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/application/print">জন্ম  নিবন্ধন আবেদন পত্র প্রিন্ট</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+
+                            </li>
+                            <li class="dropdown yamm-fw">
+
+                                
+
+                                <a  class=" "  href="/dr/application" >মৃত্যু নিবন্ধন</a>
+
+                                <ul class="dropdown-menu" id="ulId" >
+                                    <li>
+                                        <div class="row">
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/br/application/status">মৃত্যু নিবন্ধন আবেদনের বর্তমান অবস্থা</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/dr/reprint/add">মৃত্যু নিবন্ধন সনদ পুনঃ মুদ্রন</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   inactiveLink"  href="">সার্টিফিকেট বাতিলের আবেদন</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="https://everify.bdris.gov.bd/UDRNVerification">মৃত্যু নিবন্ধন তথ্য অনুসন্ধান</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/dr/application">নতুন মৃত্যু নিবন্ধন আবেদন</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/dr/correction">মৃত্যু নিবন্ধন তথ্য সংশোধন আবেদন</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-3" style="border-right: 1px solid azure; min-height:40px;">
+                                                <ul class="list-unstyle" >
+                                                    <li style="margin-bottom: 10px;">
+                                                        
+                                                        <a class="secondLevelHeaderStyle   "  href="/application/print">মৃত্যু নিবন্ধন আবেদন প্রিন্ট</a>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+
+                            </li>
+                            <li class="dropdown yamm-fw">
+
+                                
+
+                                <a  class=" "  href="/user/create" >ব্যবহারকারী সংযোজন (ওটিপি প্রাপ্তির পর)</a>
+
+                                
+
+                            </li>
+
+                        </ul>
+                    </div>
+
+                </nav>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    <!--Top-menubar Start-->
+</header>
+<!-- /.headerArea -->
+<!-- header part end -->
+
+<!--  %= content.getPageDescription() %-->
+
+
+<div class="container-fluid main-content">
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 openbtn" style="background: #fff;">
+                <button class="btn btn-lg openNav"><i class="fa fa-bars" style="color: #4072b7;"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!--                <div class="col-lg-offset-1 col-md-offset-1  col-xs-12 col-sm-12 col-md-10 col-lg-10" style="background: #fff;">-->
+        <div class="col-lg-offset-1 col-md-offset-1  col-xs-12 col-sm-12 col-md-10 col-lg-10">
+
+            <div class="col-xs-11 col-sm-11 col-md-2 col-lg-2 leftmenu menuOpen">
+
+                <div class="row sidebar-nav">
+
+                    <ul class="list-group list-group-flush">
+                        <li class="custom-item-style">
+
+                            
+
+                            <a class="custom-item-style-header  "
+                               href="http://bdlaws.minlaw.gov.bd/act-details-921.html">জন্ম ও মৃত্যু নিবন্ধন আইন, ২০০৪</a>
+
+
+                            
+
+                        </li>
+
+                    </ul>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="custom-item-style">
+
+                            
+
+                            <a class="custom-item-style-header  "
+                               href="https://orgbdr.portal.gov.bd/sites/default/files/files/orgbdr.portal.gov.bd/page/9643f9f7_332c_44d4_b495_c0a28424b548/2020-02-12-22-57-c267ffad2b4dd28922daf44e39e39bf0.pdf">জন্ম ও মৃত্যু নিবন্ধন বিধিমালা, ২০১৮</a>
+
+
+                            
+
+                        </li>
+
+                    </ul>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="custom-item-style">
+
+                            
+
+                            <a class="custom-item-style-header  "
+                               href="https://orgbdr.portal.gov.bd/sites/default/files/files/orgbdr.portal.gov.bd/policies/1089b81b_91bd_4f0c_ad67_e54349f215c2/2021-09-08-13-30-f11b250e86d1a039a31ff854f2c51c3c.pdf">জন্ম ও মৃত্যু নিবন্ধন নির্দেশিকা ২০২১</a>
+
+
+                            
+
+                        </li>
+
+                    </ul>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="custom-item-style">
+
+                            
+
+                            <a class="custom-item-style-header  "
+                               href="https://orgbdr.portal.gov.bd/site/page/b0a81ef5-f571-473e-85de-038fd8eb468a">প্রায়শই জিজ্ঞাসিত প্রশ্ন FAQ</a>
+
+
+                            
+
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+
+            
+
+            <div class="col-xs-11 col-sm-11 col-md-10 col-lg-10 basic-content">
+
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <h4 class="custom-from-element">জন্ম নিবন্ধনের জন্য আবেদন</h4>
+                    </div>
+                </div>
+
+                                    
+
+                    <div class="alert alert-icon alert-success border-success alert-dismissible show" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                        <i class="material-icons list-icon">check_circle</i>
+                        <strong>Success,</strong>
+                        <span>আবেদনপত্রটি সফল ভাবে সাবমিট করা হয়েছে</span>
+                    </div>
+
+                						<div class="col-md-12 widget-holder">
+						   	<div class="widget-bg">
+							    <div class="widget-body clearfix">
+							      	<!-- Main content will go here -->
+
+									<div>
+										আবেদনপত্র নম্বর :  <span style="color:red"> 257943394 </span> <br/>
+										আবেদনের প্রকৃতি :  <span style="color:green"> জন্ম নিবন্ধন আবেদন </span> <br/>
+										কার্যালয়ের নাম, ঠিকানা :  <span style="color:green">  - আজিমনগর, ভাংগা, ফরিদপুর, ঢাকা বিভাগ, বাংলাদেশ </span> <br/>
+										নির্ধারিত মোবাইল নম্বর/ইমেইল :  <span style="color:green"> *********3086 </span> <br/>
+										ভবিষ্যত অনুসন্ধানের জন্য আবেদন পত্রের নম্বরটি সংরক্ষণ করুন।   <br/>
+										নিচের প্রিন্ট বাটনে ক্লিক করে, আবেদনপত্রটি প্রিন্ট করে প্রয়োজনীয় কাগজপত্রসহ আগামী <span style="color:red"> 20/12/2025 </span> তারিখের মধ্যে সংশ্লিষ্ট নিবন্ধকের নিকট দাখিল করুন।  <br/>
+
+										আপনাকে ধন্যবাদ।
+
+									</div>
+
+									
+									<br/>
+									
+									<br/>
+
+									
+
+									<br/>
+
+									<a id="appPrintBtn" class="btn btn-success print" href="/br/application/print/Pe70Ykl" target="_blank">আবেদনপত্র প্রিন্ট</a>
+									<!--<a th:if="${appPrintLink == null}" class="btn btn-success" th:href="@{'/admin/br/application/print/' + ${appId}}" id='appPrintBtn' target="_blank" th:text="#{label.application.print}"> প্রিন্ট </a>-->
+
+									<a class="btn btn-primary" href="/br/application">নতুন আবেদন করুন</a>
+									<!--<a th:if="${newAppLink == null}" class="btn btn-primary" th:href="@{/admin/br/add}" th:text="#{br.new-application}"> নতুন আবেদন করুন </a>-->
+
+									<!--<a class="btn btn-default" th:href="@{/admin/}" th:text="#{homepage}"> হোম পেজ </a> <br/>-->
+								</div>
+						  	</div>
+						</div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<hr/>
+<div class="row">
+    <footer class="footer text-center clearfix">
+        <div id="public-footer"></div>
+        <div id="update-information"></div>
+    </footer>
+</div>
+<!--
+<div class="row">
+
+    <div class="col-lg-offset-1 col-md-offset-1 col-lg-10 col-md-10 col-sm-12 col-xs-12">
+        <div class="row footer-panel">
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                <h5 class="footer-home-option">হোম</h5>
+                <hr/>
+                <div>
+                    <ul style="padding: 0px;">
+                        <li>লগইন</li>
+                        <li>ব্যবহারের শর্তাবলী</li>
+                        <li>সহযোগীতায়</li>
+                        <li>যোগাযোগ </li>
+                        <li>সাইট ম্যাপ </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+                <h5>গুরুত্বপূর্ণ লিংক </h5>
+                <hr/>
+               <div>
+                   <ul style="padding: 0px;">
+                       <li>রাষ্ট্রপতির কার্যালয়</li>
+                       <li>প্রধানমন্ত্রীর কার্যালয়</li>
+                       <li>জনপ্রশাসন মন্ত্রণালয়</li>
+                       <li>ই-তথ্য কোষ</li>
+                       <li>এ টু আই প্রোগ্রাম   </li>
+                   </ul>
+               </div>
+            </div>
+            <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                <h5 >সামাজিক যোগাযোগ</h5>
+                <hr/>
+                <div >
+                    <span class="fa-stack fa-lg">
+                      <i class="fa fa-circle fa-stack-2x" style="color:#7030a0;"></i>
+                      <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                    </span>
+
+                    <span class="fa-stack fa-lg">
+                      <i class="fa fa-circle fa-stack-2x" style="color:#7030a0;"></i>
+                      <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                    </span>
+
+                    <span class="fa-stack fa-lg">
+                      <i class="fa fa-circle fa-stack-2x" style="color:#7030a0;"></i>
+                      <i class="fa fa-youtube fa-stack-1x fa-inverse"></i>
+                    </span>
+
+
+                </div>
+
+
+
+            </div>
+            <div class="col-xs-offset-0 col-lg-3 col-md-3 col-sm-6 col-xs-10">
+                <div>
+                    <h5>পরিকল্পনা ও বাস্তবায়নে</h5>
+                    <p>Office of the Registrar General</p>
+                    <p>Birth and Death Registration</p>
+                    <p>Local Government Division</p>
+                    <p>Paribahan Pool, 9th floor, Secretariat, Dhaka</p>
+                    <p>Email: programmer_rg@lgd.gov.bd</p>
+                    <hr/>
+                    <p>Copyrights@2019. All Rights Reserved Government of the people's Republic of Bangladesh</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>-->
+
+
+<script src="/js/jquery-fileupload/vendor/jquery.ui.widget.js"></script><script src="/js/jquery-fileupload/tmpl.js"></script><script src="/js/jquery-fileupload/load-image.all.min.js"></script><script src="/js/jquery-fileupload/canvas-to-blob.min.js"></script><script src="/js/jquery-fileupload/jquery.blueimp-gallery.min.js"></script><script src="/js/jquery-fileupload/jquery.iframe-transport.js"></script><script src="/js/jquery-fileupload/jquery.fileupload.js"></script><script src="/js/jquery-fileupload/jquery.fileupload-process.js"></script><script src="/js/jquery-fileupload/jquery.fileupload-image.js"></script><script src="/js/jquery-fileupload/jquery.fileupload-audio.js"></script><script src="/js/jquery-fileupload/jquery.fileupload-video.js"></script><script src="/js/jquery-fileupload/jquery.fileupload-validate.js"></script><script src="/js/jquery-fileupload/jquery.fileupload-ui.js"></script><script src="/js/jquery-fileupload/main.js"></script><script src="/js/select2/select2.min.js"></script>
+
+
+    <script>
+/*<![CDATA[*/
+/*]]>*/
+</script>
+
+
+<script src="/js/util.js"></script>
+<script>
+    const publicPage = true;
+    $(document).on('click', '.openNav', function () {
+        $(".leftmenu").toggleClass("menuOpen");
+    });
+
+    $(document).ready(function () {
+        const current_year = new Date().getFullYear();
+        const data = '&copy; ' + current_year + ' - Developed and maintained by Office of the Registrar General, Birth and Death Registration';
+        $('#public-footer').empty().html(data);
+        $('#update-information').empty().html("Last Developed On - 23-11-2025 v3");
+        enableDatePicker();
+    });
+
+    enableDatePicker = function () {
+        const el = $('.datepicker');
+        if (!el.length)
+            return;
+        const defaults = {
+            format: 'dd/mm/yyyy',
+            zIndexOffset: 25000,
+            todayHighlight: true,
+            todayBtn: true,
+            startDate: '01/01/1850'
+        };
+
+        el.each(function () {
+            let $this = $(this), options = $this.data('plugin-options');
+            if (this.unifato === undefined)
+                this.unifato = {};
+            if (options === undefined)
+                options = {};
+            options = $.extend({}, defaults, options);
+            $this.datepicker(options);
+            this.unifato.datepicker = $this.data('datepicker');
+        });
+    }
+</script>
+
+<script>
+    $(function () {
+        $(".dropdown").mouseover(function () {
+            $(this).addClass('open');
+            $('.dropdown-menu', this).stop(true, true).fadeIn("fast");
+        });
+
+        $(".dropdown").mouseout(function () {
+            $(this).removeClass('open');
+            $('.dropdown-menu', this).stop(true, true).fadeOut("fast");
+        });
+    });
+</script>
+
+<script>
+
+    $('#applicationMessage').show();
+    jQuery(document).ready(function () {
+        const offset = 200;
+        const duration = 500;
+        jQuery(window).scroll(function () {
+            if (jQuery(this).scrollTop() > offset) {
+                jQuery('.scroll-to-top').fadeIn(duration);
+            } else {
+                jQuery('.scroll-to-top').fadeOut(duration);
+            }
+        });
+
+        jQuery('.scroll-to-top').click(function (event) {
+            event.preventDefault();
+            jQuery('html, body').animate({scrollTop: 0}, duration);
+            return false;
+        });
+
+        const mq = window.matchMedia("(max-width: 991px)");
+        if (mq.matches) {
+            $(".desktopFooter").css("display", "none");
+            jQuery(".menuTitle").click(function (e) {
+                e.preventDefault();
+                if ($(this).next().is(":visible")) {
+                    $(this).find("span").removeClass('fa-caret-up').addClass('fa-caret-down');
+                } else {
+                    $(this).find("span").removeClass('fa-caret-down').addClass('fa-caret-up');
+                }
+                $(this).next().toggle();
+            });
+        } else {
+            $(".mobileFooter").css("display", "none");
+        }
+    });
+</script>
+<script>
+    $(document).ready(function ($) {
+        $(".publicPageOnly").show();
+    });
+</script>
+
+<script>
+    $(document).on("change", "input[name='relationWithApplicant']", function (e) {
+        const relation = $("input[name='relationWithApplicant']:checked").val();
+        if (relation == 'SELF' || relation == 'FATHER' || relation == 'MOTHER') {
+            $("#applicantNotParentOrSelf").hide();
+        } else {
+            $("#applicantNotParentOrSelf").show();
+        }
+    });
+</script>
+
+<script charset="utf-8" type="text/javascript">
+    $(function () {
+        $('textarea.bn-text, input[type=text].bn-text').avro();
+    });
+</script>
+
+<script charset="utf-8" type="text/javascript">
+    $("input").change(function () {
+        let inputType = $(this).attr('type');
+        if (inputType) {
+            if (inputType == 'text' || inputType == 'number') {
+                $(this).val($(this).val().trim());
+            }
+        }
+    });
+    $("textarea").change(function () {
+
+        $(this).val($(this).val().trim());
+    });
+</script>
+
+
+</body>
+</html>

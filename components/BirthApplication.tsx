@@ -2510,7 +2510,7 @@ export default function BirthRegistrationForm() {
 
         // Applicant Information
         applicantName: formData.applicant.name,
-        phone: formData.applicant.phone,
+        phone: `+88${formData.applicant.phone}`,
         email: formData.applicant.email,
         relationWithApplicant: formData.applicant.relation,
 
@@ -2528,7 +2528,7 @@ export default function BirthRegistrationForm() {
         personImage: "",
       };
 
-      // console.log("Form submission data:", submissionData);
+      console.log("Form submission data:", JSON.stringify(submissionData));
       const response = await fetch(
         "/api/birth/application/registration/otp-verify",
         {
@@ -2542,7 +2542,7 @@ export default function BirthRegistrationForm() {
             csrf: sessionData.csrf,
             otp: submissionData.otp,
             email: submissionData.email,
-            phone: `+88${submissionData.phone}`,
+            phone: submissionData.phone,
           }),
         }
       );
@@ -3356,7 +3356,7 @@ export default function BirthRegistrationForm() {
                     >
                       <option value="">---নির্বাচন করুন---</option>
                       {nationalityOptions.map((nationality) => (
-                        <option key={nationality.id} value={nationality.value}>
+                        <option key={nationality.id} value={nationality.id}>
                           {nationality.value}
                         </option>
                       ))}
@@ -3516,7 +3516,7 @@ export default function BirthRegistrationForm() {
                     >
                       <option value="">---নির্বাচন করুন---</option>
                       {nationalityOptions.map((nationality) => (
-                        <option key={nationality.id} value={nationality.value}>
+                        <option key={nationality.id} value={nationality.id}>
                           {nationality.value}
                         </option>
                       ))}

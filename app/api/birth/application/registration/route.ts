@@ -1,7 +1,14 @@
 import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
+import BirthRegistration from "@/models/BirthRegistration";
+import Earnings from "@/models/Earnings";
+import Reseller from "@/models/Reseller";
 import Services from "@/models/Services";
 import { NextRequest, NextResponse } from "next/server";
+import Spent from "@/models/Use";
+import path from "path";
+import fs from "fs";
+import puppeteer from "puppeteer-extra";
 
 // Helper function to check if response is HTML
 function isHTML(str: string): boolean {
@@ -20,41 +27,42 @@ interface HTMLParseResult {
 }
 
 // Helper function to extract data from HTML response
-function extractDataFromHTML(html: string): HTMLParseResult {
+function extractDataFromHTML(html: string) {
   const bdrisLink = "https://bdris.gov.bd";
 
-  // 1️⃣ Extract ID (inside red span)
-  const idRegex = /<span[^>]*color:red[^>]*>\s*([\d]+)\s*<\/span>/;
-  const idMatch = html.match(idRegex);
-  const applicationId = idMatch ? idMatch[1].trim() : null;
-
-  // 2️⃣ Extract success message (green message)
-  const msgRegex =
-    /<span[^>]*color:green[^>]*>\s*<b>\s*(.*?)\s*<\/b>\s*<\/span>/;
-  const msgMatch = html.match(msgRegex);
-  const message = msgMatch ? msgMatch[1].trim() : null;
-
-  // 3️⃣ Extract print link
+  // 1️⃣ Extract print link
   const printLinkRegex = /<a[^>]*id="appPrintBtn"[^>]*href="([^"]+)"/;
   const printMatch = html.match(printLinkRegex);
-  const printLink = printMatch ? printMatch[1] : null;
+  const printLink = printMatch ? bdrisLink + printMatch[1] : null;
 
-  // Check if it's a successful response
-  if (applicationId && message && printLink) {
+  // 2️⃣ Extract Application ID
+  // Matches: আবেদনপত্র নম্বর : 257943417
+  const appIdRegex = /আবেদনপত্র\s*নম্বর\s*[:\s]+(\d+)/;
+  const appIdMatch = html.match(appIdRegex);
+  const applicationId = appIdMatch ? appIdMatch[1] : null;
+
+  // 3️⃣ Extract last date
+  // Matches: আগামী 20/12/2025 তারিখের মধ্যে
+  const lastDateRegex = /আগামী\s+(\d{2}\/\d{2}\/\d{4})\s+তারিখের\s+মধ্যে/;
+  const lastDateMatch = html.match(lastDateRegex);
+  const lastDate = lastDateMatch ? lastDateMatch[1] : null;
+
+  // Validate
+  if (applicationId && printLink && lastDate) {
     return {
       success: true,
       applicationId,
-      message,
-      cookieLink: bdrisLink + "/br/correction",
-      printLink: bdrisLink + printLink,
+      printLink,
+      lastDate
     };
   }
 
   return {
     success: false,
-    error: "Failed to extract application data from HTML",
+    error: "Failed to extract data from HTML"
   };
 }
+
 
 // Helper function to check for specific error patterns
 function checkForErrorsInHTML(html: string): HTMLParseResult | null {
@@ -66,12 +74,8 @@ function checkForErrorsInHTML(html: string): HTMLParseResult | null {
       message: "OTP not verified. Please check the OTP and try again.",
     };
   }
-
-  // Check for session/login errors
   if (
-    html.includes("login") ||
-    html.includes("session") ||
-    html.includes("expired")
+    html.includes("Your session has expired")
   ) {
     return {
       success: false,
@@ -80,31 +84,17 @@ function checkForErrorsInHTML(html: string): HTMLParseResult | null {
     };
   }
 
-  // Check for CSRF errors
+  // Check for session/login errors
   if (
-    html.includes("CSRF") ||
-    html.includes("token") ||
-    html.includes("csrf")
+    html.includes("Error!")
   ) {
     return {
       success: false,
-      error: "CSRF_ERROR",
-      message: "CSRF token error. Please refresh and try again.",
+      error: "Some Data not valid",
+      message: "Some Data not valid",
     };
   }
-
-  // Check for validation errors
-  if (
-    html.includes("validation") ||
-    html.includes("Validation") ||
-    html.includes("valid")
-  ) {
-    return {
-      success: false,
-      error: "VALIDATION_ERROR",
-      message: "Validation error. Please check the provided data.",
-    };
-  }
+  // Check for session/login errors
 
   // Check for server errors
   if (
@@ -130,6 +120,13 @@ async function parseServerResponse(
 
   // If response is HTML, parse it
   if (isHTML(responseText)) {
+    // Save the HTML to /html dir
+    const htmlDir = path.join(process.cwd(), "html");
+    if (!fs.existsSync(htmlDir)) {
+      fs.mkdirSync(htmlDir);
+    }
+    const htmlPath = path.join(htmlDir, `${Date.now()}.html`);
+    fs.writeFileSync(htmlPath, responseText);
     // First check for specific error patterns
     const errorResult = checkForErrorsInHTML(responseText);
     if (errorResult) {
@@ -215,8 +212,48 @@ async function parseServerResponse(
 export async function POST(request: NextRequest) {
   const submissionData = await request.json();
   try {
-    // Parse the incoming request body
+    await connectDB();
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
+    const servicePath = "/birth/application/registration";
+
+    const service = await Services.findOne({ href: servicePath });
+    if (!service) {
+      return NextResponse.json(
+        { success: false, error: "Service not found" },
+        { status: 404 }
+      );
+    }
+
+    const userService = user.services.find(
+      (s: { service: string }) =>
+        s.service.toString() === service._id.toString()
+    );
+
+    if (!userService) {
+      return NextResponse.json(
+        { success: false, error: "User does not have access to this service" },
+        { status: 403 }
+      );
+    }
+    const serviceCost = userService.fee + service.fee;
+
+    if (user.balance < serviceCost) {
+      return NextResponse.json(
+        { success: false, error: "User does not have enough balance" },
+        { status: 403 }
+      );
+    }
+
+    const reseller = await Reseller.findById(user.reseller);
+    const application = await BirthRegistration.create({
+      ...submissionData,
+      user: user._id,
+      cost: serviceCost,
+    });
     // Extract cookies and CSRF from the request if they exist in the body
     const { cookies, csrf, ...restData } = submissionData;
 
@@ -539,12 +576,12 @@ export async function POST(request: NextRequest) {
     });
     // Parse the response
     const result = await parseServerResponse(response);
-    console.log(result)
+    console.log(result);
 
     // Handle the result
     if (!result.success) {
-      // Update your database if needed
-      // Example: await currection.updateOne({ submit_status: 'failed' });
+      application.status = "failed";
+      await application.save();
 
       return NextResponse.json(
         {
@@ -557,6 +594,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    application.status = "submitted";
+    application.applicationId = result.applicationId;
+    application.printLink = result.printLink;
+    application.cost = serviceCost;
+    user.balance -= serviceCost;
+    reseller.balance += userService.fee;
+    await Spent.create({
+      user: user._id,
+      service: userService._id,
+      amount: serviceCost,
+      data: application._id,
+      dataSchema: "RegistrationApplication",
+    });
+    await Earnings.create({
+      user: user._id,
+      reseller: reseller._id,
+      service: userService._id,
+      amount: userService.fee,
+      data: application._id,
+      dataSchema: "RegistrationApplication",
+    });
+    await reseller.save();
+    await user.save();
+    await application.save();
     // Success response
     return NextResponse.json({
       success: true,
