@@ -20,6 +20,7 @@ function isHTML(str: string): boolean {
 interface HTMLParseResult {
   success: boolean;
   applicationId?: string;
+  lastDate?: string;
   printLink?: string;
   message?: string;
   cookieLink?: string;
@@ -579,6 +580,7 @@ export async function POST(request: NextRequest) {
     application.applicationId = result.applicationId;
     application.printLink = result.printLink;
     application.cost = serviceCost;
+    application.lastDate = result?.lastDate;
     user.balance -= serviceCost;
     reseller.balance += userService.fee;
     await Spent.create({
@@ -607,6 +609,7 @@ export async function POST(request: NextRequest) {
       message: result.message,
       cookieLink: result.cookieLink,
       data: result,
+      id: application._id,
     });
   } catch (error) {
     console.error("Proxy error:", error);

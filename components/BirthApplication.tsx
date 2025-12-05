@@ -5,6 +5,7 @@ import {
   dutaBasCountries,
   nationalityOptions,
 } from "@/json/countries";
+import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -1323,6 +1324,7 @@ export default function BirthRegistrationForm() {
     csrf: "",
     serviceCost: 0,
   });
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
     officeAddressType: "",
@@ -2568,6 +2570,7 @@ export default function BirthRegistrationForm() {
         const resData = await response.json();
         
         if (resData.success) {
+          router.push(`/birth/application/registration/view/${resData.id}`);
           toast.success("আবেদন সফলভাবে জমা দেওয়া হয়েছে!", { id: "submission" });
         } else {
           toast.error(resData.error, { id: "submission" });

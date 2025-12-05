@@ -36,6 +36,7 @@ export interface IBirthRegistration extends Document {
   csrf: string;
   user:Types.ObjectId;
   applicationId: string;
+  lastDate: string;
   printLink: string;
   status: string;
   otp: string;
@@ -126,7 +127,6 @@ const PersonInfoSchema = new Schema<IPersonInfo>({
   thChild: String,
   gender: {
     type: String,
-    enum: ["MALE", "FEMALE", "OTHER"],
   },
   religion: String,
   religionOther: String,
@@ -142,6 +142,7 @@ const BirthRegistrationSchema = new Schema<IBirthRegistration>(
     applicationId: { type: String, default: "" },
     printLink: { type: String, default: "" },
     cost: { type: Number, default: 0 },
+    lastDate: { type: String, default: "" },
     cookies: [String],
 
     officeAddressType: String,
