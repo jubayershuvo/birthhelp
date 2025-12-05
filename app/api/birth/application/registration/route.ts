@@ -31,22 +31,27 @@ interface HTMLParseResult {
 function extractDataFromHTML(html: string) {
   const bdrisLink = "https://bdris.gov.bd";
 
-  // 1️⃣ Extract print link
-  const printLinkRegex = /<a[^>]*id="appPrintBtn"[^>]*href="([^"]+)"/;
-  const printMatch = html.match(printLinkRegex);
+  // Normalize HTML (remove newlines, multiple spaces)
+  const normalized = html.replace(/\s+/g, " ").trim();
+
+  // 1️⃣ Extract Print Link
+  const printLinkRegex = /<a[^>]*id="appPrintBtn"[^>]*href="([^"]+)"/i;
+  const printMatch = normalized.match(printLinkRegex);
   const printLink = printMatch ? bdrisLink + printMatch[1] : null;
 
   // 2️⃣ Extract Application ID
-  // Matches: আবেদনপত্র নম্বর : 257943417
-  const appIdRegex = /আবেদনপত্র\s*নম্বর\s*[:\s]+(\d+)/;
-  const appIdMatch = html.match(appIdRegex);
+  const appIdRegex =
+    /আবেদনপত্র\s*নম্বর\s*[:]\s*<span[^>]*>\s*([0-9]+)\s*<\/span>/i;
+  const appIdMatch = normalized.match(appIdRegex);
   const applicationId = appIdMatch ? appIdMatch[1] : null;
 
-  // 3️⃣ Extract last date
-  // Matches: আগামী 20/12/2025 তারিখের মধ্যে
-  const lastDateRegex = /আগামী\s+(\d{2}\/\d{2}\/\d{4})\s+তারিখের\s+মধ্যে/;
-  const lastDateMatch = html.match(lastDateRegex);
+  // 3️⃣ Extract Last Submission Date
+  const lastDateRegex =
+    /আগামী\s*<span[^>]*>\s*(\d{2}\/\d{2}\/\d{4})\s*<\/span>\s*তারিখের\s*মধ্যে/i;
+  const lastDateMatch = normalized.match(lastDateRegex);
   const lastDate = lastDateMatch ? lastDateMatch[1] : null;
+
+
 
   // Validate
   if (applicationId && printLink && lastDate) {
