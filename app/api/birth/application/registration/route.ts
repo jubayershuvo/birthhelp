@@ -53,16 +53,15 @@ function extractDataFromHTML(html: string) {
       success: true,
       applicationId,
       printLink,
-      lastDate
+      lastDate,
     };
   }
 
   return {
     success: false,
-    error: "Failed to extract data from HTML"
+    error: "Failed to extract data from HTML",
   };
 }
-
 
 // Helper function to check for specific error patterns
 function checkForErrorsInHTML(html: string): HTMLParseResult | null {
@@ -74,9 +73,7 @@ function checkForErrorsInHTML(html: string): HTMLParseResult | null {
       message: "OTP not verified. Please check the OTP and try again.",
     };
   }
-  if (
-    html.includes("Your session has expired")
-  ) {
+  if (html.includes("Your session has expired")) {
     return {
       success: false,
       error: "SESSION_EXPIRED",
@@ -85,9 +82,7 @@ function checkForErrorsInHTML(html: string): HTMLParseResult | null {
   }
 
   // Check for session/login errors
-  if (
-    html.includes("Error!")
-  ) {
+  if (html.includes("Error!")) {
     return {
       success: false,
       error: "Some Data not valid",
@@ -95,20 +90,6 @@ function checkForErrorsInHTML(html: string): HTMLParseResult | null {
     };
   }
   // Check for session/login errors
-
-  // Check for server errors
-  if (
-    html.includes("Server Error") ||
-    html.includes("server error") ||
-    html.includes("500")
-  ) {
-    return {
-      success: false,
-      error: "SERVER_ERROR",
-      message: "Server error occurred. Please try again later.",
-    };
-  }
-
   return null;
 }
 
@@ -128,10 +109,6 @@ async function parseServerResponse(
     const htmlPath = path.join(htmlDir, `${Date.now()}.html`);
     fs.writeFileSync(htmlPath, responseText);
     // First check for specific error patterns
-    const errorResult = checkForErrorsInHTML(responseText);
-    if (errorResult) {
-      return errorResult;
-    }
 
     // Try to extract successful application data
     const extractedData = extractDataFromHTML(responseText);
@@ -139,6 +116,10 @@ async function parseServerResponse(
       return extractedData;
     }
 
+    const errorResult = checkForErrorsInHTML(responseText);
+    if (errorResult) {
+      return errorResult;
+    }
     // Generic HTML error response
     return {
       success: false,

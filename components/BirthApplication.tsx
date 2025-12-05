@@ -1429,6 +1429,27 @@ export default function BirthRegistrationForm() {
     },
   ];
 
+  // Countdown timer effect - FIXED
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (otpCountdown > 0) {
+      intervalId = setInterval(() => {
+        setOtpCountdown((prev) => {
+          if (prev <= 1) {
+            if (intervalId) clearInterval(intervalId);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [otpCountdown]);
+
   const handleInputChange = (
     field: keyof FormData,
     value: string | boolean | Address | null
@@ -1972,7 +1993,7 @@ export default function BirthRegistrationForm() {
     setUploadedFiles((prev) => prev.filter((file) => file.id !== id));
   };
 
-  // OTP Functions
+  // OTP Functions - FIXED with proper countdown
   const sendOTP = async () => {
     try {
       // Check if required personal information is available
@@ -2030,7 +2051,7 @@ export default function BirthRegistrationForm() {
       const resData = await response.json();
 
       if (response.ok && resData.success) {
-        // Start 10-minute countdown (600 seconds)
+        // Start 10-minute countdown (600 seconds) - FIXED: This now triggers the useEffect
         setOtpCountdown(600);
         setIsOtpSent(true);
 
@@ -2046,25 +2067,7 @@ export default function BirthRegistrationForm() {
     }
   };
 
-  const verifyOTP = async () => {
-    if (!formData.applicant.phone) {
-      toast.error("দয়া করে ফোন নম্বর দিন");
-      return;
-    }
-
-    if (!formData.applicant.otp) {
-      toast.error("দয়া করে OTP দিন");
-      return;
-    }
-
-    // Simulate OTP verification
-    if (formData.applicant.otp === "123456") {
-      setOtpVerified(true);
-      toast.success("OTP যাচাই সফল হয়েছে");
-    } else {
-      toast.error("ভুল OTP");
-    }
-  };
+  
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -3316,7 +3319,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "father",
                           "personNameEn",
-                          e.target.value
+                          e.target.value.toUpperCase()
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3476,7 +3479,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "mother",
                           "personNameEn",
-                          e.target.value
+                          e.target.value.toUpperCase()
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -4063,6 +4066,18 @@ export default function BirthRegistrationForm() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">
+                          পিতার জন্ম নিবন্ধন নম্বর:
+                        </span>
+                        <p className="font-medium">
+                          {formData.father.ubrn}
+                        </p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          জন্ম তারিখ:
+                        </span>
+                        <p className="font-medium">
+                          {formData.father.personBirthDate}
+                        </p>
+                        <span className="text-gray-600 dark:text-gray-400">
                           পিতার নাম (বাংলা):
                         </span>
                         <p className="font-medium">
@@ -4082,6 +4097,18 @@ export default function BirthRegistrationForm() {
                         </p>
                       </div>
                       <div>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          মাতার জন্ম নিবন্ধন নম্বর:
+                        </span>
+                        <p className="font-medium">
+                          {formData.mother.ubrn}
+                        </p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          জন্ম তারিখ:
+                        </span>
+                        <p className="font-medium">
+                          {formData.mother.personBirthDate}
+                        </p>
                         <span className="text-gray-600 dark:text-gray-400">
                           মাতার নাম (বাংলা):
                         </span>
@@ -4198,7 +4225,7 @@ export default function BirthRegistrationForm() {
                 </div>
               </div>
 
-              {/* OTP Verification Section */}
+              {/* OTP Verification Section - FIXED with proper countdown */}
               <div className="bg-gray-50 dark:bg-gray-800 p-4 sm:p-6 rounded-lg border dark:border-gray-700">
                 <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
                   OTP যাচাই *
@@ -4246,6 +4273,7 @@ export default function BirthRegistrationForm() {
                         type="tel"
                         value={formData.applicant.phone}
                         onChange={(e) => {
+                          // Reset OTP state when phone changes
                           setOtpCountdown(0);
                           setIsOtpSent(false);
                           setOtpVerified(false);
@@ -4285,6 +4313,11 @@ export default function BirthRegistrationForm() {
                         পাঠাতে পারবেন
                       </p>
                     )}
+                    {formErrors["applicant.phone"] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors["applicant.phone"]}
+                      </p>
+                    )}
                   </div>
 
                   {/* OTP input with Verify button */}
@@ -4296,14 +4329,17 @@ export default function BirthRegistrationForm() {
                       <input
                         type="text"
                         value={formData.applicant.otp || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          setOtpVerified(false); // Reset verification when OTP changes
                           handleNestedInputChange(
                             "applicant",
                             "otp",
                             e.target.value
-                          )
-                        }
-                        className="flex-1 px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                          );
+                        }}
+                        className={`flex-1 px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                          formErrors.otp ? "border-red-500" : ""
+                        }`}
                         placeholder="Enter OTP"
                         required
                       />
