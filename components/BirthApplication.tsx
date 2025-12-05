@@ -1812,6 +1812,54 @@ export default function BirthRegistrationForm() {
     );
   };
 
+  // Fixed file upload function matching the provided example
+  const uploadFile = async (file: File, typeId: string) => {
+    const formData = new FormData();
+    formData.append("attachmentType", typeId);
+    formData.append("attachmentSubType", "-1");
+    formData.append("files", file, file.name);
+    formData.append("csrf", sessionData.csrf);
+    formData.append("cookies", JSON.stringify(sessionData.cookies));
+
+    const loadingToast = toast.loading(`ফাইল আপলোড হচ্ছে: ${file.name}`);
+
+    try {
+      const res = await fetch(
+        "/api/birth/application/registration/upload_doc",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const responseData = await res.json();
+
+      toast.dismiss(loadingToast);
+      toast.success(`ফাইল আপলোড সফল: ${file.name}`);
+
+      return {
+        id: responseData.data[0]?.id || `file-${Date.now()}`,
+        name: file.name,
+        url: responseData.data[0]?.url || URL.createObjectURL(file),
+        deleteUrl: responseData.data[0]?.deleteUrl || "",
+        attachmentTypeId: typeId,
+        fileType: fileTypes.find((t) => t.id === typeId)?.name,
+        size: file.size,
+        uploadedId: responseData.data[0]?.id || `uploaded-${Date.now()}`,
+      };
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      const errMsg =
+        error instanceof Error ? error.message : "অনুসন্ধান ব্যর্থ";
+      toast.error(`ফাইল আপলোড ব্যর্থ: ${errMsg}`);
+      throw error;
+    }
+  };
+
   const handleFileUpload = async (index: number) => {
     const uploadingFile = uploadingFiles[index];
     if (!uploadingFile || uploadingFile.fileTypeId === "-1") {
@@ -1835,9 +1883,6 @@ export default function BirthRegistrationForm() {
 
     // Check if we have both required file types (40 and 41)
     const uploadedFileTypeIds = uploadedFiles.map((f) => f.attachmentTypeId);
-    const remainingRequiredTypes = ["40", "41"].filter(
-      (id) => !uploadedFileTypeIds.includes(id)
-    );
 
     if (uploadedFileTypeIds.length >= 2) {
       toast.error(
@@ -1853,36 +1898,34 @@ export default function BirthRegistrationForm() {
       )
     );
 
-    // Simulate file upload
     try {
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        setUploadingFiles((prev) =>
-          prev.map((item, idx) =>
-            idx === index ? { ...item, progress } : item
-          )
-        );
-      }
+      // Update progress (simulated)
+      setUploadingFiles((prev) =>
+        prev.map((item, idx) =>
+          idx === index ? { ...item, progress: 30 } : item
+        )
+      );
 
-      // Create uploaded file entry
-      const uploadedFile: UploadedFile = {
-        id: `file-${Date.now()}-${index}`,
-        name: uploadingFile.file.name,
-        url: URL.createObjectURL(uploadingFile.file),
-        attachmentTypeId: uploadingFile.fileTypeId,
-        fileType: fileTypes.find((t) => t.id === uploadingFile.fileTypeId)
-          ?.name,
-        size: uploadingFile.file.size,
-        uploadedId: `uploaded-${Date.now()}-${index}`,
-      };
+      // Upload file using the fixed uploadFile function
+      const uploadedFile = await uploadFile(
+        uploadingFile.file,
+        uploadingFile.fileTypeId
+      );
+
+      // Update progress to complete
+      setUploadingFiles((prev) =>
+        prev.map((item, idx) =>
+          idx === index ? { ...item, progress: 100 } : item
+        )
+      );
 
       // Add to uploaded files
       setUploadedFiles((prev) => [...prev, uploadedFile]);
 
-      // Remove from uploading files
-      setUploadingFiles((prev) => prev.filter((_, idx) => idx !== index));
-
-      toast.success("ফাইল সফলভাবে আপলোড হয়েছে");
+      // Remove from uploading files after a short delay to show completion
+      setTimeout(() => {
+        setUploadingFiles((prev) => prev.filter((_, idx) => idx !== index));
+      }, 500);
 
       // Check if both required files are uploaded
       const newUploadedFileTypeIds = [
@@ -1897,10 +1940,11 @@ export default function BirthRegistrationForm() {
         toast.success("সকল প্রয়োজনীয় ফাইল সফলভাবে আপলোড হয়েছে!");
       }
     } catch (error) {
+      console.error("File upload error:", error);
       toast.error("ফাইল আপলোড ব্যর্থ হয়েছে");
       setUploadingFiles((prev) =>
         prev.map((item, idx) =>
-          idx === index ? { ...item, isUploading: false } : item
+          idx === index ? { ...item, isUploading: false, progress: 0 } : item
         )
       );
     }
@@ -1910,39 +1954,94 @@ export default function BirthRegistrationForm() {
     setUploadingFiles((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  const removeUploadedFile = (id: string) => {
+  const removeUploadedFile = async (id: string) => {
+    const fileToRemove = uploadedFiles.find((file) => file.id === id);
+
+    if (fileToRemove?.deleteUrl) {
+      try {
+        // Send delete request if deleteUrl exists
+        await fetch(fileToRemove.deleteUrl, {
+          method: "DELETE",
+        });
+      } catch (error) {
+        console.error("Error deleting file from server:", error);
+      }
+    }
+
+    // Remove from local state
     setUploadedFiles((prev) => prev.filter((file) => file.id !== id));
   };
 
   // OTP Functions
   const sendOTP = async () => {
-    if (!formData.applicant.phone) {
-      toast.error("দয়া করে ফোন নম্বর দিন");
-      return;
-    }
-
-    if (!validatePhone(formData.applicant.phone)) {
-      toast.error("বৈধ ফোন নম্বর দিন");
-      return;
-    }
-
     try {
-      // Simulate OTP sending
-      setIsOtpSent(true);
-      setOtpCountdown(120); // 2 minutes
-      toast.success("OTP পাঠানো হয়েছে");
+      // Check if required personal information is available
+      if (
+        !formData.personInfoForBirth.personFirstNameBn ||
+        !formData.personInfoForBirth.personLastNameBn
+      ) {
+        toast.error("প্রথমে ব্যক্তির তথ্য পূরণ করুন");
+        return;
+      }
 
-      // Start countdown
-      const countdownInterval = setInterval(() => {
-        setOtpCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(countdownInterval);
-            return 0;
-          }
-          return prev - 1;
+      // Validate mobile number format
+      const validateMobile = (mobile: string) => {
+        const regex = /^01[0-9]{9}$/; // total 11 digits starting with 01
+        return regex.test(mobile);
+      };
+
+      if (!formData.applicant.phone) {
+        toast.error("মোবাইল নম্বর পূরণ করুন");
+        return;
+      }
+
+      if (!validateMobile(formData.applicant.phone)) {
+        toast.error(
+          "মোবাইল নম্বর সঠিকভাবে পূরণ করুন (01 দিয়ে শুরু করে 11 সংখ্যা)"
+        );
+        return;
+      }
+
+      // Check if OTP was already sent and countdown is active
+      if (isOtpSent && otpCountdown > 0) {
+        toast.error(
+          `আপনি ${formatTime(otpCountdown)} পরে আবার OTP পাঠাতে পারবেন`
+        );
+        return;
+      }
+
+      // Send OTP request
+      const response = await fetch("/api/birth/application/registration/otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: `+88${formData.applicant.phone}`,
+          personName: `${formData.personInfoForBirth.personFirstNameBn} ${formData.personInfoForBirth.personLastNameBn}`,
+          relation: formData.applicant.relation,
+          email: formData.applicant.email || "",
+          csrf: sessionData.csrf,
+          cookies: sessionData.cookies,
+          officeAddressType: formData.officeAddressType,
+        }),
+      });
+
+      const resData = await response.json();
+
+      if (response.ok && resData.success) {
+        // Start 10-minute countdown (600 seconds)
+        setOtpCountdown(600);
+        setIsOtpSent(true);
+
+        toast.success("OTP সফলভাবে পাঠানো হয়েছে", { id: "otp" });
+      } else {
+        toast.error(resData.error?.message || "OTP পাঠাতে সমস্যা হয়েছে", {
+          id: "otp",
         });
-      }, 1000);
+      }
     } catch (error) {
+      console.error("OTP sending error:", error);
       toast.error("OTP পাঠাতে সমস্যা হয়েছে");
     }
   };
@@ -2277,7 +2376,8 @@ export default function BirthRegistrationForm() {
     try {
       // Prepare final data according to your API structure
       const submissionData = {
-        _csrf: sessionData.csrf,
+        csrf: sessionData.csrf,
+        otp: formData.applicant.otp,
         cookies: sessionData.cookies,
         officeAddressType: formData.officeAddressType,
         officeAddrCountry: formData.officeAddrCountry,
@@ -2428,21 +2528,50 @@ export default function BirthRegistrationForm() {
         personImage: "",
       };
 
-      console.log("Form submission data:", submissionData);
+      // console.log("Form submission data:", submissionData);
+      const response = await fetch(
+        "/api/birth/application/registration/otp-verify",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            personUbrn: submissionData.father.ubrn,
+            cookies: sessionData.cookies,
+            csrf: sessionData.csrf,
+            otp: submissionData.otp,
+            email: submissionData.email,
+            phone: `+88${submissionData.phone}`,
+          }),
+        }
+      );
+      const respData = await response.json();
+      if (respData.data.isVerified !== true) {
+        toast.error("OTP যাচাই ব্যর্থ হয়েছে", { id: "submission" });
+        return;
+      }
 
       // Send data to API
-      const response = await fetch("/api/birth/application/registration", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(submissionData),
-      });
-
-      if (response.ok) {
-        toast.success("আবেদন সফলভাবে জমা দেওয়া হয়েছে!");
-      } else {
-        throw new Error("Submission failed");
+      try {
+        toast.loading("আবেদন জমা দেওয়া হচ্ছে...", { id: "submission" });
+        const response = await fetch("/api/birth/application/registration", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submissionData),
+        });
+        const resData = await response.json();
+        
+        if (resData.success) {
+          toast.success("আবেদন সফলভাবে জমা দেওয়া হয়েছে!", { id: "submission" });
+        } else {
+          toast.error(resData.error, { id: "submission" });
+        }
+      } catch (error) {
+        console.error("Submission error:", error);
+        toast.error("আবেদন জমা দিতে সমস্যা হয়েছে");
       }
     } catch (error) {
       console.error("Submission error:", error);
@@ -3085,65 +3214,67 @@ export default function BirthRegistrationForm() {
                   </h4>
 
                   {/* Only show these fields if birth year is 2012 or later */}
-                  {parseDateString(formData.personInfoForBirth.personBirthDate)
-                    .year >= 2012 && (
-                    <>
-                      <div data-field="father.ubrn">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          পিতার জন্ম নিবন্ধন নম্বর{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.father.ubrn}
-                          onChange={(e) =>
-                            handleNestedInputChange(
-                              "father",
-                              "ubrn",
-                              e.target.value
-                            )
-                          }
-                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                            formErrors["father.ubrn"]
-                              ? "border-red-500"
-                              : "border-gray-300 dark:border-gray-600"
-                          }`}
-                          placeholder="জন্ম নিবন্ধন নম্বর"
-                          required={
-                            parseDateString(
-                              formData.personInfoForBirth.personBirthDate
-                            ).year >= 2012
-                          }
-                        />
-                        {formErrors["father.ubrn"] && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {formErrors["father.ubrn"]}
-                          </p>
-                        )}
-                      </div>
 
-                      <div data-field="father.personBirthDate">
-                        <DateInput
-                          value={formData.father.personBirthDate}
-                          onChange={(value) =>
-                            handleNestedInputChange(
-                              "father",
-                              "personBirthDate",
-                              value
-                            )
-                          }
-                          label="জন্ম তারিখ (খ্রিঃ)"
-                          required={true}
-                          maxDate={formData.personInfoForBirth.personBirthDate}
-                        />
-                        {formErrors["father.personBirthDate"] && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {formErrors["father.personBirthDate"]}
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )}
+                  <div data-field="father.ubrn">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      পিতার জন্ম নিবন্ধন নম্বর{" "}
+                      {parseDateString(
+                        formData.personInfoForBirth.personBirthDate
+                      ).year >= 2012 && <span className="text-red-500">*</span>}
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.father.ubrn}
+                      onChange={(e) =>
+                        handleNestedInputChange(
+                          "father",
+                          "ubrn",
+                          e.target.value
+                        )
+                      }
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                        formErrors["father.ubrn"]
+                          ? "border-red-500"
+                          : "border-gray-300 dark:border-gray-600"
+                      }`}
+                      placeholder="জন্ম নিবন্ধন নম্বর"
+                      required={
+                        parseDateString(
+                          formData.personInfoForBirth.personBirthDate
+                        ).year >= 2012
+                      }
+                    />
+                    {formErrors["father.ubrn"] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors["father.ubrn"]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div data-field="father.personBirthDate">
+                    <DateInput
+                      value={formData.father.personBirthDate}
+                      onChange={(value) =>
+                        handleNestedInputChange(
+                          "father",
+                          "personBirthDate",
+                          value
+                        )
+                      }
+                      label="জন্ম তারিখ (খ্রিঃ)"
+                      required={
+                        parseDateString(
+                          formData.personInfoForBirth.personBirthDate
+                        ).year >= 2012
+                      }
+                      maxDate={formData.personInfoForBirth.personBirthDate}
+                    />
+                    {formErrors["father.personBirthDate"] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors["father.personBirthDate"]}
+                      </p>
+                    )}
+                  </div>
 
                   <div data-field="father.personNameBn">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -3244,66 +3375,66 @@ export default function BirthRegistrationForm() {
                     মাতার তথ্য
                   </h4>
 
-                  {/* Only show these fields if birth year is 2012 or later */}
-                  {parseDateString(formData.personInfoForBirth.personBirthDate)
-                    .year >= 2012 && (
-                    <>
-                      <div data-field="mother.ubrn">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          মাতার জন্ম নিবন্ধন নম্বর{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.mother.ubrn}
-                          onChange={(e) =>
-                            handleNestedInputChange(
-                              "mother",
-                              "ubrn",
-                              e.target.value
-                            )
-                          }
-                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                            formErrors["mother.ubrn"]
-                              ? "border-red-500"
-                              : "border-gray-300 dark:border-gray-600"
-                          }`}
-                          placeholder="জন্ম নিবন্ধন নম্বর"
-                          required={
-                            parseDateString(
-                              formData.personInfoForBirth.personBirthDate
-                            ).year >= 2012
-                          }
-                        />
-                        {formErrors["mother.ubrn"] && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {formErrors["mother.ubrn"]}
-                          </p>
-                        )}
-                      </div>
+                  <div data-field="mother.ubrn">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      মাতার জন্ম নিবন্ধন নম্বর{" "}
+                      {parseDateString(
+                        formData.personInfoForBirth.personBirthDate
+                      ).year >= 2012 && <span className="text-red-500">*</span>}
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.mother.ubrn}
+                      onChange={(e) =>
+                        handleNestedInputChange(
+                          "mother",
+                          "ubrn",
+                          e.target.value
+                        )
+                      }
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
+                        formErrors["mother.ubrn"]
+                          ? "border-red-500"
+                          : "border-gray-300 dark:border-gray-600"
+                      }`}
+                      placeholder="জন্ম নিবন্ধন নম্বর"
+                      required={
+                        parseDateString(
+                          formData.personInfoForBirth.personBirthDate
+                        ).year >= 2012
+                      }
+                    />
+                    {formErrors["mother.ubrn"] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors["mother.ubrn"]}
+                      </p>
+                    )}
+                  </div>
 
-                      <div data-field="mother.personBirthDate">
-                        <DateInput
-                          value={formData.mother.personBirthDate}
-                          onChange={(value) =>
-                            handleNestedInputChange(
-                              "mother",
-                              "personBirthDate",
-                              value
-                            )
-                          }
-                          label="জন্ম তারিখ (খ্রিঃ)"
-                          required={true}
-                          maxDate={formData.personInfoForBirth.personBirthDate}
-                        />
-                        {formErrors["mother.personBirthDate"] && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {formErrors["mother.personBirthDate"]}
-                          </p>
-                        )}
-                      </div>
-                    </>
-                  )}
+                  <div data-field="mother.personBirthDate">
+                    <DateInput
+                      value={formData.mother.personBirthDate}
+                      onChange={(value) =>
+                        handleNestedInputChange(
+                          "mother",
+                          "personBirthDate",
+                          value
+                        )
+                      }
+                      label="জন্ম তারিখ (খ্রিঃ)"
+                      required={
+                        parseDateString(
+                          formData.personInfoForBirth.personBirthDate
+                        ).year >= 2012
+                      }
+                      maxDate={formData.personInfoForBirth.personBirthDate}
+                    />
+                    {formErrors["mother.personBirthDate"] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {formErrors["mother.personBirthDate"]}
+                      </p>
+                    )}
+                  </div>
 
                   <div data-field="mother.personNameBn">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -3675,6 +3806,7 @@ export default function BirthRegistrationForm() {
                                 onClick={() => handleFileUpload(idx)}
                                 disabled={
                                   item.fileTypeId === "-1" ||
+                                  item.isUploading ||
                                   uploadedFiles.some(
                                     (f) =>
                                       f.attachmentTypeId === item.fileTypeId
@@ -3682,6 +3814,7 @@ export default function BirthRegistrationForm() {
                                 }
                                 className={`px-4 py-2 rounded text-sm flex-1 sm:flex-none transition-colors ${
                                   item.fileTypeId === "-1" ||
+                                  item.isUploading ||
                                   uploadedFiles.some(
                                     (f) =>
                                       f.attachmentTypeId === item.fileTypeId
@@ -3690,13 +3823,16 @@ export default function BirthRegistrationForm() {
                                     : "bg-green-600 hover:bg-green-700 text-white"
                                 }`}
                               >
-                                আপলোড
+                                {item.isUploading
+                                  ? `আপলোডিং... ${item.progress}%`
+                                  : "আপলোড"}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => removeUploadingFile(idx)}
                                 className="p-2 text-red-600 hover:text-red-800 dark:hover:text-red-400 transition-colors"
                                 title="Remove file"
+                                disabled={item.isUploading}
                               >
                                 <svg
                                   className="w-5 h-5"
@@ -3927,18 +4063,42 @@ export default function BirthRegistrationForm() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">
-                          পিতার নাম:
+                          পিতার নাম (বাংলা):
                         </span>
                         <p className="font-medium">
                           {formData.father.personNameBn}
                         </p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          পিতার নাম (ইংরেজি):
+                        </span>
+                        <p className="font-medium">
+                          {formData.father.personNameEn}
+                        </p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          পিতার জাতীয়তা:
+                        </span>
+                        <p className="font-medium">
+                          {formData.father.personNationality}
+                        </p>
                       </div>
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">
-                          মাতার নাম:
+                          মাতার নাম (বাংলা):
                         </span>
                         <p className="font-medium">
                           {formData.mother.personNameBn}
+                        </p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          মাতার নাম (ইংরেজি):
+                        </span>
+                        <p className="font-medium">
+                          {formData.mother.personNameEn}
+                        </p>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          মাতার জাতীয়তা:
+                        </span>
+                        <p className="font-medium">
+                          {formData.mother.personNationality}
                         </p>
                       </div>
                     </div>
@@ -3993,14 +4153,7 @@ export default function BirthRegistrationForm() {
                         </span>
                         <p className="font-medium">{formData.applicant.name}</p>
                       </div>
-                      <div>
-                        <span className="text-gray-600 dark:text-gray-400">
-                          ফোন:
-                        </span>
-                        <p className="font-medium">
-                          {formData.applicant.phone}
-                        </p>
-                      </div>
+
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">
                           সম্পর্ক:

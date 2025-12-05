@@ -1,7 +1,584 @@
 import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
 import Services from "@/models/Services";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+// Helper function to check if response is HTML
+function isHTML(str: string): boolean {
+  const trimmed = str.trim();
+  return trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html");
+}
+
+// Interface for parsed response
+interface HTMLParseResult {
+  success: boolean;
+  applicationId?: string;
+  printLink?: string;
+  message?: string;
+  cookieLink?: string;
+  error?: string;
+}
+
+// Helper function to extract data from HTML response
+function extractDataFromHTML(html: string): HTMLParseResult {
+  const bdrisLink = "https://bdris.gov.bd";
+
+  // 1️⃣ Extract ID (inside red span)
+  const idRegex = /<span[^>]*color:red[^>]*>\s*([\d]+)\s*<\/span>/;
+  const idMatch = html.match(idRegex);
+  const applicationId = idMatch ? idMatch[1].trim() : null;
+
+  // 2️⃣ Extract success message (green message)
+  const msgRegex =
+    /<span[^>]*color:green[^>]*>\s*<b>\s*(.*?)\s*<\/b>\s*<\/span>/;
+  const msgMatch = html.match(msgRegex);
+  const message = msgMatch ? msgMatch[1].trim() : null;
+
+  // 3️⃣ Extract print link
+  const printLinkRegex = /<a[^>]*id="appPrintBtn"[^>]*href="([^"]+)"/;
+  const printMatch = html.match(printLinkRegex);
+  const printLink = printMatch ? printMatch[1] : null;
+
+  // Check if it's a successful response
+  if (applicationId && message && printLink) {
+    return {
+      success: true,
+      applicationId,
+      message,
+      cookieLink: bdrisLink + "/br/correction",
+      printLink: bdrisLink + printLink,
+    };
+  }
+
+  return {
+    success: false,
+    error: "Failed to extract application data from HTML",
+  };
+}
+
+// Helper function to check for specific error patterns
+function checkForErrorsInHTML(html: string): HTMLParseResult | null {
+  // Check for OTP not verified
+  if (html.includes("OTP NOT VERIFIED") || html.includes("OTP not verified")) {
+    return {
+      success: false,
+      error: "OTP_NOT_VERIFIED",
+      message: "OTP not verified. Please check the OTP and try again.",
+    };
+  }
+
+  // Check for session/login errors
+  if (
+    html.includes("login") ||
+    html.includes("session") ||
+    html.includes("expired")
+  ) {
+    return {
+      success: false,
+      error: "SESSION_EXPIRED",
+      message: "Session expired or user not logged in. Please log in again.",
+    };
+  }
+
+  // Check for CSRF errors
+  if (
+    html.includes("CSRF") ||
+    html.includes("token") ||
+    html.includes("csrf")
+  ) {
+    return {
+      success: false,
+      error: "CSRF_ERROR",
+      message: "CSRF token error. Please refresh and try again.",
+    };
+  }
+
+  // Check for validation errors
+  if (
+    html.includes("validation") ||
+    html.includes("Validation") ||
+    html.includes("valid")
+  ) {
+    return {
+      success: false,
+      error: "VALIDATION_ERROR",
+      message: "Validation error. Please check the provided data.",
+    };
+  }
+
+  // Check for server errors
+  if (
+    html.includes("Server Error") ||
+    html.includes("server error") ||
+    html.includes("500")
+  ) {
+    return {
+      success: false,
+      error: "SERVER_ERROR",
+      message: "Server error occurred. Please try again later.",
+    };
+  }
+
+  return null;
+}
+
+// Main response parser
+async function parseServerResponse(
+  response: Response
+): Promise<HTMLParseResult> {
+  const responseText = await response.text();
+
+  // If response is HTML, parse it
+  if (isHTML(responseText)) {
+    // First check for specific error patterns
+    const errorResult = checkForErrorsInHTML(responseText);
+    if (errorResult) {
+      return errorResult;
+    }
+
+    // Try to extract successful application data
+    const extractedData = extractDataFromHTML(responseText);
+    if (extractedData.success) {
+      return extractedData;
+    }
+
+    // Generic HTML error response
+    return {
+      success: false,
+      error: "HTML_RESPONSE_ERROR",
+      message: "Unexpected HTML response received from server.",
+    };
+  }
+
+  // Try to parse as JSON
+  try {
+    const jsonResponse = JSON.parse(responseText);
+
+    // Check if JSON indicates error
+    if (jsonResponse.error || !jsonResponse.success) {
+      return {
+        success: false,
+        error: jsonResponse.error || "JSON_ERROR",
+        message: jsonResponse.message || "Error received from server.",
+        ...jsonResponse,
+      };
+    }
+
+    // Successful JSON response
+    return {
+      success: true,
+      applicationId: jsonResponse.applicationId,
+      printLink: jsonResponse.printLink,
+      message: jsonResponse.message,
+      ...jsonResponse,
+    };
+  } catch (parseError) {
+    // Non-HTML, non-JSON response
+    console.error("Failed to parse response:", responseText.substring(0, 500));
+
+    // Check HTTP status codes
+    if (response.status === 403) {
+      return {
+        success: false,
+        error: "FORBIDDEN",
+        message:
+          "Access forbidden. You do not have permission to access this resource.",
+      };
+    } else if (response.status === 404) {
+      return {
+        success: false,
+        error: "NOT_FOUND",
+        message: "Resource not found. The requested endpoint does not exist.",
+      };
+    } else if (response.status >= 500) {
+      return {
+        success: false,
+        error: "SERVER_ERROR",
+        message: "Server error occurred. Please try again later.",
+      };
+    } else if (response.status >= 400) {
+      return {
+        success: false,
+        error: "CLIENT_ERROR",
+        message: "Bad request. Please check your input data.",
+      };
+    }
+
+    return {
+      success: false,
+      error: "UNKNOWN_RESPONSE",
+      message: "Failed to parse server response.",
+    };
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const submissionData = await request.json();
+  try {
+    // Parse the incoming request body
+
+    // Extract cookies and CSRF from the request if they exist in the body
+    const { cookies, csrf, ...restData } = submissionData;
+
+    // Create FormData for multipart/form-data
+    const formData = new FormData();
+
+    // Helper function to safely append form data
+    const appendFormData = (key: string, value: string) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      } else {
+        formData.append(key, "");
+      }
+    };
+
+    // Basic fields
+    appendFormData("_csrf", csrf);
+    appendFormData("otp", restData.otp);
+    appendFormData("officeAddressType", restData.officeAddressType);
+    appendFormData("officeAddrCountry", restData.officeAddrCountry);
+    appendFormData("officeAddrCity", restData.officeAddrCity);
+    appendFormData("officeAddrDivision", restData.officeAddrDivision);
+    appendFormData("officeAddrDistrict", restData.officeAddrDistrict);
+    appendFormData(
+      "officeAddrCityCorpCantOrUpazila",
+      restData.officeAddrCityCorpCantOrUpazila
+    );
+    appendFormData(
+      "officeAddrPaurasavaOrUnion",
+      restData.officeAddrPaurasavaOrUnion
+    );
+    appendFormData("officeAddrWard", restData.officeAddrWard);
+    appendFormData("officeAddrOffice", restData.officeAddrOffice);
+
+    // Personal Information
+    if (restData.personInfoForBirth) {
+      const person = restData.personInfoForBirth;
+      appendFormData(
+        "personInfoForBirth.personFirstNameBn",
+        person.personFirstNameBn
+      );
+      appendFormData(
+        "personInfoForBirth.personLastNameBn",
+        person.personLastNameBn
+      );
+      appendFormData("personInfoForBirth.personNameBn", person.personNameBn);
+      appendFormData(
+        "personInfoForBirth.personFirstNameEn",
+        person.personFirstNameEn
+      );
+      appendFormData(
+        "personInfoForBirth.personLastNameEn",
+        person.personLastNameEn
+      );
+      appendFormData("personInfoForBirth.personNameEn", person.personNameEn);
+      appendFormData(
+        "personInfoForBirth.personBirthDate",
+        person.personBirthDate
+      );
+      appendFormData("personInfoForBirth.thChild", person.thChild);
+      appendFormData("personInfoForBirth.gender", person.gender);
+      appendFormData("personInfoForBirth.religion", person.religion);
+      appendFormData(
+        "personInfoForBirth.religionOther",
+        person.religionOther || ""
+      );
+      appendFormData("personInfoForBirth.personNid", person.personNid || "");
+    }
+
+    // Father's information
+    if (restData.father) {
+      const father = restData.father;
+      appendFormData(
+        "personInfoForBirth.father.personNameBn",
+        father.personNameBn
+      );
+      appendFormData(
+        "personInfoForBirth.father.personNameEn",
+        father.personNameEn
+      );
+      appendFormData(
+        "personInfoForBirth.father.personNationality",
+        father.personNationality
+      );
+      appendFormData(
+        "personInfoForBirth.father.personNid",
+        father.personNid || ""
+      );
+      appendFormData(
+        "personInfoForBirth.father.passportNumber",
+        father.passportNumber || ""
+      );
+      appendFormData("personInfoForBirth.father.ubrn", father.ubrn || "");
+      appendFormData(
+        "personInfoForBirth.father.personBirthDate",
+        father.personBirthDate
+      );
+    }
+
+    // Mother's information
+    if (restData.mother) {
+      const mother = restData.mother;
+      appendFormData(
+        "personInfoForBirth.mother.personNameBn",
+        mother.personNameBn
+      );
+      appendFormData(
+        "personInfoForBirth.mother.personNameEn",
+        mother.personNameEn
+      );
+      appendFormData(
+        "personInfoForBirth.mother.personNationality",
+        mother.personNationality
+      );
+      appendFormData(
+        "personInfoForBirth.mother.personNid",
+        mother.personNid || ""
+      );
+      appendFormData(
+        "personInfoForBirth.mother.passportNumber",
+        mother.passportNumber || ""
+      );
+      appendFormData("personInfoForBirth.mother.ubrn", mother.ubrn || "");
+      appendFormData(
+        "personInfoForBirth.mother.personBirthDate",
+        mother.personBirthDate
+      );
+    }
+
+    // Birth Place Address
+    appendFormData("birthPlaceCountry", restData.birthPlaceCountry);
+    appendFormData("birthPlaceDiv", restData.birthPlaceDiv);
+    appendFormData("birthPlaceDist", restData.birthPlaceDist);
+    appendFormData(
+      "birthPlaceCityCorpCantOrUpazila",
+      restData.birthPlaceCityCorpCantOrUpazila
+    );
+    appendFormData(
+      "birthPlacePaurasavaOrUnion",
+      restData.birthPlacePaurasavaOrUnion
+    );
+    appendFormData(
+      "birthPlaceWardInPaurasavaOrUnion",
+      restData.birthPlaceWardInPaurasavaOrUnion
+    );
+    appendFormData("birthPlaceVilAreaTownBn", restData.birthPlaceVilAreaTownBn);
+    appendFormData("birthPlaceVilAreaTownEn", restData.birthPlaceVilAreaTownEn);
+    appendFormData("birthPlacePostOfc", restData.birthPlacePostOfc);
+    appendFormData("birthPlacePostOfcEn", restData.birthPlacePostOfcEn);
+    appendFormData("birthPlaceHouseRoadBn", restData.birthPlaceHouseRoadBn);
+    appendFormData("birthPlaceHouseRoadEn", restData.birthPlaceHouseRoadEn);
+
+    // Additional birth place fields that appear in curl
+    appendFormData("birthPlaceArea", "-1");
+    appendFormData(
+      "birthPlaceBn",
+      ` ${restData.birthPlaceVilAreaTownBn || ""} ${
+        restData.birthPlacePostOfc || ""
+      }`
+    );
+    appendFormData(
+      "birthPlaceEn",
+      ` ${restData.birthPlaceVilAreaTownEn || ""} ${
+        restData.birthPlacePostOfcEn || ""
+      }`
+    );
+    appendFormData(
+      "birthPlaceLocationId",
+      restData.birthPlacePaurasavaOrUnion || "-1"
+    );
+    appendFormData("birthPlacePostCode", "");
+    appendFormData("birthPlaceWardInCityCorp", "-1");
+
+    // Permanent Address
+    appendFormData(
+      "copyBirthPlaceToPermAddr",
+      restData.copyBirthPlaceToPermAddr
+    );
+    appendFormData("permAddrCountry", restData.permAddrCountry);
+    appendFormData("permAddrDiv", restData.permAddrDiv);
+    appendFormData("permAddrDist", restData.permAddrDist);
+    appendFormData(
+      "permAddrCityCorpCantOrUpazila",
+      restData.permAddrCityCorpCantOrUpazila
+    );
+    appendFormData(
+      "permAddrPaurasavaOrUnion",
+      restData.permAddrPaurasavaOrUnion
+    );
+    appendFormData(
+      "permAddrWardInPaurasavaOrUnion",
+      restData.permAddrWardInPaurasavaOrUnion
+    );
+
+    // Additional permanent address fields
+    appendFormData("permAddrArea", "-1");
+    appendFormData(
+      "permAddrBn",
+      ` ${restData.birthPlaceVilAreaTownBn || ""} ${
+        restData.birthPlacePostOfc || ""
+      }`
+    );
+    appendFormData(
+      "permAddrEn",
+      ` ${restData.birthPlaceVilAreaTownEn || ""} ${
+        restData.birthPlacePostOfcEn || ""
+      }`
+    );
+    appendFormData("permAddrHouseRoadBn", restData.birthPlaceHouseRoadBn);
+    appendFormData("permAddrHouseRoadEn", restData.birthPlaceHouseRoadEn);
+    appendFormData(
+      "permAddrLocationId",
+      restData.birthPlacePaurasavaOrUnion || "-1"
+    );
+    appendFormData("permAddrPostCode", "");
+    appendFormData("permAddrPostOfc", restData.birthPlacePostOfc);
+    appendFormData("permAddrPostOfcEn", restData.birthPlacePostOfcEn);
+    appendFormData("permAddrVilAreaTownBn", restData.birthPlaceVilAreaTownBn);
+    appendFormData("permAddrVilAreaTownEn", restData.birthPlaceVilAreaTownEn);
+    appendFormData("permAddrWardInCityCorp", "-1");
+
+    // Present Address
+    appendFormData("copyPermAddrToPrsntAddr", restData.copyPermAddrToPrsntAddr);
+    appendFormData("prsntAddrCountry", restData.prsntAddrCountry);
+    appendFormData("prsntAddrDiv", restData.prsntAddrDiv);
+    appendFormData("prsntAddrDist", restData.prsntAddrDist);
+    appendFormData(
+      "prsntAddrCityCorpCantOrUpazila",
+      restData.prsntAddrCityCorpCantOrUpazila
+    );
+    appendFormData(
+      "prsntAddrPaurasavaOrUnion",
+      restData.prsntAddrPaurasavaOrUnion
+    );
+    appendFormData(
+      "prsntAddrWardInPaurasavaOrUnion",
+      restData.prsntAddrWardInPaurasavaOrUnion
+    );
+
+    // Additional present address fields
+    appendFormData("prsntAddrArea", "-1");
+    appendFormData(
+      "prsntAddrBn",
+      ` ${restData.birthPlaceVilAreaTownBn || ""} ${
+        restData.birthPlacePostOfc || ""
+      }`
+    );
+    appendFormData(
+      "prsntAddrEn",
+      ` ${restData.birthPlaceVilAreaTownEn || ""} ${
+        restData.birthPlacePostOfcEn || ""
+      }`
+    );
+    appendFormData("prsntAddrHouseRoadBn", restData.birthPlaceHouseRoadBn);
+    appendFormData("prsntAddrHouseRoadEn", restData.birthPlaceHouseRoadEn);
+    appendFormData(
+      "prsntAddrLocationId",
+      restData.birthPlacePaurasavaOrUnion || "-1"
+    );
+    appendFormData("prsntAddrPostCode", "");
+    appendFormData("prsntAddrPostOfc", restData.birthPlacePostOfc);
+    appendFormData("prsntAddrPostOfcEn", restData.birthPlacePostOfcEn);
+    appendFormData("prsntAddrVilAreaTownBn", restData.birthPlaceVilAreaTownBn);
+    appendFormData("prsntAddrVilAreaTownEn", restData.birthPlaceVilAreaTownEn);
+    appendFormData("prsntAddrWardInCityCorp", "-1");
+
+    // Applicant Information
+    appendFormData("applicantName", restData.applicantName);
+    appendFormData("phone", restData.phone);
+    appendFormData("email", restData.email || "");
+    appendFormData("relationWithApplicant", restData.relationWithApplicant);
+
+    // Additional applicant fields
+    appendFormData("applicantDob", "");
+    appendFormData("applicantNotParentsBrn", "");
+
+    // File attachments
+    if (restData.attachments && Array.isArray(restData.attachments)) {
+      restData.attachments.forEach((attachment: { id: string }) => {
+        if (attachment.id) {
+          formData.append("attachments", attachment.id);
+        }
+      });
+    } else {
+      formData.append("attachments", "");
+    }
+
+    // Other required fields
+    appendFormData("declaration", "on");
+    appendFormData("personImage", "");
+    appendFormData("files", "");
+    appendFormData("geoLocationId", "");
+    appendFormData("father.id", "");
+    appendFormData("mother.id", "");
+    appendFormData("officeId", "");
+    appendFormData("wardId", restData.birthPlaceWardInPaurasavaOrUnion || "-1");
+
+    // Prepare headers
+    const userAgentString =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36";
+
+    const headers = new Headers();
+    headers.set("User-Agent", userAgentString);
+
+    if (cookies?.length) {
+      headers.set("Cookie", cookies.join("; "));
+    }
+
+    headers.set("Accept", "*/*");
+    headers.set("X-Requested-With", "XMLHttpRequest");
+    headers.set("X-Csrf-Token", csrf);
+    headers.set("Referer", "https://bdris.gov.bd/br/application");
+    // Make the request to the external API
+    const apiUrl = "https://bdris.gov.bd/br/application";
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+    // Parse the response
+    const result = await parseServerResponse(response);
+    console.log(result)
+
+    // Handle the result
+    if (!result.success) {
+      // Update your database if needed
+      // Example: await currection.updateOne({ submit_status: 'failed' });
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: result.error,
+          message: result.message,
+          details: result,
+        },
+        { status: 500 }
+      );
+    }
+
+    // Success response
+    return NextResponse.json({
+      success: true,
+      applicationId: result.applicationId,
+      printLink: result.printLink,
+      message: result.message,
+      cookieLink: result.cookieLink,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Proxy error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "PROXY_ERROR",
+        message: "Failed to process request",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
+  }
+}
 
 export async function GET() {
   try {
