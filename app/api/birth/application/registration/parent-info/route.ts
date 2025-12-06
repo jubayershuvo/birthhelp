@@ -1,43 +1,13 @@
-import { getUser } from "@/lib/getUser";
-import { connectDB } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
-const userAgentString =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36";
-
 export async function POST(req: NextRequest) {
+  const body = await req.json();
   try {
-    const { cookies, csrf, phone, email, otp } = await req.json();
+    const { cookies, csrf, ubrn, dob, nameEn, childBirthDate, gender } = body;
 
-    if (!cookies  || !phone || !csrf) {
-      return NextResponse.json(
-        { success: false, error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    await connectDB();
-    const user = await getUser();
-    if (!user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    // Build query parameters safely
-    const params = new URLSearchParams({
-      appType: "BIRTH_REGISTRATION_APPLICATION",
-      otp,
-      phone,
-      officeId: "0",
-      personUbrn:'',
-      geoLocationId: "0",
-      ubrn: "",
-      nid: "",
-      officeAddressType: "",
-    });
-
-    if (email) params.append("email", email);
-
-    const url = `https://bdris.gov.bd/api/otp/verify?${params.toString()}`;
+    const url = `https://bdris.gov.bd/api/br/parent-info`;
+    const userAgentString =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36";
 
     // Build headers
     const headers = new Headers({
@@ -45,6 +15,7 @@ export async function POST(req: NextRequest) {
       Accept: "*/*",
       "X-Requested-With": "XMLHttpRequest",
       Referer: "https://bdris.gov.bd/br/application",
+      "X-Csrf-Token": csrf,
     });
 
     if (cookies?.length) {
@@ -53,7 +24,11 @@ export async function POST(req: NextRequest) {
 
     // Build form data
     const formData = new FormData();
-    formData.append("_csrf", csrf);
+    formData.append("ubrn", ubrn);
+    formData.append("dob", dob);
+    formData.append("nameEn", nameEn);
+    formData.append("childBirthDate", childBirthDate);
+    formData.append("gender", gender);
 
     // Make the request
     const response = await fetch(url, {
@@ -87,18 +62,9 @@ export async function POST(req: NextRequest) {
     console.log("BDRIS response:", jsonData);
 
     return NextResponse.json({ success: true, data: jsonData });
-  } catch (err: unknown) {
-    console.error("BDRIS request error:", err);
-
-    const message =
-      err instanceof Error
-        ? err.message
-        : typeof err === "string"
-        ? err
-        : "Internal server error";
-
+  } catch (error) {
     return NextResponse.json(
-      { success: false, error: message },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

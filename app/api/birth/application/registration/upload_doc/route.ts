@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       "User-Agent": userAgentString,
       Accept: "*/*",
       "X-Requested-With": "XMLHttpRequest",
-      Referer: "https://bdris.gov.bd/br/correction",
+      Referer: "https://bdris.gov.bd/br/application",
     });
 
     if (cookies?.length) {

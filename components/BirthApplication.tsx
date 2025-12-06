@@ -1419,6 +1419,9 @@ export default function BirthRegistrationForm() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
 
+  // Parent validation cache
+  const [parentValidationCache, setParentValidationCache] = useState<Record<string, boolean>>({});
+
   // File Types - only 40 and 41 are required
   const fileTypes: FileType[] = [
     {
@@ -2069,16 +2072,84 @@ export default function BirthRegistrationForm() {
     }
   };
 
-  
-
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Comprehensive validation function for each step
-  const validateStep = (step: number): boolean => {
+  // Parent check async function
+  const ParentCheck = async ({
+    ubrn,
+    dob,
+    nameEn,
+    childBirthDate,
+    gender,
+  }: {
+    ubrn: string;
+    dob: string;
+    nameEn: string;
+    childBirthDate: string;
+    gender: string;
+  }): Promise<boolean> => {
+    if (!ubrn.trim()) return false;
+
+    // Create cache key
+    const cacheKey = `${ubrn}-${dob}-${nameEn}-${childBirthDate}-${gender}`;
+    
+    // Check cache first
+    if (parentValidationCache[cacheKey] !== undefined) {
+      return parentValidationCache[cacheKey];
+    }
+
+    try {
+      const data = {
+        ubrn,
+        dob,
+        nameEn,
+        childBirthDate,
+        gender,
+        csrf: sessionData.csrf,
+        cookies: sessionData.cookies,
+      };
+      
+      const response = await fetch(
+        "/api/birth/application/registration/parent-info",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      const isValid = result.success || false;
+      
+      // Update cache
+      setParentValidationCache(prev => ({
+        ...prev,
+        [cacheKey]: isValid
+      }));
+      
+      return isValid;
+    } catch (error) {
+      console.error("Parent check error:", error);
+      setParentValidationCache(prev => ({
+        ...prev,
+        [cacheKey]: false
+      }));
+      return false;
+    }
+  };
+
+  // Comprehensive validation function for each step - FIXED
+  const validateStep = async (step: number): Promise<boolean> => {
     const errors: Record<string, string> = {};
 
     switch (step) {
@@ -2185,7 +2256,29 @@ export default function BirthRegistrationForm() {
           // Father birth registration validation for 2012 and later
           if (!formData.father.ubrn.trim()) {
             errors["father.ubrn"] = "পিতার জন্ম নিবন্ধন নম্বর প্রয়োজন";
+          } else {
+            // Validate father's UBRN asynchronously
+            try {
+              toast.loading('পিতার জন্ম নিবন্ধন নম্বর যাচাই ...',{id:'father'})
+              const isValid = await ParentCheck({
+                ubrn: formData.father.ubrn,
+                dob: formData.father.personBirthDate,
+                nameEn: formData.father.personNameEn,
+                childBirthDate: formData.personInfoForBirth.personBirthDate,
+                gender: "MALE",
+              });
+              
+              if (!isValid) {
+                toast.error('পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে', {id:'father'})
+                errors["father.ubrn"] = "পিতার জন্ম নিলন্ধন নম্বর বৈধ নয়";
+              }
+              toast.success('পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সফল হয়েছে', {id:'father'})
+            } catch (error) {
+              console.error("Father validation error:", error);
+              errors["father.ubrn"] = "পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে";
+            }
           }
+          
           if (!formData.father.personBirthDate) {
             errors["father.personBirthDate"] = "পিতার জন্ম তারিখ প্রয়োজন";
           } else {
@@ -2198,7 +2291,29 @@ export default function BirthRegistrationForm() {
           // Mother birth registration validation for 2012 and later
           if (!formData.mother.ubrn.trim()) {
             errors["mother.ubrn"] = "মাতার জন্ম নিবন্ধন নম্বর প্রয়োজন";
+          } else {
+            // Validate mother's UBRN asynchronously
+            try {
+              toast.loading('মাতার জন্ম নিবন্ধন নম্বর যাচাই ...',{id:'mother'})
+              const isValid = await ParentCheck({
+                ubrn: formData.mother.ubrn,
+                dob: formData.mother.personBirthDate,
+                nameEn: formData.mother.personNameEn,
+                childBirthDate: formData.personInfoForBirth.personBirthDate,
+                gender: "FEMALE",
+              });
+              
+              if (!isValid) {
+                toast.error('মাতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে', {id:'mother'})
+                errors["mother.ubrn"] = "মাতার জন্ম নিলন্ধন নম্বর বৈধ নয়";
+              }
+              toast.success('মাতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সফল হয়েছে', {id:'mother'})
+            } catch (error) {
+              console.error("Mother validation error:", error);
+              errors["mother.ubrn"] = "মাতার জন্ম নিলন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে";
+            }
           }
+          
           if (!formData.mother.personBirthDate) {
             errors["mother.personBirthDate"] = "মাতার জন্ম তারিখ প্রয়োজন";
           } else {
@@ -2351,8 +2466,9 @@ export default function BirthRegistrationForm() {
     return true;
   };
 
-  const nextStep = () => {
-    if (validateStep(currentStep)) {
+  const nextStep = async () => {
+    const isValid = await validateStep(currentStep);
+    if (isValid) {
       // Reset validation triggers
       setValidateBirthPlace(false);
       setValidatePermAddress(false);
@@ -2374,7 +2490,8 @@ export default function BirthRegistrationForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateStep(currentStep)) {
+    const isValid = await validateStep(currentStep);
+    if (!isValid) {
       return;
     }
 
@@ -2568,10 +2685,12 @@ export default function BirthRegistrationForm() {
           body: JSON.stringify(submissionData),
         });
         const resData = await response.json();
-        
+
         if (resData.success) {
           router.push(`/birth/application/registration/view/${resData.id}`);
-          toast.success("আবেদন সফলভাবে জমা দেওয়া হয়েছে!", { id: "submission" });
+          toast.success("আবেদন সফলভাবে জমা দেওয়া হয়েছে!", {
+            id: "submission",
+          });
         } else {
           toast.error(resData.error, { id: "submission" });
         }
@@ -4071,9 +4190,7 @@ export default function BirthRegistrationForm() {
                         <span className="text-gray-600 dark:text-gray-400">
                           পিতার জন্ম নিবন্ধন নম্বর:
                         </span>
-                        <p className="font-medium">
-                          {formData.father.ubrn}
-                        </p>
+                        <p className="font-medium">{formData.father.ubrn}</p>
                         <span className="text-gray-600 dark:text-gray-400">
                           জন্ম তারিখ:
                         </span>
@@ -4103,9 +4220,7 @@ export default function BirthRegistrationForm() {
                         <span className="text-gray-600 dark:text-gray-400">
                           মাতার জন্ম নিবন্ধন নম্বর:
                         </span>
-                        <p className="font-medium">
-                          {formData.mother.ubrn}
-                        </p>
+                        <p className="font-medium">{formData.mother.ubrn}</p>
                         <span className="text-gray-600 dark:text-gray-400">
                           জন্ম তারিখ:
                         </span>

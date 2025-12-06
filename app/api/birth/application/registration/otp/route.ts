@@ -16,8 +16,6 @@ export async function POST(req: NextRequest) {
     const {
       phone,
       cookies,
-      officeId,
-      personUbrn,
       csrf,
       email,
       relation,
@@ -37,8 +35,8 @@ export async function POST(req: NextRequest) {
     const params = new URLSearchParams({
       appType: "BIRTH_REGISTRATION_APPLICATION",
       phone,
-      officeId: officeId || "0",
-      personUbrn: personUbrn || '',
+      officeId: "0",
+      personUbrn: "",
       relation,
       applicantName: applicantName || "",
       ubrn: "",
@@ -55,7 +53,7 @@ export async function POST(req: NextRequest) {
       "User-Agent": userAgentString,
       Accept: "*/*",
       "X-Requested-With": "XMLHttpRequest",
-      Referer: "https://bdris.gov.bd/br/correction",
+      Referer: "https://bdris.gov.bd/br/application",
     });
 
     // session cookie ডায়নামিক থাকবে

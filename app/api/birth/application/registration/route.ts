@@ -51,8 +51,6 @@ function extractDataFromHTML(html: string) {
   const lastDateMatch = normalized.match(lastDateRegex);
   const lastDate = lastDateMatch ? lastDateMatch[1] : null;
 
-
-
   // Validate
   if (applicationId && printLink && lastDate) {
     return {
@@ -71,32 +69,27 @@ function extractDataFromHTML(html: string) {
 
 // Helper function to check for specific error patterns
 function checkForErrorsInHTML(html: string): HTMLParseResult | null {
-  // Check for OTP not verified
-  if (html.includes("OTP NOT VERIFIED") || html.includes("OTP not verified")) {
-    return {
-      success: false,
-      error: "OTP_NOT_VERIFIED",
-      message: "OTP not verified. Please check the OTP and try again.",
-    };
-  }
-  if (html.includes("Your session has expired")) {
-    return {
-      success: false,
-      error: "SESSION_EXPIRED",
-      message: "Session expired or user not logged in. Please log in again.",
-    };
-  }
+  // 1️⃣ Extract the alert div (any type of error alert)
+  const alertRegex =
+    /<div[^>]*class="[^"]*alert[^"]*alert-danger[^"]*"[^>]*>([\s\S]*?)<\/div>/i;
+  const alertMatch = html.match(alertRegex);
 
-  // Check for session/login errors
-  if (html.includes("Error!")) {
-    return {
-      success: false,
-      error: "Some Data not valid",
-      message: "Some Data not valid",
-    };
-  }
-  // Check for session/login errors
-  return null;
+  if (!alertMatch) return null; // No alert → no error
+
+  const alertHtml = alertMatch[1];
+
+  // 3️⃣ Extract <span> or text after strong
+  const spanRegex = /<span[^>]*>([\s\S]*?)<\/span>/i;
+  const spanMatch = alertHtml.match(spanRegex);
+  const errorMessage = spanMatch
+    ? spanMatch[1].trim()
+    : "An unknown error occurred.";
+
+  return {
+    success: false,
+    error: errorMessage,
+    message: errorMessage,
+  };
 }
 
 // Main response parser
