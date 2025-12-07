@@ -58,8 +58,16 @@ export async function POST(req: NextRequest) {
         { status: response.status }
       );
     }
+  console.log("BDRIS response:", jsonData);
+    if(!jsonData[0].gender.toString() || !jsonData[0].personNationality.toString()) {
+      console.error("BDRIS error:", jsonData);
+      return NextResponse.json(
+        { success: false, error: jsonData?.error || "BDRIS request failed" },
+        { status: 404 }
+      );
+    }
 
-    console.log("BDRIS response:", jsonData);
+  
 
     return NextResponse.json({ success: true, data: jsonData });
   } catch (error) {

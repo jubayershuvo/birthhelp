@@ -2035,7 +2035,7 @@ export default function BirthRegistrationForm() {
         );
         return;
       }
-
+      toast.loading("OTP পাঠানো হচ্ছে...", { id: "otp" });
       // Send OTP request
       const response = await fetch("/api/birth/application/registration/otp", {
         method: "POST",
@@ -2125,10 +2125,14 @@ export default function BirthRegistrationForm() {
       );
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        return false;
       }
       
       const result = await response.json();
+
+      if (!result.success) {
+        return false;
+      }
       const isValid = result.success || false;
       
       // Update cache
@@ -2718,7 +2722,7 @@ export default function BirthRegistrationForm() {
     if (!address) return "নির্বাচিত হয়নি";
 
     if (address.country === "1") {
-      return `${address.vilAreaTownBn}, ${address.unionName}, ${address.upazilaName}, ${address.districtName}, ${address.divisionName}`;
+      return `${address.vilAreaTownBn},${address.postOfc}, ${address.unionName}, ${address.upazilaName}, ${address.districtName}, ${address.divisionName}`;
     } else {
       const country = countriesList.find((c) => c.id === address.country);
       return `${address.vilAreaTownBn}, ${country?.nameBn || "বিদেশ"}`;
@@ -4213,7 +4217,9 @@ export default function BirthRegistrationForm() {
                           পিতার জাতীয়তা:
                         </span>
                         <p className="font-medium">
-                          {formData.father.personNationality}
+                          {nationalityOptions.find(
+                            (n) => n.id === formData.father.personNationality
+                          )?.value}
                         </p>
                       </div>
                       <div>
@@ -4243,7 +4249,9 @@ export default function BirthRegistrationForm() {
                           মাতার জাতীয়তা:
                         </span>
                         <p className="font-medium">
-                          {formData.mother.personNationality}
+                          {nationalityOptions.find(
+                            (n) => n.id === formData.mother.personNationality
+                          )?.value}
                         </p>
                       </div>
                     </div>
@@ -4427,8 +4435,7 @@ export default function BirthRegistrationForm() {
                     </div>
                     {isOtpSent && otpCountdown > 0 && (
                       <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                        OTP পাঠানো হয়েছে। {formatTime(otpCountdown)} পরে আবার
-                        পাঠাতে পারবেন
+                        OTP পাঠানো হয়েছে। {formatTime(otpCountdown)} পরে আবার একই নম্বরে পাঠাতে পারবেন
                       </p>
                     )}
                     {formErrors["applicant.phone"] && (
