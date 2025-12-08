@@ -1455,6 +1455,49 @@ export default function BirthRegistrationForm() {
     };
   }, [otpCountdown]);
 
+  // Handle checkbox logic for addresses
+  useEffect(() => {
+    // Handle "জন্মস্থানের ঠিকানা ও স্থায়ী ঠিকানা একই" checkbox
+    if (formData.copyBirthPlaceToPermAddr && formData.birthPlaceAddress) {
+      setFormData(prev => ({
+        ...prev,
+        permAddrAddress: formData.birthPlaceAddress,
+        // If both checkboxes are checked, also update present address
+        ...(formData.copyPermAddrToPrsntAddr && {
+          prsntAddrAddress: formData.birthPlaceAddress
+        })
+      }));
+    } else if (!formData.copyBirthPlaceToPermAddr && formData.birthPlaceAddress && 
+               formData.permAddrAddress && formData.permAddrAddress === formData.birthPlaceAddress) {
+      // If checkbox is unchecked and addresses are same, clear permanent address
+      setFormData(prev => ({
+        ...prev,
+        permAddrAddress: null,
+        // Also clear present address if it was same as permanent address
+        ...(formData.copyPermAddrToPrsntAddr && {
+          prsntAddrAddress: null
+        })
+      }));
+    }
+  }, [formData.copyBirthPlaceToPermAddr, formData.birthPlaceAddress]);
+
+  useEffect(() => {
+    // Handle "স্থায়ী ঠিকানা ও বর্তমান ঠিকানা একই" checkbox
+    if (formData.copyPermAddrToPrsntAddr && formData.permAddrAddress) {
+      setFormData(prev => ({
+        ...prev,
+        prsntAddrAddress: formData.permAddrAddress
+      }));
+    } else if (!formData.copyPermAddrToPrsntAddr && formData.permAddrAddress && 
+               formData.prsntAddrAddress && formData.prsntAddrAddress === formData.permAddrAddress) {
+      // If checkbox is unchecked and addresses are same, clear present address
+      setFormData(prev => ({
+        ...prev,
+        prsntAddrAddress: null
+      }));
+    }
+  }, [formData.copyPermAddrToPrsntAddr, formData.permAddrAddress]);
+
   const handleInputChange = (
     field: keyof FormData,
     value: string | boolean | Address | null
@@ -1538,6 +1581,18 @@ export default function BirthRegistrationForm() {
       birthPlaceAddress: address,
     }));
     setValidateBirthPlace(false);
+    
+    // If "জন্মস্থানের ঠিকানা ও স্থায়ী ঠিকানা একই" is checked, also update permanent address
+    if (formData.copyBirthPlaceToPermAddr) {
+      setFormData((prev) => ({
+        ...prev,
+        permAddrAddress: address,
+        // If both checkboxes are checked, also update present address
+        ...(formData.copyPermAddrToPrsntAddr && {
+          prsntAddrAddress: address
+        })
+      }));
+    }
   };
 
   const handlePermAddrAddress = (address: Address) => {
@@ -1546,6 +1601,14 @@ export default function BirthRegistrationForm() {
       permAddrAddress: address,
     }));
     setValidatePermAddress(false);
+    
+    // If "স্থায়ী ঠিকানা ও বর্তমান ঠিকানা একই" is checked, also update present address
+    if (formData.copyPermAddrToPrsntAddr) {
+      setFormData((prev) => ({
+        ...prev,
+        prsntAddrAddress: address,
+      }));
+    }
   };
 
   const handlePrsntAddrAddress = (address: Address) => {
@@ -4020,6 +4083,7 @@ export default function BirthRegistrationForm() {
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
                               >
                                 <path
                                   strokeLinecap="round"

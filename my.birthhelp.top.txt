@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name my.birthhelp.top www.my.birthhelp.top;
+    server_name my.birthhelp.top;
 
     # Redirect all HTTP to HTTPS (optional but recommended)
     return 301 https://$host$request_uri;
