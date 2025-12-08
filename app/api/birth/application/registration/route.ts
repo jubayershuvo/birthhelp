@@ -429,7 +429,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Additional permanent address fields
-    appendFormData("permAddrArea", "-1");
+    appendFormData("permAddrArea", restData.permAddrArea);
     appendFormData(
       "permAddrBn",
       ` ${restData.birthPlaceVilAreaTownBn || ""} ${
@@ -438,22 +438,22 @@ export async function POST(request: NextRequest) {
     );
     appendFormData(
       "permAddrEn",
-      ` ${restData.birthPlaceVilAreaTownEn || ""} ${
-        restData.birthPlacePostOfcEn || ""
+      ` ${restData.permAddrVilAreaTownBn || ""} ${
+        restData.permAddrPostOfc || ""
       }`
     );
-    appendFormData("permAddrHouseRoadBn", restData.birthPlaceHouseRoadBn);
-    appendFormData("permAddrHouseRoadEn", restData.birthPlaceHouseRoadEn);
+    appendFormData("permAddrHouseRoadBn", restData.permAddrHouseRoadBn);
+    appendFormData("permAddrHouseRoadEn", restData.permAddrHouseRoadEn);
     appendFormData(
       "permAddrLocationId",
-      restData.birthPlacePaurasavaOrUnion || "-1"
+      restData.permAddrPaurasavaOrUnion || "-1"
     );
     appendFormData("permAddrPostCode", "");
-    appendFormData("permAddrPostOfc", restData.birthPlacePostOfc);
-    appendFormData("permAddrPostOfcEn", restData.birthPlacePostOfcEn);
-    appendFormData("permAddrVilAreaTownBn", restData.birthPlaceVilAreaTownBn);
-    appendFormData("permAddrVilAreaTownEn", restData.birthPlaceVilAreaTownEn);
-    appendFormData("permAddrWardInCityCorp", "-1");
+    appendFormData("permAddrPostOfc", restData.permAddrPostOfc);
+    appendFormData("permAddrPostOfcEn", restData.permAddrPostOfcEn);
+    appendFormData("permAddrVilAreaTownBn", restData.permAddrVilAreaTownBn);
+    appendFormData("permAddrVilAreaTownEn", restData.permAddrVilAreaTownEn);
+    appendFormData("permAddrWardInCityCorp", restData.permAddrWardInCityCorp);
 
     // Present Address
     appendFormData("copyPermAddrToPrsntAddr", restData.copyPermAddrToPrsntAddr);
@@ -477,28 +477,28 @@ export async function POST(request: NextRequest) {
     appendFormData("prsntAddrArea", "-1");
     appendFormData(
       "prsntAddrBn",
-      ` ${restData.birthPlaceVilAreaTownBn || ""} ${
-        restData.birthPlacePostOfc || ""
+      ` ${restData.prsntAddrVilAreaTownBn || ""} ${
+        restData.prsntAddrPostOfc || ""
       }`
     );
     appendFormData(
       "prsntAddrEn",
-      ` ${restData.birthPlaceVilAreaTownEn || ""} ${
-        restData.birthPlacePostOfcEn || ""
+      ` ${restData.prsntAddrVilAreaTownEn || ""} ${
+        restData.prsntAddrPostOfcEn || ""
       }`
     );
-    appendFormData("prsntAddrHouseRoadBn", restData.birthPlaceHouseRoadBn);
-    appendFormData("prsntAddrHouseRoadEn", restData.birthPlaceHouseRoadEn);
+    appendFormData("prsntAddrHouseRoadBn", restData.prsntAddrHouseRoadBn);
+    appendFormData("prsntAddrHouseRoadEn", restData.prsntAddrHouseRoadEn);
     appendFormData(
       "prsntAddrLocationId",
-      restData.birthPlacePaurasavaOrUnion || "-1"
+      restData.prsntAddrPaurasavaOrUnion || "-1"
     );
-    appendFormData("prsntAddrPostCode", "");
-    appendFormData("prsntAddrPostOfc", restData.birthPlacePostOfc);
-    appendFormData("prsntAddrPostOfcEn", restData.birthPlacePostOfcEn);
-    appendFormData("prsntAddrVilAreaTownBn", restData.birthPlaceVilAreaTownBn);
-    appendFormData("prsntAddrVilAreaTownEn", restData.birthPlaceVilAreaTownEn);
-    appendFormData("prsntAddrWardInCityCorp", "-1");
+    appendFormData("prsntAddrPostCode", restData.prsntAddrPostCode);
+    appendFormData("prsntAddrPostOfc", restData.prsntAddrPostOfc);
+    appendFormData("prsntAddrPostOfcEn", restData.prsntAddrPostOfcEn);
+    appendFormData("prsntAddrVilAreaTownBn", restData.prsntAddrVilAreaTownBn);
+    appendFormData("prsntAddrVilAreaTownEn", restData.prsntAddrVilAreaTownEn);
+    appendFormData("prsntAddrWardInCityCorp", restData.prsntAddrWardInCityCorp);
 
     // Applicant Information
     appendFormData("applicantName", restData.applicantName);
