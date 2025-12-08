@@ -1420,7 +1420,9 @@ export default function BirthRegistrationForm() {
   const [otpVerified, setOtpVerified] = useState(false);
 
   // Parent validation cache
-  const [parentValidationCache, setParentValidationCache] = useState<Record<string, boolean>>({});
+  const [parentValidationCache, setParentValidationCache] = useState<
+    Record<string, boolean>
+  >({});
 
   // File Types - only 40 and 41 are required
   const fileTypes: FileType[] = [
@@ -1459,24 +1461,28 @@ export default function BirthRegistrationForm() {
   useEffect(() => {
     // Handle "জন্মস্থানের ঠিকানা ও স্থায়ী ঠিকানা একই" checkbox
     if (formData.copyBirthPlaceToPermAddr && formData.birthPlaceAddress) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         permAddrAddress: formData.birthPlaceAddress,
         // If both checkboxes are checked, also update present address
         ...(formData.copyPermAddrToPrsntAddr && {
-          prsntAddrAddress: formData.birthPlaceAddress
-        })
+          prsntAddrAddress: formData.birthPlaceAddress,
+        }),
       }));
-    } else if (!formData.copyBirthPlaceToPermAddr && formData.birthPlaceAddress && 
-               formData.permAddrAddress && formData.permAddrAddress === formData.birthPlaceAddress) {
+    } else if (
+      !formData.copyBirthPlaceToPermAddr &&
+      formData.birthPlaceAddress &&
+      formData.permAddrAddress &&
+      formData.permAddrAddress === formData.birthPlaceAddress
+    ) {
       // If checkbox is unchecked and addresses are same, clear permanent address
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         permAddrAddress: null,
         // Also clear present address if it was same as permanent address
         ...(formData.copyPermAddrToPrsntAddr && {
-          prsntAddrAddress: null
-        })
+          prsntAddrAddress: null,
+        }),
       }));
     }
   }, [formData.copyBirthPlaceToPermAddr, formData.birthPlaceAddress]);
@@ -1484,16 +1490,20 @@ export default function BirthRegistrationForm() {
   useEffect(() => {
     // Handle "স্থায়ী ঠিকানা ও বর্তমান ঠিকানা একই" checkbox
     if (formData.copyPermAddrToPrsntAddr && formData.permAddrAddress) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        prsntAddrAddress: formData.permAddrAddress
+        prsntAddrAddress: formData.permAddrAddress,
       }));
-    } else if (!formData.copyPermAddrToPrsntAddr && formData.permAddrAddress && 
-               formData.prsntAddrAddress && formData.prsntAddrAddress === formData.permAddrAddress) {
+    } else if (
+      !formData.copyPermAddrToPrsntAddr &&
+      formData.permAddrAddress &&
+      formData.prsntAddrAddress &&
+      formData.prsntAddrAddress === formData.permAddrAddress
+    ) {
       // If checkbox is unchecked and addresses are same, clear present address
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        prsntAddrAddress: null
+        prsntAddrAddress: null,
       }));
     }
   }, [formData.copyPermAddrToPrsntAddr, formData.permAddrAddress]);
@@ -1581,7 +1591,7 @@ export default function BirthRegistrationForm() {
       birthPlaceAddress: address,
     }));
     setValidateBirthPlace(false);
-    
+
     // If "জন্মস্থানের ঠিকানা ও স্থায়ী ঠিকানা একই" is checked, also update permanent address
     if (formData.copyBirthPlaceToPermAddr) {
       setFormData((prev) => ({
@@ -1589,8 +1599,8 @@ export default function BirthRegistrationForm() {
         permAddrAddress: address,
         // If both checkboxes are checked, also update present address
         ...(formData.copyPermAddrToPrsntAddr && {
-          prsntAddrAddress: address
-        })
+          prsntAddrAddress: address,
+        }),
       }));
     }
   };
@@ -1601,7 +1611,7 @@ export default function BirthRegistrationForm() {
       permAddrAddress: address,
     }));
     setValidatePermAddress(false);
-    
+
     // If "স্থায়ী ঠিকানা ও বর্তমান ঠিকানা একই" is checked, also update present address
     if (formData.copyPermAddrToPrsntAddr) {
       setFormData((prev) => ({
@@ -1822,7 +1832,6 @@ export default function BirthRegistrationForm() {
         nameEn: office.officeNameEn || office.nameEn || "",
       }));
 
-      console.log("Formatted Offices:", formattedOffices);
       setOfficeOptions(formattedOffices);
 
       // Auto-select the office if there's only one option
@@ -2159,7 +2168,7 @@ export default function BirthRegistrationForm() {
 
     // Create cache key
     const cacheKey = `${ubrn}-${dob}-${nameEn}-${childBirthDate}-${gender}`;
-    
+
     // Check cache first
     if (parentValidationCache[cacheKey] !== undefined) {
       return parentValidationCache[cacheKey];
@@ -2175,7 +2184,7 @@ export default function BirthRegistrationForm() {
         csrf: sessionData.csrf,
         cookies: sessionData.cookies,
       };
-      
+
       const response = await fetch(
         "/api/birth/application/registration/parent-info",
         {
@@ -2186,30 +2195,30 @@ export default function BirthRegistrationForm() {
           body: JSON.stringify(data),
         }
       );
-      
+
       if (!response.ok) {
         return false;
       }
-      
+
       const result = await response.json();
 
       if (!result.success) {
         return false;
       }
       const isValid = result.success || false;
-      
+
       // Update cache
-      setParentValidationCache(prev => ({
+      setParentValidationCache((prev) => ({
         ...prev,
-        [cacheKey]: isValid
+        [cacheKey]: isValid,
       }));
-      
+
       return isValid;
     } catch (error) {
       console.error("Parent check error:", error);
-      setParentValidationCache(prev => ({
+      setParentValidationCache((prev) => ({
         ...prev,
-        [cacheKey]: false
+        [cacheKey]: false,
       }));
       return false;
     }
@@ -2326,7 +2335,9 @@ export default function BirthRegistrationForm() {
           } else {
             // Validate father's UBRN asynchronously
             try {
-              toast.loading('পিতার জন্ম নিবন্ধন নম্বর যাচাই ...',{id:'father'})
+              toast.loading("পিতার জন্ম নিবন্ধন নম্বর যাচাই ...", {
+                id: "father",
+              });
               const isValid = await ParentCheck({
                 ubrn: formData.father.ubrn,
                 dob: formData.father.personBirthDate,
@@ -2334,18 +2345,23 @@ export default function BirthRegistrationForm() {
                 childBirthDate: formData.personInfoForBirth.personBirthDate,
                 gender: "MALE",
               });
-              
+
               if (!isValid) {
-                toast.error('পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে', {id:'father'})
+                toast.error("পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে", {
+                  id: "father",
+                });
                 errors["father.ubrn"] = "পিতার জন্ম নিলন্ধন নম্বর বৈধ নয়";
               }
-              toast.success('পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সফল হয়েছে', {id:'father'})
+              toast.success("পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সফল হয়েছে", {
+                id: "father",
+              });
             } catch (error) {
               console.error("Father validation error:", error);
-              errors["father.ubrn"] = "পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে";
+              errors["father.ubrn"] =
+                "পিতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে";
             }
           }
-          
+
           if (!formData.father.personBirthDate) {
             errors["father.personBirthDate"] = "পিতার জন্ম তারিখ প্রয়োজন";
           } else {
@@ -2361,7 +2377,9 @@ export default function BirthRegistrationForm() {
           } else {
             // Validate mother's UBRN asynchronously
             try {
-              toast.loading('মাতার জন্ম নিবন্ধন নম্বর যাচাই ...',{id:'mother'})
+              toast.loading("মাতার জন্ম নিবন্ধন নম্বর যাচাই ...", {
+                id: "mother",
+              });
               const isValid = await ParentCheck({
                 ubrn: formData.mother.ubrn,
                 dob: formData.mother.personBirthDate,
@@ -2369,18 +2387,23 @@ export default function BirthRegistrationForm() {
                 childBirthDate: formData.personInfoForBirth.personBirthDate,
                 gender: "FEMALE",
               });
-              
+
               if (!isValid) {
-                toast.error('মাতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে', {id:'mother'})
+                toast.error("মাতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে", {
+                  id: "mother",
+                });
                 errors["mother.ubrn"] = "মাতার জন্ম নিলন্ধন নম্বর বৈধ নয়";
               }
-              toast.success('মাতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সফল হয়েছে', {id:'mother'})
+              toast.success("মাতার জন্ম নিবন্ধন নম্বর যাচাইয়ে সফল হয়েছে", {
+                id: "mother",
+              });
             } catch (error) {
               console.error("Mother validation error:", error);
-              errors["mother.ubrn"] = "মাতার জন্ম নিলন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে";
+              errors["mother.ubrn"] =
+                "মাতার জন্ম নিলন্ধন নম্বর যাচাইয়ে সমস্যা হয়েছে";
             }
           }
-          
+
           if (!formData.mother.personBirthDate) {
             errors["mother.personBirthDate"] = "মাতার জন্ম তারিখ প্রয়োজন";
           } else {
@@ -2563,22 +2586,51 @@ export default function BirthRegistrationForm() {
     }
 
     try {
+      // Determine office address based on officeAddressType
+      let officeAddressSource: Address | null = null;
+
+      if (formData.officeAddressType === "BIRTHPLACE") {
+        officeAddressSource = formData.birthPlaceAddress;
+      } else if (formData.officeAddressType === "PERMANENT") {
+        officeAddressSource = formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress
+          : formData.permAddrAddress;
+      } else if (formData.officeAddressType === "MISSION") {
+        // For MISSION, use the BD Mission address (officeAddrCountry, officeAddrCity, officeAddrOffice)
+        // No need for division/district/etc as it's handled by mission office selection
+      }
+
       // Prepare final data according to your API structure
       const submissionData = {
         csrf: sessionData.csrf,
         otp: formData.applicant.otp,
         cookies: sessionData.cookies,
         officeAddressType: formData.officeAddressType,
-        officeAddrCountry: formData.officeAddrCountry,
-        officeAddrCity: formData.officeAddrCity,
-        officeAddrDivision: formData.birthPlaceAddress?.division || "-1",
-        officeAddrDistrict: formData.birthPlaceAddress?.district || "-1",
-        officeAddrCityCorpCantOrUpazila:
-          formData.birthPlaceAddress?.cityCorpCantOrUpazila || "-1",
-        officeAddrPaurasavaOrUnion:
-          formData.birthPlaceAddress?.paurasavaOrUnion || "-1",
-        officeAddrWard: formData.birthPlaceAddress?.ward || "-1",
-        officeAddrOffice: formData.officeAddrOffice,
+
+        // Office address fields - different based on office type
+        ...(formData.officeAddressType === "MISSION"
+          ? {
+              officeAddrCountry: formData.officeAddrCountry,
+              officeAddrCity: formData.officeAddrCity,
+              officeAddrOffice: formData.officeAddrOffice,
+              officeAddrDivision: "-1", // Not used for mission
+              officeAddrDistrict: "-1", // Not used for mission
+              officeAddrCityCorpCantOrUpazila: "-1", // Not used for mission
+              officeAddrPaurasavaOrUnion: "-1", // Not used for mission
+              officeAddrWard: "-1", // Not used for mission
+            }
+          : {
+              officeAddrCountry: officeAddressSource?.country || "1",
+              officeAddrDivision: officeAddressSource?.division || "-1",
+              officeAddrDistrict: officeAddressSource?.district || "-1",
+              officeAddrCityCorpCantOrUpazila:
+                officeAddressSource?.cityCorpCantOrUpazila || "-1",
+              officeAddrPaurasavaOrUnion:
+                officeAddressSource?.paurasavaOrUnion || "-1",
+              officeAddrWard: officeAddressSource?.ward || "-1",
+              officeAddrCity: "", // Not used for birthplace/permanent
+              officeAddrOffice: "", // Not used for birthplace/permanent
+            }),
 
         // Personal Information
         personInfoForBirth: {
@@ -2661,6 +2713,24 @@ export default function BirthRegistrationForm() {
         permAddrWardInPaurasavaOrUnion: formData.copyBirthPlaceToPermAddr
           ? formData.birthPlaceAddress?.ward
           : formData.permAddrAddress?.ward || "-1",
+        permAddrVilAreaTownBn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.vilAreaTownBn || ""
+          : formData.permAddrAddress?.vilAreaTownBn || "",
+        permAddrVilAreaTownEn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.vilAreaTownEn || ""
+          : formData.permAddrAddress?.vilAreaTownEn || "",
+        permAddrPostOfc: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.postOfc || ""
+          : formData.permAddrAddress?.postOfc || "",
+        permAddrPostOfcEn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.postOfcEn || ""
+          : formData.permAddrAddress?.postOfcEn || "",
+        permAddrHouseRoadBn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.houseRoadBn || ""
+          : formData.permAddrAddress?.houseRoadBn || "",
+        permAddrHouseRoadEn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.houseRoadEn || ""
+          : formData.permAddrAddress?.houseRoadEn || "",
 
         // Present Address
         copyPermAddrToPrsntAddr: formData.copyPermAddrToPrsntAddr
@@ -2696,6 +2766,36 @@ export default function BirthRegistrationForm() {
               ? formData.birthPlaceAddress?.ward
               : formData.permAddrAddress?.ward) || "-1"
           : formData.prsntAddrAddress?.ward || "-1",
+        prsntAddrVilAreaTownBn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.vilAreaTownBn || ""
+            : formData.permAddrAddress?.vilAreaTownBn || ""
+          : formData.prsntAddrAddress?.vilAreaTownBn || "",
+        prsntAddrVilAreaTownEn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.vilAreaTownEn || ""
+            : formData.permAddrAddress?.vilAreaTownEn || ""
+          : formData.prsntAddrAddress?.vilAreaTownEn || "",
+        prsntAddrPostOfc: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.postOfc || ""
+            : formData.permAddrAddress?.postOfc || ""
+          : formData.prsntAddrAddress?.postOfc || "",
+        prsntAddrPostOfcEn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.postOfcEn || ""
+            : formData.permAddrAddress?.postOfcEn || ""
+          : formData.prsntAddrAddress?.postOfcEn || "",
+        prsntAddrHouseRoadBn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.houseRoadBn || ""
+            : formData.permAddrAddress?.houseRoadBn || ""
+          : formData.prsntAddrAddress?.houseRoadBn || "",
+        prsntAddrHouseRoadEn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.houseRoadEn || ""
+            : formData.permAddrAddress?.houseRoadEn || ""
+          : formData.prsntAddrAddress?.houseRoadEn || "",
 
         // Applicant Information
         applicantName: formData.applicant.name,
@@ -2717,7 +2817,12 @@ export default function BirthRegistrationForm() {
         personImage: "",
       };
 
-      console.log("Form submission data:", JSON.stringify(submissionData));
+      console.log(
+        "Form submission data:",
+        JSON.stringify(submissionData, null, 2)
+      );
+
+      // OTP verification
       const response = await fetch(
         "/api/birth/application/registration/otp-verify",
         {
@@ -2735,8 +2840,9 @@ export default function BirthRegistrationForm() {
           }),
         }
       );
+
       const respData = await response.json();
-      if (respData.data.isVerified !== true) {
+      if (respData.data?.isVerified !== true) {
         toast.error("OTP যাচাই ব্যর্থ হয়েছে", { id: "submission" });
         return;
       }
@@ -2751,6 +2857,7 @@ export default function BirthRegistrationForm() {
           },
           body: JSON.stringify(submissionData),
         });
+
         const resData = await response.json();
 
         if (resData.success) {
@@ -2759,7 +2866,9 @@ export default function BirthRegistrationForm() {
             id: "submission",
           });
         } else {
-          toast.error(resData.error, { id: "submission" });
+          toast.error(resData.error || "আবেদন জমা দিতে সমস্যা হয়েছে", {
+            id: "submission",
+          });
         }
       } catch (error) {
         console.error("Submission error:", error);
@@ -4281,9 +4390,11 @@ export default function BirthRegistrationForm() {
                           পিতার জাতীয়তা:
                         </span>
                         <p className="font-medium">
-                          {nationalityOptions.find(
-                            (n) => n.id === formData.father.personNationality
-                          )?.value}
+                          {
+                            nationalityOptions.find(
+                              (n) => n.id === formData.father.personNationality
+                            )?.value
+                          }
                         </p>
                       </div>
                       <div>
@@ -4313,9 +4424,11 @@ export default function BirthRegistrationForm() {
                           মাতার জাতীয়তা:
                         </span>
                         <p className="font-medium">
-                          {nationalityOptions.find(
-                            (n) => n.id === formData.mother.personNationality
-                          )?.value}
+                          {
+                            nationalityOptions.find(
+                              (n) => n.id === formData.mother.personNationality
+                            )?.value
+                          }
                         </p>
                       </div>
                     </div>
@@ -4499,7 +4612,8 @@ export default function BirthRegistrationForm() {
                     </div>
                     {isOtpSent && otpCountdown > 0 && (
                       <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                        OTP পাঠানো হয়েছে। {formatTime(otpCountdown)} পরে আবার একই নম্বরে পাঠাতে পারবেন
+                        OTP পাঠানো হয়েছে। {formatTime(otpCountdown)} পরে আবার
+                        একই নম্বরে পাঠাতে পারবেন
                       </p>
                     )}
                     {formErrors["applicant.phone"] && (
