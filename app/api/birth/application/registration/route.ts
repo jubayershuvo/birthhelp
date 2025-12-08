@@ -507,8 +507,8 @@ export async function POST(request: NextRequest) {
     appendFormData("relationWithApplicant", restData.relationWithApplicant);
 
     // Additional applicant fields
-    appendFormData("applicantDob", "");
-    appendFormData("applicantNotParentsBrn", "");
+    appendFormData("applicantDob", restData.applicantDob || "");
+    appendFormData("applicantNotParentsBrn", restData.applicantNotParentsBrn || "");
 
     // File attachments
     if (restData.attachments && Array.isArray(restData.attachments)) {
