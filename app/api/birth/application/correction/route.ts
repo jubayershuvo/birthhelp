@@ -630,94 +630,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// export async function GET() {
-//   try {
-//     await connectDB();
-//     const user = await getUser();
-//     if (!user) {
-//       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-//     }
-
-//     const servicePath = "/birth/application/correction";
-
-//     const service = await Services.findOne({ href: servicePath });
-//     if (!service) {
-//       return NextResponse.json(
-//         { success: false, error: "Service not found" },
-//         { status: 404 }
-//       );
-//     }
-
-//     const userService = user.services.find(
-//       (s: { service: string }) =>
-//         s.service.toString() === service._id.toString()
-//     );
-    
-
-//     if (!userService) {
-//       return NextResponse.json(
-//         { success: false, error: "User does not have access to this service" },
-//         { status: 403 }
-//       );
-//     }
-//     const serviceCost = userService.fee + service.fee;
-
-//     const url = "https://bdris.gov.bd";
-//     const applicationUrl = "https://bdris.gov.bd/br/correction";
-//     const res = await fetch(applicationUrl, {
-//       method: "GET",
-//       headers: {
-//         "User-Agent":
-//           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
-//         Accept: "*/*",
-//         "Accept-Language": "en-US,en;q=0.7",
-//         "Accept-Encoding": "gzip, deflate, br, zstd",
-//         "X-Requested-With": "XMLHttpRequest",
-//         Referer: url,
-//         "Sec-Fetch-Site": "same-origin",
-//         "Sec-Fetch-Mode": "cors",
-//         "Sec-Fetch-Dest": "empty",
-//         "Sec-Fetch-User": "?1",
-//         "Upgrade-Insecure-Requests": "1",
-//       },
-//       cache: "no-store",
-//       redirect: "follow",
-//     });
-//     const cookies = res.headers.get("set-cookie") || "";
-//     const cookiesStr: string = cookies ?? "";
-
-//     const cookiesArr: string[] = [];
-
-//     // Regex to capture all "key=value" before first semicolon of each cookie
-//     const cookieRegex = /([^\s,=]+=[^;,\s]+)/g;
-//     //match
-//     let match: RegExpExecArray | null;
-//     while ((match = cookieRegex.exec(cookiesStr)) !== null) {
-//       cookiesArr.push(match[1]);
-//     }
-//     const html = await res.text();
-//     const csrf = html.match(/<meta name="_csrf" content="([^"]+)"/)?.[1] || "";
-//     const captchaMatch = html.match(/<img[^>]*id="captcha"[^>]*src="([^"]*)"/);
-//     const captchaSrc = captchaMatch ? captchaMatch[1] : null;
-
-//     return NextResponse.json({
-//       cookies: cookiesArr,
-//       csrf,
-//       serviceCost: serviceCost,
-//       captcha: {
-//         src: captchaSrc,
-//       },
-//     });
-//   } catch (error) {
-//     return NextResponse.json(
-//       { message: "Internal Server Error" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
 export async function GET() {
-  let browser;
   try {
     await connectDB();
     const user = await getUser();
@@ -739,6 +652,7 @@ export async function GET() {
       (s: { service: string }) =>
         s.service.toString() === service._id.toString()
     );
+    
 
     if (!userService) {
       return NextResponse.json(
@@ -747,58 +661,44 @@ export async function GET() {
       );
     }
     const serviceCost = userService.fee + service.fee;
-    browser = await puppeteer.launch({
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-blink-features=AutomationControlled",
-      ],
+
+    const url = "https://bdris.gov.bd";
+    const applicationUrl = "https://bdris.gov.bd/br/correction";
+    const res = await fetch(applicationUrl, {
+      method: "GET",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        Accept: "*/*",
+        "Accept-Language": "en-US,en;q=0.7",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "X-Requested-With": "XMLHttpRequest",
+        Referer: url,
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1",
+      },
+      cache: "no-store",
+      redirect: "follow",
     });
+    const cookies = res.headers.get("set-cookie") || "";
+    const cookiesStr: string = cookies ?? "";
 
-    const page = await browser.newPage();
+    const cookiesArr: string[] = [];
 
-    // --------- Extra anti-block settings ----------
-    await page.setViewport({ width: 1280, height: 900 });
-
-    await page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-        "AppleWebKit/537.36 (KHTML, like Gecko) " +
-        "Chrome/121.0.0.0 Safari/537.36"
-    );
-
-    await page.setExtraHTTPHeaders({
-      "Accept-Language": "en-US,en;q=0.9",
-      Referer: "https://bdris.gov.bd/",
-    });
-
-    await page.evaluateOnNewDocument(() => {
-      Object.defineProperty(navigator, "webdriver", { get: () => false });
-    });
-
-    // ------------------------------------------------
-
-    await page.goto("https://bdris.gov.bd/br/correction", {
-      waitUntil: "networkidle2",
-      timeout: 90000,
-    });
-
-    // Wait for body load
-    await page.waitForSelector("body");
-
-    const html = await page.content();
-
-    const cookies = await page.cookies();
-    const cookiesArr = cookies.map((c) => `${c.name}=${c.value}`);
-
-    const csrf = await page
-      .$eval('meta[name="_csrf"]', (el) => el.getAttribute("content"))
-      .catch(() => null);
-
-    const captchaSrc = await page
-      .$eval("#captcha", (el) => el.getAttribute("src"))
-      .catch(() => null);
-
-    await browser.close();
+    // Regex to capture all "key=value" before first semicolon of each cookie
+    const cookieRegex = /([^\s,=]+=[^;,\s]+)/g;
+    //match
+    let match: RegExpExecArray | null;
+    while ((match = cookieRegex.exec(cookiesStr)) !== null) {
+      cookiesArr.push(match[1]);
+    }
+    const html = await res.text();
+    const csrf = html.match(/<meta name="_csrf" content="([^"]+)"/)?.[1] || "";
+    const captchaMatch = html.match(/<img[^>]*id="captcha"[^>]*src="([^"]*)"/);
+    const captchaSrc = captchaMatch ? captchaMatch[1] : null;
 
     return NextResponse.json({
       cookies: cookiesArr,
@@ -808,8 +708,108 @@ export async function GET() {
         src: captchaSrc,
       },
     });
-  } catch (err) {
-    console.error(err);
-    return Response.json({ error: true, message: String(err) });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
+
+// export async function GET() {
+//   let browser;
+//   try {
+//     await connectDB();
+//     const user = await getUser();
+//     if (!user) {
+//       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+//     }
+
+//     const servicePath = "/birth/application/correction";
+
+//     const service = await Services.findOne({ href: servicePath });
+//     if (!service) {
+//       return NextResponse.json(
+//         { success: false, error: "Service not found" },
+//         { status: 404 }
+//       );
+//     }
+
+//     const userService = user.services.find(
+//       (s: { service: string }) =>
+//         s.service.toString() === service._id.toString()
+//     );
+
+//     if (!userService) {
+//       return NextResponse.json(
+//         { success: false, error: "User does not have access to this service" },
+//         { status: 403 }
+//       );
+//     }
+//     const serviceCost = userService.fee + service.fee;
+//     browser = await puppeteer.launch({
+//       args: [
+//         "--no-sandbox",
+//         "--disable-setuid-sandbox",
+//         "--disable-blink-features=AutomationControlled",
+//       ],
+//     });
+
+//     const page = await browser.newPage();
+
+//     // --------- Extra anti-block settings ----------
+//     await page.setViewport({ width: 1280, height: 900 });
+
+//     await page.setUserAgent(
+//       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+//         "AppleWebKit/537.36 (KHTML, like Gecko) " +
+//         "Chrome/121.0.0.0 Safari/537.36"
+//     );
+
+//     await page.setExtraHTTPHeaders({
+//       "Accept-Language": "en-US,en;q=0.9",
+//       Referer: "https://bdris.gov.bd/",
+//     });
+
+//     await page.evaluateOnNewDocument(() => {
+//       Object.defineProperty(navigator, "webdriver", { get: () => false });
+//     });
+
+//     // ------------------------------------------------
+
+//     await page.goto("https://bdris.gov.bd/br/correction", {
+//       waitUntil: "networkidle2",
+//       timeout: 90000,
+//     });
+
+//     // Wait for body load
+//     await page.waitForSelector("body");
+
+//     const html = await page.content();
+
+//     const cookies = await page.cookies();
+//     const cookiesArr = cookies.map((c) => `${c.name}=${c.value}`);
+
+//     const csrf = await page
+//       .$eval('meta[name="_csrf"]', (el) => el.getAttribute("content"))
+//       .catch(() => null);
+
+//     const captchaSrc = await page
+//       .$eval("#captcha", (el) => el.getAttribute("src"))
+//       .catch(() => null);
+
+//     await browser.close();
+
+//     return NextResponse.json({
+//       cookies: cookiesArr,
+//       csrf,
+//       serviceCost: serviceCost,
+//       captcha: {
+//         src: captchaSrc,
+//       },
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     return Response.json({ error: true, message: String(err) });
+//   }
+// }
