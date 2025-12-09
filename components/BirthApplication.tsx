@@ -341,7 +341,7 @@ const AddressSelectorModal: React.FC<{
   const [wardLabel, setWardLabel] = useState("ওয়ার্ড");
   const [showWardSection, setShowWardSection] = useState(false);
 
-  const api = "/api/address?ajax=1";
+  const api = "https://fortest.top/address.php?id=1";
 
   const refs = {
     country: useRef<HTMLSelectElement>(null),

@@ -118,13 +118,41 @@ class CookieJar {
       })
       .filter((cookie) => cookie.key);
   }
+
+  // Clear all cookies from the jar
+  clear(): void {
+    this.cookies.clear();
+  }
+
+  // Seed cookies from a cookie string
+  seedFromString(cookieString: string, url: string): void {
+    if (!cookieString) return;
+    
+    const domain = new URL(url).hostname;
+    const cookiePairs = cookieString
+      .split(";")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    for (const pair of cookiePairs) {
+      // Add default attributes if not present
+      let cookieStr = pair;
+      if (!cookieStr.includes("Domain=")) {
+        cookieStr += `; Domain=${domain}`;
+      }
+      if (!cookieStr.includes("Path=")) {
+        cookieStr += "; Path=/";
+      }
+      this.setCookie(cookieStr, url);
+    }
+  }
 }
 
-// Global cookie jar instance
+// Global cookie jar instance (for GET requests)
 const jar = new CookieJar();
 
 /**
- * Perform a GET request with cookie handling
+ * Perform a GET request with cookie handling using the global jar
  */
 async function fetchWithCookies(
   url: string,
@@ -148,7 +176,6 @@ async function fetchWithCookies(
   const response = await fetch(url, {
     ...options,
     headers,
-    // Note: In a real production environment, you might want more sophisticated TLS handling
   });
 
   // Handle Set-Cookie headers
@@ -166,7 +193,35 @@ async function fetchWithCookies(
 }
 
 /**
- * Ensure we have valid BDRIS cookies
+ * Perform a request with custom cookies from body
+ */
+async function fetchWithCustomCookies(
+  url: string,
+  cookies: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const headers = new Headers(options.headers);
+
+  if (cookies) {
+    headers.set("Cookie", cookies);
+  }
+
+  // Add required headers if not present
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json, text/plain, */*");
+  }
+  if (!headers.has("Referer")) {
+    headers.set("Referer", BDRIS_HOME);
+  }
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
+/**
+ * Ensure we have valid BDRIS cookies in the global jar
  */
 async function ensureBdrisCookies(): Promise<void> {
   try {
@@ -294,6 +349,7 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    
     // Ensure cookies exist or fetch homepage
     await ensureBdrisCookies();
 
@@ -302,13 +358,7 @@ export async function GET(request: NextRequest) {
       const current = await jar.getCookieString(BDRIS_HOME);
       if (!current || current.length === 0) {
         console.log("Seeding cookie jar from BDRIS_COOKIE env var (one-time).");
-        const cookiePairs = (process.env as ProcessEnv)
-          .BDRIS_COOKIE!.split(";")
-          .map((s) => s.trim())
-          .filter(Boolean);
-        for (const pair of cookiePairs) {
-          jar.setCookie(pair + "; Domain=bdris.gov.bd; Path=/", BDRIS_HOME);
-        }
+        jar.seedFromString((process.env as ProcessEnv).BDRIS_COOKIE!, BDRIS_HOME);
         const after = await jar.getCookieString(BDRIS_HOME);
         console.log(`Cookie jar seeded; length now=${after.length}`);
       }
@@ -369,13 +419,157 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+
+  // Parse and validate parameters
+  const parent =
+    searchParams.get("parent") &&
+    /^\d+$/.test(String(searchParams.get("parent")))
+      ? parseInt(searchParams.get("parent")!, 10)
+      : 1;
+
+  const geoOrder =
+    searchParams.get("geoOrder") &&
+    /^\d+$/.test(String(searchParams.get("geoOrder")))
+      ? parseInt(searchParams.get("geoOrder")!, 10)
+      : 0;
+
+  let geoType = searchParams.get("geoType") || "0";
+  if (!/^(?:\d+|7Cantonment)$/.test(geoType)) geoType = "0";
+
+  const allowedGroups = new Set([
+    "birthPlace",
+    "presentAddress",
+    "permanentAddress",
+  ]);
+  const geoGroup = allowedGroups.has(searchParams.get("geoGroup") || "")
+    ? searchParams.get("geoGroup")!
+    : "birthPlace";
+
+  const wantWard = searchParams.get("ward") === "true";
+  const allowWard =
+    geoOrder === 4 ||
+    (geoOrder === 3 && (geoType === "7" || geoType === "7Cantonment"));
+  const ward = wantWard && allowWard;
+
+  const url = buildBdrisUrl(parent, geoOrder, geoType, geoGroup, ward);
+
+  try {
+    // Parse request body to get cookies
+    let cookiesFromBody = "";
+    try {
+      const body = await request.json();
+      cookiesFromBody = body.cookies || "";
+      console.log(`POST request: Received ${cookiesFromBody.length} chars of cookies from request body`);
+    } catch (parseError) {
+      console.warn("Failed to parse request body for cookies:", parseError);
+    }
+
+    await connectDB();
+    const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    // Clean and prepare cookies from body
+    let cookiesToUse = "";
+    if (cookiesFromBody) {
+      // Clean up the cookie string
+      cookiesToUse = cookiesFromBody
+        .split(';')
+        .map(cookie => cookie.trim())
+        .filter(cookie => cookie.length > 0)
+        .join('; ');
+      
+      console.log(`POST request: Using ${cookiesToUse.length} chars of cookies directly from body`);
+      console.log(`POST request: Cookie string: ${cookiesToUse.substring(0, 100)}${cookiesToUse.length > 100 ? '...' : ''}`);
+    } else {
+      // If no cookies in body, fall back to using the global jar
+      console.log("POST request: No cookies in body, falling back to global cookie jar");
+      await ensureBdrisCookies();
+      cookiesToUse = await jar.getCookieString(BDRIS_HOME);
+      
+      // If still empty, try environment variable
+      if (!cookiesToUse && (process.env as ProcessEnv).BDRIS_COOKIE) {
+        console.log("POST request: Using BDRIS_COOKIE from env");
+        cookiesToUse = (process.env as ProcessEnv).BDRIS_COOKIE!;
+      }
+    }
+
+    console.log(`POST request: Proxying to BDRIS API: ${url}`);
+    const start = Date.now();
+    
+    // Use custom cookies directly without touching the global jar
+    const upstreamResponse = await fetchWithCustomCookies(url, cookiesToUse);
+    
+    const duration = Date.now() - start;
+
+    console.log(
+      `POST request - BDRIS API: ${upstreamResponse.status} | ${duration}ms | Parent: ${parent} | GeoOrder: ${geoOrder}`
+    );
+
+    // Get response body
+    const responseBody = await upstreamResponse.text();
+
+    // Create response with CORS headers
+    const response = new NextResponse(responseBody, {
+      status: upstreamResponse.status,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+
+    // Copy relevant headers
+    const interestingHeaders = [
+      "content-type",
+      "content-length",
+      "cache-control",
+      "date",
+    ];
+    interestingHeaders.forEach((header) => {
+      const value = upstreamResponse.headers.get(header);
+      if (value) {
+        response.headers.set(header, value);
+      }
+    });
+
+    // Capture any Set-Cookie headers from response (but don't add to global jar)
+    const setCookieHeaders = upstreamResponse.headers.getSetCookie();
+    if (setCookieHeaders && setCookieHeaders.length > 0) {
+      console.log(`POST request: Received ${setCookieHeaders.length} Set-Cookie headers from BDRIS API`);
+      // Return them in a custom header for the client
+      response.headers.set("X-Set-Cookies", JSON.stringify(setCookieHeaders));
+    }
+
+    return response;
+  } catch (err) {
+    console.error("POST request - BDRIS fetch error:", err);
+
+    const errorResponse = {
+      error: "Upstream fetch failed",
+      message: err instanceof Error ? err.message : "Unknown error",
+      url,
+      timestamp: new Date().toISOString(),
+    };
+
+    return NextResponse.json(errorResponse, {
+      status: 502,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }
+}
+
 // Handle CORS preflight requests
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
