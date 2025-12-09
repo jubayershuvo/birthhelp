@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Build query parameters safel
 
-    const url = `https://bdris.gov.bd/admin/doc/upload`;
+    const url = `${process.env.BDRIS_PROXY}/admin/doc/upload`;
     const cookiesJson = cookies ? JSON.parse(cookies) : [];
     // Build headers
     const headers = new Headers({

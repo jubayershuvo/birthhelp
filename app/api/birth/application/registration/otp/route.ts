@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     if (email) params.append("email", email);
 
-    const url = `https://bdris.gov.bd/api/otp/sent?${params.toString()}`;
+    const url = `${process.env.BDRIS_PROXY}/api/otp/sent?${params.toString()}`;
 
     // Build headers
     const headers = new Headers({

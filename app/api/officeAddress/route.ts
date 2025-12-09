@@ -19,8 +19,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const cityUrl = `https://bdris.gov.bd/v1/api/geo/parentGeoIdWithGeoGroupAndGeoOrder/${id}?geoGroup=officeAddr&geoOrder=${geoOrder}&geoType=${geoType}`;
-    const officeUrl = `https://bdris.gov.bd/api/office/find-office-geo-projection-by-geo-id/${id}?geoGroup=officeAddr&geoOrder=${geoOrder}&geoType=${geoType}`;
+    const cityUrl = `${process.env.BDRIS_PROXY}/v1/api/geo/parentGeoIdWithGeoGroupAndGeoOrder/${id}?geoGroup=officeAddr&geoOrder=${geoOrder}&geoType=${geoType}`;
+    const officeUrl = `${process.env.BDRIS_PROXY}/api/office/find-office-geo-projection-by-geo-id/${id}?geoGroup=officeAddr&geoOrder=${geoOrder}&geoType=${geoType}`;
     const url = geoOrder === "0" ? cityUrl : officeUrl;
     const headers = new Headers({
       "User-Agent":

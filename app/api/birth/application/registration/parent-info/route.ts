@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     const { cookies, csrf, ubrn, dob, nameEn, childBirthDate, gender } = body;
 
-    const url = `https://bdris.gov.bd/api/br/parent-info`;
+    const url = `${process.env.BDRIS_PROXY}/api/br/parent-info`;
     const userAgentString =
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36";
 

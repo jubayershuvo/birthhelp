@@ -481,7 +481,7 @@ export async function POST(request: NextRequest) {
     headers.set("Referer", "https://bdris.gov.bd/br/correction");
 
     // Make the request to the external API
-    const apiUrl = "https://bdris.gov.bd/api/br/correction/is-valid-app";
+    const apiUrl = `${process.env.BDRIS_PROXY}/api/br/correction/is-valid-app`;
 
     console.log(
       "Making request to external API with cookies:",

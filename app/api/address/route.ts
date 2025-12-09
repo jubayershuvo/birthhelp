@@ -11,9 +11,8 @@ interface ProcessEnv {
 }
 
 // Constants
-const BDRIS_HOME = "https://bdris.gov.bd/";
-const BDRIS_API_BASE =
-  "https://bdris.gov.bd/v1/api/geo/parentGeoIdWithGeoGroupAndGeoOrder/";
+const BDRIS_HOME = `${process.env.BDRIS_PROXY}`;
+const BDRIS_API_BASE = `${process.env.BDRIS_PROXY}/v1/api/geo/parentGeoIdWithGeoGroupAndGeoOrder/`;
 const COOKIE_REFRESH_MIN = parseInt(
   (process.env as ProcessEnv).COOKIE_REFRESH_MIN || "15",
   10

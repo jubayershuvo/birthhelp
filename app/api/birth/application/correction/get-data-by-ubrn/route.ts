@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const url = `https://bdris.gov.bd/api/br/search-by-ubrn-and-dob?ubrn=${ubrn}&personBirthDate=${dob}&captchaAns=${captcha}`;
+    const url = `${process.env.BDRIS_PROXY}/api/br/search-by-ubrn-and-dob?ubrn=${ubrn}&personBirthDate=${dob}&captchaAns=${captcha}`;
 
     // Build headers
     const headers = new Headers();

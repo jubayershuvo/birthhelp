@@ -547,7 +547,7 @@ export async function POST(request: NextRequest) {
     headers.set("X-Csrf-Token", csrf);
     headers.set("Referer", "https://bdris.gov.bd/br/application");
     // Make the request to the external API
-    const apiUrl = "https://bdris.gov.bd/br/application";
+    const apiUrl = `${process.env.BDRIS_PROXY}/br/application`;
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -654,7 +654,7 @@ export async function GET() {
     }
     const serviceCost = userService.fee + service.fee;
     const url = "https://bdris.gov.bd";
-    const applicationUrl = "https://bdris.gov.bd/br/application";
+    const applicationUrl = `${process.env.BDRIS_PROXY}/br/application`;
     const res = await fetch(applicationUrl, {
       method: "GET",
       headers: {

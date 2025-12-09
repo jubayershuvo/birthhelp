@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     if (email) params.append("email", email);
 
-    const url = `https://bdris.gov.bd/api/otp/verify?${params.toString()}`;
+    const url = `${process.env.BDRIS_PROXY}/api/otp/verify?${params.toString()}`;
 
     // Build headers
     const headers = new Headers({

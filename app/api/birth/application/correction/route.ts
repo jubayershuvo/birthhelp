@@ -573,7 +573,7 @@ export async function POST(request: NextRequest) {
     headers.set("X-Csrf-Token", body.csrf);
     headers.set("Referer", "https://bdris.gov.bd/br/correction");
     // Make the request to the external API
-    const apiUrl = "https://bdris.gov.bd/br/correction";
+    const apiUrl = `${process.env.BDRIS_PROXY}/br/correction`;
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -677,7 +677,8 @@ export async function GET() {
     // console.log("IP via proxy:", ip);
 
     const url = "https://bdris.gov.bd";
-    const applicationUrl = "https://bdris.gov.bd/br/correction";
+    const applicationUrl = `${process.env.BDRIS_PROXY}/br/correction`;
+
     const res = await fetch(applicationUrl, {
       method: "GET",
       headers: {
