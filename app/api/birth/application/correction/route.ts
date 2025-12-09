@@ -7,9 +7,19 @@ import Services from "@/models/Services";
 import Reseller from "@/models/Reseller";
 import Spent from "@/models/Use";
 import Earnings from "@/models/Earnings";
+import { SocksProxyAgent } from "socks-proxy-agent";
 import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer-extra";
+
+import { setGlobalDispatcher, ProxyAgent } from "undici";
+
+export const runtime = "nodejs";
+
+if (process.env.HTTPS_PROXY) {
+  setGlobalDispatcher(new ProxyAgent({ uri: process.env.HTTPS_PROXY }));
+}
+
 
 // Define types for the request body
 interface CorrectionInfo {
@@ -652,7 +662,6 @@ export async function GET() {
       (s: { service: string }) =>
         s.service.toString() === service._id.toString()
     );
-    
 
     if (!userService) {
       return NextResponse.json(
@@ -661,6 +670,11 @@ export async function GET() {
       );
     }
     const serviceCost = userService.fee + service.fee;
+
+    // const response = await fetch("https://api.ipify.org?format=text");
+
+    // const ip = await response.text();
+    // console.log("IP via proxy:", ip);
 
     const url = "https://bdris.gov.bd";
     const applicationUrl = "https://bdris.gov.bd/br/correction";
@@ -696,9 +710,17 @@ export async function GET() {
       cookiesArr.push(match[1]);
     }
     const html = await res.text();
+
     const csrf = html.match(/<meta name="_csrf" content="([^"]+)"/)?.[1] || "";
     const captchaMatch = html.match(/<img[^>]*id="captcha"[^>]*src="([^"]*)"/);
     const captchaSrc = captchaMatch ? captchaMatch[1] : null;
+
+    if(!csrf || !captchaSrc || !cookiesArr) {
+      return NextResponse.json(
+        { success: false, error: "Captcha not found" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       cookies: cookiesArr,
@@ -709,6 +731,7 @@ export async function GET() {
       },
     });
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

@@ -31,12 +31,15 @@
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.6.0",
     "react-redux": "^9.2.0",
-    "redux-persist": "^6.0.0"
+    "redux-persist": "^6.0.0",
+    "socks-proxy-agent": "^8.0.5",
+    "undici": "^7.16.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/crypto-js": "^4.2.2",
+    "@types/global-agent": "^3.0.0",
     "@types/html-pdf-node": "^1.0.2",
     "@types/html2canvas": "^0.5.35",
     "@types/jsonwebtoken": "^9.0.10",
