@@ -172,7 +172,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
 
   const [wardLabel, setWardLabel] = useState("ওয়ার্ড");
 
-  const api = "/api/address?ajax=1";
+  const api = "https://fortest.top/address.php?ajax=1";
 
   const refs = {
     country: useRef<HTMLSelectElement>(null),
