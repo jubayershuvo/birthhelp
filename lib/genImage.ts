@@ -15,7 +15,7 @@ export async function generateQRCode(data: string): Promise<string | null> {
 
     // Convert buffer → base64 → Data URL
     const base64 = png.toString("base64");
-    console.log(base64)
+   
     return `data:image/png;base64,${base64}`;
   } catch (error) {
     console.error("QR generation failed:", error);
