@@ -9,12 +9,13 @@ export async function generateQRCode(data: string): Promise<string | null> {
       scale: 4,
       version: 6,
       includetext: false,
-      eclevel: "M",
+      eclevel: "L",
       padding: 4,
     });
 
     // Convert buffer → base64 → Data URL
     const base64 = png.toString("base64");
+    console.log(base64)
     return `data:image/png;base64,${base64}`;
   } catch (error) {
     console.error("QR generation failed:", error);
