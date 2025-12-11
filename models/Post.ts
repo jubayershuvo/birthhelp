@@ -5,7 +5,9 @@ export interface IPost extends Document {
   user: Types.ObjectId;
   worker: Types.ObjectId;
   description: string;
-  deal_amount: number;
+  admin_fee: number;
+  worker_fee: number;
+  reseller_fee: number;
   deliveryFile?: {
     name: string;
     fileId: string;
@@ -26,7 +28,9 @@ const PostSchema = new Schema<IPost>(
     },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     worker: { type: Schema.Types.ObjectId, ref: "Reseller" },
-    deal_amount: { type: Number },
+    admin_fee: { type: Number, required: true },
+    worker_fee: { type: Number, required: true },
+    reseller_fee: { type: Number, default: 0 },
     description: { type: String, required: true },
     deliveryFile: {
       name: { type: String },

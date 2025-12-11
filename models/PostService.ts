@@ -3,7 +3,10 @@ import { Document, Schema } from "mongoose";
 
 export interface IData extends Document {
   title: string;
-  amount: number;
+  description: string; // long textarea
+  admin_fee: number;
+  worker_fee: number;
+  reseller_fee: number;
   attachments: [
     {
       name: string;
@@ -14,7 +17,10 @@ export interface IData extends Document {
 const dataSchema = new Schema<IData>(
   {
     title: { type: String, required: true },
-    amount: { type: Number, default: 0 },
+    description: { type: String, required: true }, // long textarea
+    admin_fee: { type: Number, required: true },
+    worker_fee: { type: Number, required: true },
+    reseller_fee: { type: Number, default: 0 },
     attachments: [
       {
         name: { type: String },

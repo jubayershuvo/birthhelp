@@ -6,6 +6,7 @@ import Earnings from "@/models/Earnings";
 import PostFile from "@/models/PostFile";
 import path from "path";
 import fs from "fs/promises";
+import User from "@/models/User";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -51,8 +52,10 @@ export async function POST(
 
     // Find the post
     const post = await Post.findById(postId).populate("service");
+    const poster = await User.findById(post.user);
+    const poster_reseller = await User.findById(poster?.reseller);
 
-    if (!post) {
+    if (!post || !poster || !poster_reseller) {
       return NextResponse.json(
         { success: false, message: "Post not found" },
         { status: 404 }
@@ -114,8 +117,7 @@ export async function POST(
     post.updatedAt = new Date();
     post.completedAt = new Date();
 
-    // Update user balance
-    user.balance += Number(post.deal_amount);
+    user.balance += Number(post.worker_fee);
 
     await user.save();
     await post.save();
@@ -125,7 +127,15 @@ export async function POST(
       user: post.user.toString(),
       reseller: user._id,
       service: post.service._id,
-      amount: post.deal_amount,
+      amount: post.worker_fee,
+      data: post._id.toString(),
+      dataSchema: "CompletedWork",
+    });
+    await Earnings.create({
+      user: post.user.toString(),
+      reseller: poster_reseller._id,
+      service: post.service._id,
+      amount: post.reseller_fee,
       data: post._id.toString(),
       dataSchema: "CompletedWork",
     });

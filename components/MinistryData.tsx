@@ -20,7 +20,6 @@ import {
   Tag,
   Copy,
   ChevronRight,
-  History,
 } from "lucide-react";
 import axios from "axios";
 import { decryptFile } from "@/lib/decryptFile";
@@ -468,8 +467,10 @@ const SearchPage = () => {
               প্রতি বার {serviceCost} টাকা করে কাটা হবে
             </p>
           </div>
-          <Link href="/data/ministry/history" className="">
-            <History />
+          <Link href="/data/ministry/history">
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              History
+            </button>
           </Link>
         </div>
 

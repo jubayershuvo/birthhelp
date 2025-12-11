@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Upload, FileText, CheckCircle, AlertCircle, Sparkles, X, File } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Sparkles,
+  X,
+  File,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 interface IService {
   _id: string;
   title: string;
-  amount: number;
+  description: string; // long textarea
+  admin_fee: number;
+  worker_fee: number;
+  reseller_fee: number;
   attachments: { _id: string; name: string }[];
 }
 
@@ -61,7 +72,10 @@ export default function CreatePostPage() {
     if (!selectedService) return alert("Please select a service first.");
 
     // Only check file upload if the service has required attachments
-    if (selectedService.attachments.length > 0 && uploaded.length !== selectedService.attachments.length) {
+    if (
+      selectedService.attachments.length > 0 &&
+      uploaded.length !== selectedService.attachments.length
+    ) {
       return alert("Please upload all required files.");
     }
 
@@ -74,8 +88,7 @@ export default function CreatePostPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         service_id: selectedService._id,
-        amount: selectedService.amount,
-        description,
+        description: description,
         files: uploaded?.map(({ fileId, name }) => ({ fileId, name })) || [],
       }),
     });
@@ -86,7 +99,7 @@ export default function CreatePostPage() {
     if (data.success) {
       window.location.href = "/my-posts";
     } else {
-     toast.error(data.message);
+      toast.error(data.message);
     }
   };
 
@@ -106,11 +119,12 @@ export default function CreatePostPage() {
     setUploaded((prev) => prev.filter((item) => item.name !== name));
   };
 
-  const hasRequiredAttachments = selectedService && selectedService.attachments.length > 0;
+  const hasRequiredAttachments =
+    selectedService && selectedService.attachments.length > 0;
   const progress = hasRequiredAttachments
     ? (uploaded.length / selectedService.attachments.length) * 100
     : 100; // 100% if no attachments required
-
+  console.log(selectedService);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-gray-900 dark:text-white p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
@@ -122,7 +136,9 @@ export default function CreatePostPage() {
               Create New Post
             </h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">Fill in the details to get started</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Fill in the details to get started
+          </p>
         </div>
 
         {/* Progress Bar - Only show if service has attachments */}
@@ -164,13 +180,13 @@ export default function CreatePostPage() {
                 const service = services.find((s) => s._id === e.target.value);
                 setSelectedService(service || null);
                 setUploaded([]);
-                setDescription("");
+                setDescription(service?.description || "");
               }}
             >
               <option value="">Choose a service...</option>
               {services?.map((s) => (
                 <option key={s._id} value={s._id}>
-                  {s.title} - {s.amount} BDT
+                  {s.title} - {s.admin_fee + s.reseller_fee + s.worker_fee} BDT
                 </option>
               ))}
             </select>
@@ -184,7 +200,7 @@ export default function CreatePostPage() {
               Description
             </label>
             <textarea
-              rows={5}
+              rows={10}
               className="w-full p-4 bg-gray-50 dark:bg-gray-900/90 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               placeholder="Provide detailed information about your request..."
               value={description}
@@ -251,7 +267,9 @@ export default function CreatePostPage() {
                               </p>
                               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                                 {found.file && `File: ${found.file.name}`}
-                                <span className="block">ID: {found.fileId}</span>
+                                <span className="block">
+                                  ID: {found.fileId}
+                                </span>
                               </p>
                             </div>
                           </div>
@@ -277,10 +295,16 @@ export default function CreatePostPage() {
                           }}
                           disabled={isUploading}
                         />
-                        <div className={`border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <div
+                          className={`border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-500/5 transition-all ${
+                            isUploading ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                        >
                           <Upload className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {isUploading ? 'Uploading...' : 'Click to upload or drag and drop'}
+                            {isUploading
+                              ? "Uploading..."
+                              : "Click to upload or drag and drop"}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                             Images (Max: 10MB)
@@ -303,10 +327,11 @@ export default function CreatePostPage() {
                     </div>
                     <div>
                       <p className="text-blue-700 dark:text-blue-400 font-medium">
-                        {uploaded.length} of {selectedService.attachments.length} files uploaded
+                        {uploaded.length} of{" "}
+                        {selectedService.attachments.length} files uploaded
                       </p>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {uploaded.length === selectedService.attachments.length 
+                        {uploaded.length === selectedService.attachments.length
                           ? "All required files are ready!"
                           : "Please upload all required files to continue."}
                       </p>
@@ -337,10 +362,12 @@ export default function CreatePostPage() {
               </h3>
             </div>
             <p className="text-green-700 dark:text-green-400 mb-2">
-              This service doesn&apos;t require any additional documents to be uploaded.
+              This service doesn&apos;t require any additional documents to be
+              uploaded.
             </p>
             <p className="text-sm text-green-600 dark:text-green-500">
-              You can proceed with creating your post by filling out the description above.
+              You can proceed with creating your post by filling out the
+              description above.
             </p>
           </div>
         )}
@@ -350,8 +377,9 @@ export default function CreatePostPage() {
           <button
             onClick={handleCreatePost}
             disabled={
-              submitting || 
-              (hasRequiredAttachments && uploaded.length !== selectedService.attachments.length) || 
+              submitting ||
+              (hasRequiredAttachments &&
+                uploaded.length !== selectedService.attachments.length) ||
               !description.trim()
             }
             className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-600 dark:to-purple-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-700 dark:hover:to-purple-700 rounded-xl text-lg font-bold text-white disabled:from-gray-400 disabled:to-gray-500 dark:disabled:from-gray-700 dark:disabled:to-gray-800 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-blue-500/30 dark:hover:shadow-blue-500/30 disabled:shadow-none transform hover:scale-[1.02] active:scale-[0.98] mb-6"

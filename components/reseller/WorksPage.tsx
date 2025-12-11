@@ -14,7 +14,9 @@ interface PostFile {
 interface Service {
   _id: string;
   title: string;
-  amount: number;
+  admin_fee: number;
+  worker_fee: number;
+  reseller_fee: number;
   attachments: Array<{
     name: string;
     _id: string;
@@ -27,7 +29,9 @@ interface Post {
   user: string;
   worker?: string;
   description: string;
-  deal_amount: number;
+  admin_fee: number;
+  worker_fee: number;
+  reseller_fee: number;
   files: PostFile[];
   status: "pending" | "processing" | "completed" | "cancelled";
   createdAt: string;
@@ -637,7 +641,7 @@ export default function WorksFinderPage() {
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                   <div>
                     <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                      ৳{post.deal_amount || 0}
+                      ৳{post.worker_fee || 0}
                     </span>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Payment
@@ -818,7 +822,7 @@ export default function WorksFinderPage() {
                       </h4>
                       <div className="flex items-baseline">
                         <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                          ৳{selectedPost.deal_amount || 0}
+                          ৳{selectedPost.worker || 0}
                         </span>
                         <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
                           payment

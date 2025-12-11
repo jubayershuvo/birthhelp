@@ -39,7 +39,8 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    user.balance -= service.amount;
+    const total = service.admin_fee + service.worker_fee + service.reseller_fee;
+    user.balance -= total;
     await user.save();
 
     // Create Post
@@ -47,7 +48,9 @@ export async function POST(req: Request) {
       service: service_id,
       user: user._id,
       description,
-      deal_amount: service.amount,
+      admin_fee: service.admin_fee,
+      worker_fee: service.worker_fee,
+      reseller_fee: service.reseller_fee,
       files: JSON.parse(JSON.stringify(files)) || [],
       status: "pending",
     });
@@ -55,7 +58,7 @@ export async function POST(req: Request) {
     await Spent.create({
       user: user._id,
       service: service._id,
-      amount: service.amount,
+      amount: total,
       data: newPost._id,
       dataSchema: "WorkPost",
     });

@@ -1,4 +1,4 @@
-import WorksFinderPage from "@/components/WorksPage";
+import WorksFinderPage from "@/components/reseller/WorksPage";
 
 export default function Works() {
     return (
