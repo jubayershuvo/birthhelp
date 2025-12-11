@@ -8,6 +8,7 @@ import {
   ArrowRightToLine,
   Wallet,
   User,
+  Briefcase,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,6 +22,7 @@ import { resellerLogin, resellerLogout } from "@/lib/resellerSlice";
 const menuItems = [
   { label: "Home", icon: <Home size={20} />, href: "/reseller/dashboard" },
   { label: "Users", icon: <User size={20} />, href: "/reseller/users" },
+  { label: "Works", icon: <Briefcase size={20} />, href: "/reseller/works" },
   { label: "Wallet", icon: <Wallet size={20} />, href: "/reseller/wallet" },
 ];
 

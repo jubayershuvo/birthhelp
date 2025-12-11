@@ -28,6 +28,11 @@ const menuItemsd = [
     href: "/services",
   },
   {
+    label: "My Posts",
+    icon: <MessageCircle size={20} />,
+    href: "/my-posts",
+  },
+  {
     label: "Wallet",
     icon: <Wallet size={20} />,
     href: "/wallet",

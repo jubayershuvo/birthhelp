@@ -1,0 +1,49 @@
+import mongoose, { Schema, Document, Types } from "mongoose";
+
+export interface IPost extends Document {
+  service: Types.ObjectId;
+  user: Types.ObjectId;
+  worker: Types.ObjectId;
+  description: string;
+  deal_amount: number;
+  deliveryFile?: {
+    name: string;
+    fileId: string;
+  };
+  files: {
+    name: string;
+    fileId: string;
+  }[];
+  status: string;
+}
+
+const PostSchema = new Schema<IPost>(
+  {
+    service: {
+      type: Schema.Types.ObjectId,
+      ref: "PostService",
+      required: true,
+    },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    worker: { type: Schema.Types.ObjectId, ref: "Reseller" },
+    deal_amount: { type: Number },
+    description: { type: String, required: true },
+    deliveryFile: {
+      name: { type: String },
+      fileId: { type: String },
+    },
+    files: [
+      {
+        name: { type: String, required: true },
+        fileId: { type: String, required: true },
+      },
+    ],
+    status: {
+      type: String,
+      default: "pending", // pending → processing → completed
+    },
+  },
+  { timestamps: true }
+);
+
+export default mongoose.models.Post || mongoose.model("Post", PostSchema);
