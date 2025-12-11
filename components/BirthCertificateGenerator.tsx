@@ -90,20 +90,6 @@ const BirthCertificate: React.FC = () => {
     return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  const formatDateToDDMMYYYY = (dateString: string | undefined): string => {
-    if (!dateString) return "N/A";
-    try {
-      const dateObj = new Date(dateString);
-      if (isNaN(dateObj.getTime())) return dateString;
-
-      const day = String(dateObj.getDate()).padStart(2, "0");
-      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const year = dateObj.getFullYear();
-      return `${day}/${month}/${year}`;
-    } catch (e) {
-      return dateString;
-    }
-  };
 
   const processOfficeLocation = (location: string | undefined): string => {
     if (!location) return "N/A";
@@ -477,7 +463,7 @@ const BirthCertificate: React.FC = () => {
                     fontFamily: "Prima Sans",
                   }}
                 >
-                  {formatDateToDDMMYYYY(certificateData.registrationDate)}
+                  {certificateData.registrationDate}
                 </p>
               </div>
               <div style={{ textAlign: "center", marginLeft: "-37px" }}>
@@ -523,7 +509,7 @@ const BirthCertificate: React.FC = () => {
                     fontFamily: "Prima Sans",
                   }}
                 >
-                  {formatDateToDDMMYYYY(certificateData.issuanceDate)}
+                  {certificateData.issuanceDate}
                 </p>
               </div>
             </div>
@@ -565,7 +551,7 @@ const BirthCertificate: React.FC = () => {
                       fontWeight: "500",
                     }}
                   >
-                    {formatDateToDDMMYYYY(certificateData.dateOfBirth)}
+                    {certificateData.dateOfBirth}
                   </span>
                 </div>
                 <div
