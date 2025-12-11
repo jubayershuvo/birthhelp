@@ -7,6 +7,7 @@ import PostFile from "@/models/PostFile";
 import path from "path";
 import fs from "fs/promises";
 import User from "@/models/User";
+import Reseller from "@/models/Reseller";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -52,8 +53,10 @@ export async function POST(
 
     // Find the post
     const post = await Post.findById(postId).populate("service");
+
     const poster = await User.findById(post.user);
-    const poster_reseller = await User.findById(poster?.reseller);
+
+    const poster_reseller = await Reseller.findById(poster?.reseller);
 
     if (!post || !poster || !poster_reseller) {
       return NextResponse.json(
@@ -137,7 +140,7 @@ export async function POST(
       service: post.service._id,
       amount: post.reseller_fee,
       data: post._id.toString(),
-      dataSchema: "CompletedWork",
+      dataSchema: "CompletedWorkCommission",
     });
 
     return NextResponse.json({
