@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
-    await Report.create({ reason, user: user._id });
+    await Report.create({ reason, user: user._id, post: post._id });
 
     return NextResponse.json(
       { message: "Post reported successfully", success: true },

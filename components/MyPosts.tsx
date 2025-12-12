@@ -469,8 +469,7 @@ export default function MyPostsPage() {
                         Delete
                       </button>
                     )}
-                    {post.status === "processing" ||
-                      (post.status === "completed" && (
+                    {post.status === "processing" || post.status === "completed" && (
                         <>
                           <button
                             onClick={() => handleReportClick(post._id)}
@@ -490,7 +489,7 @@ export default function MyPostsPage() {
                             Report
                           </button>
                         </>
-                      ))}
+                      )}
                   </div>
                 </div>
               </div>
