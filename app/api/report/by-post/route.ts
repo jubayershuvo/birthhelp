@@ -30,6 +30,14 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
+
+    if (post.status !== "processing" && post.status !== "completed") {
+      console.log(post.status)
+      return NextResponse.json(
+        { error: "Only processing and completed posts can be reported" },
+        { status: 400 }
+      );
+    }
     await Report.create({ reason, user: user._id, post: post._id });
 
     return NextResponse.json(
