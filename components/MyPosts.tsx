@@ -17,6 +17,7 @@ interface Post {
   admin_fee: number;
   worker_fee: number;
   reseller_fee: number;
+  note?: string;
   service: {
     _id: string;
     title: string;
@@ -437,6 +438,11 @@ export default function MyPostsPage() {
                     {post.status === "completed" && (
                       <p className="text-green-600 dark:text-green-400 font-medium">
                         ✓ Completed and delivered
+                      </p>
+                    )}
+                    {post.status === "cancelled" && (
+                      <p className="text-red-600 dark:text-red-400 font-medium">
+                        ✗ {post.note}
                       </p>
                     )}
                   </div>

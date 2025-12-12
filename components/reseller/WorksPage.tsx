@@ -1,4 +1,4 @@
-// app/(protected)/works/page.tsx
+// app/(protected)/works/page.tsx (updated - fully responsive)
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -42,6 +42,12 @@ interface Post {
     path?: string;
     uploadedAt?: string;
   };
+  cancellation?: {
+    cancelledBy: string;
+    cancelledAt: string;
+    reason: string;
+    cancelledById: string;
+  };
 }
 
 export default function WorksFinderPage() {
@@ -59,7 +65,14 @@ export default function WorksFinderPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [completingPostId, setCompletingPostId] = useState<string | null>(null);
+  const [cancellingPostId, setCancellingPostId] = useState<string | null>(null);
+  const [cancelNote, setCancelNote] = useState("");
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Mobile state for responsive tabs
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -71,26 +84,18 @@ export default function WorksFinderPage() {
     try {
       setLoading(true);
 
-      // Fetch available works (pending posts)
       const availableResponse = await fetch("/api/reseller/works");
       const availableData = await availableResponse.json();
 
-      // Fetch my accepted works
       const myWorksResponse = await fetch("/api/reseller/works/my");
       const myWorksData = await myWorksResponse.json();
 
       if (availableData.success) {
-        console.log("Available posts:", availableData.posts);
         setAvailablePosts(availableData.posts || []);
-      } else {
-        console.error("Failed to fetch available works:", availableData);
       }
 
       if (myWorksData.success) {
-        console.log("My posts:", myWorksData.posts);
         setMyPosts(myWorksData.posts || []);
-      } else {
-        console.error("Failed to fetch my works:", myWorksData);
       }
     } catch (error) {
       console.error("Error fetching works:", error);
@@ -100,6 +105,57 @@ export default function WorksFinderPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancelWork = async (postId: string) => {
+    if (!cancelNote.trim()) {
+      setMessage({
+        type: "error",
+        text: "Please provide a cancellation reason",
+      });
+      return;
+    }
+
+    try {
+      setCancellingPostId(postId);
+      setMessage(null);
+
+      const response = await fetch(`/api/reseller/works/cancel/${postId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ note: cancelNote }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage({
+          type: "success",
+          text: "Work cancelled successfully",
+        });
+
+        fetchAllPosts();
+
+        setShowCancelModal(false);
+        setCancelNote("");
+        setSelectedPost(null);
+      } else {
+        setMessage({
+          type: "error",
+          text: data.message || "Failed to cancel work",
+        });
+      }
+    } catch (error) {
+      console.error("Error cancelling work:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to cancel work",
+      });
+    } finally {
+      setCancellingPostId(null);
     }
   };
 
@@ -128,14 +184,12 @@ export default function WorksFinderPage() {
           text: "Successfully accepted the work!",
         });
 
-        // Remove the accepted post from available posts
         const acceptedPost = availablePosts.find((post) => post._id === postId);
         if (acceptedPost) {
           setAvailablePosts((prev) =>
             prev.filter((post) => post._id !== postId)
           );
 
-          // Add to my posts with updated status
           setMyPosts((prev) => [
             {
               ...acceptedPost,
@@ -178,7 +232,6 @@ export default function WorksFinderPage() {
       setUploading(true);
       setMessage(null);
 
-      // Create form data for file upload
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("fileName", fileName || selectedFile.name);
@@ -196,7 +249,6 @@ export default function WorksFinderPage() {
           text: "Work marked as completed successfully!",
         });
 
-        // Update the post in my posts
         setMyPosts((prev) =>
           prev.map((post) =>
             post._id === postId
@@ -209,7 +261,6 @@ export default function WorksFinderPage() {
           )
         );
 
-        // Update selected post if it's open
         if (selectedPost && selectedPost._id === postId) {
           setSelectedPost((prev) =>
             prev
@@ -257,23 +308,16 @@ export default function WorksFinderPage() {
   const downloadFile = async (fileId: string, fileName?: string) => {
     try {
       const response = await fetch(`/api/files/${fileId}`);
-
       if (response.ok) {
-        // 1. Extract file name from headers or use provided name
         const disposition = response.headers.get("Content-Disposition");
         let downloadFileName = fileName || "download";
-
         if (disposition && disposition.includes("filename=")) {
           downloadFileName = disposition
             .split("filename=")[1]
             .replace(/"/g, "");
         }
-
-        // 2. Process blob
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-
-        // 3. Trigger file download
         const a = document.createElement("a");
         a.href = url;
         a.download = downloadFileName;
@@ -304,7 +348,6 @@ export default function WorksFinderPage() {
       });
       return;
     }
-
     try {
       await downloadFile(post.deliveryFile.fileId, post.deliveryFile.name);
     } catch (error) {
@@ -329,43 +372,116 @@ export default function WorksFinderPage() {
     return [];
   };
 
-  // Close modal when clicking outside or pressing ESC
+  // Handle escape key and click outside
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setSelectedPost(null);
+        if (showCancelModal) {
+          setShowCancelModal(false);
+          setCancelNote("");
+        } else if (showMobileMenu) {
+          setShowMobileMenu(false);
+        } else {
+          setSelectedPost(null);
+        }
       }
     };
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (selectedPost && target.classList.contains("modal-backdrop")) {
+      
+      if (showCancelModal && target.classList.contains("modal-backdrop")) {
+        setShowCancelModal(false);
+        setCancelNote("");
+      } else if (selectedPost && target.classList.contains("modal-backdrop")) {
         setSelectedPost(null);
-        // Clear file selection when closing modal
         setSelectedFile(null);
         setFileName("");
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
+      } else if (showMobileMenu && tabsRef.current && !tabsRef.current.contains(target)) {
+        setShowMobileMenu(false);
       }
     };
 
-    if (selectedPost) {
-      document.addEventListener("keydown", handleEscape);
-      document.addEventListener("click", handleClickOutside);
-      document.body.style.overflow = "hidden";
-    }
+    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.removeEventListener("click", handleClickOutside);
-      document.body.style.overflow = "auto";
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [selectedPost]);
+  }, [selectedPost, showCancelModal, showMobileMenu]);
+
+  // Responsive tabs for mobile
+  const renderMobileTabs = () => (
+    <div className="md:hidden mb-4">
+      <button
+        onClick={() => setShowMobileMenu(!showMobileMenu)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-lg"
+      >
+        <span className="font-medium">
+          {activeTab === "available" ? "Available Works" :
+           activeTab === "my_works" ? "My Active Works" :
+           activeTab === "completed" ? "Completed" : "Cancelled"}
+        </span>
+        <svg
+          className={`w-5 h-5 transition-transform ${showMobileMenu ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      
+      {showMobileMenu && (
+        <div ref={tabsRef} className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => {
+              setActiveTab("available");
+              setShowMobileMenu(false);
+            }}
+            className={`w-full text-left px-4 py-3 border-b border-gray-200 dark:border-gray-700 ${activeTab === "available" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"}`}
+          >
+            Available Works ({availablePosts.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("my_works");
+              setShowMobileMenu(false);
+            }}
+            className={`w-full text-left px-4 py-3 border-b border-gray-200 dark:border-gray-700 ${activeTab === "my_works" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"}`}
+          >
+            My Active Works ({myPosts.filter((p) => p.status === "processing").length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("completed");
+              setShowMobileMenu(false);
+            }}
+            className={`w-full text-left px-4 py-3 border-b border-gray-200 dark:border-gray-700 ${activeTab === "completed" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"}`}
+          >
+            Completed ({myPosts.filter((p) => p.status === "completed").length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("cancelled");
+              setShowMobileMenu(false);
+            }}
+            className={`w-full text-left px-4 py-3 ${activeTab === "cancelled" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"}`}
+          >
+            Cancelled ({myPosts.filter((p) => p.status === "cancelled").length})
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
         </div>
@@ -376,13 +492,13 @@ export default function WorksFinderPage() {
   const filteredPosts = getFilteredPosts();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
           Find Works
         </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">
+        <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm sm:text-base">
           Browse and accept available service requests
         </p>
       </div>
@@ -390,7 +506,7 @@ export default function WorksFinderPage() {
       {/* Message Alert */}
       {message && (
         <div
-          className={`mb-6 p-4 rounded-lg ${
+          className={`mb-6 p-3 sm:p-4 rounded-lg ${
             message.type === "error"
               ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
               : "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
@@ -398,89 +514,40 @@ export default function WorksFinderPage() {
         >
           <div className="flex items-center">
             {message.type === "error" ? (
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
+              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             ) : (
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
+              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             )}
-            <span>{message.text}</span>
-            <button
-              onClick={() => setMessage(null)}
-              className="ml-auto text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            >
+            <span className="text-sm sm:text-base flex-1">{message.text}</span>
+            <button onClick={() => setMessage(null)} className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </button>
           </div>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+      {/* Mobile Tabs */}
+      {renderMobileTabs()}
+
+      {/* Desktop Tabs */}
+      <div className="hidden md:block border-b border-gray-200 dark:border-gray-700 mb-6">
         <nav className="flex flex-wrap -mb-px">
-          <button
-            onClick={() => setActiveTab("available")}
-            className={`mr-6 py-3 px-1 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "available"
-                ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-            }`}
-          >
+          <button onClick={() => setActiveTab("available")} className={`mr-4 sm:mr-6 py-3 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === "available" ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400" : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"}`}>
             Available Works ({availablePosts.length})
           </button>
-          <button
-            onClick={() => setActiveTab("my_works")}
-            className={`mr-6 py-3 px-1 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "my_works"
-                ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-            }`}
-          >
-            My Active Works (
-            {myPosts.filter((p) => p.status === "processing").length})
+          <button onClick={() => setActiveTab("my_works")} className={`mr-4 sm:mr-6 py-3 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === "my_works" ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400" : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"}`}>
+            My Active Works ({myPosts.filter((p) => p.status === "processing").length})
           </button>
-          <button
-            onClick={() => setActiveTab("completed")}
-            className={`mr-6 py-3 px-1 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "completed"
-                ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-            }`}
-          >
+          <button onClick={() => setActiveTab("completed")} className={`mr-4 sm:mr-6 py-3 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === "completed" ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400" : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"}`}>
             Completed ({myPosts.filter((p) => p.status === "completed").length})
           </button>
-          <button
-            onClick={() => setActiveTab("cancelled")}
-            className={`mr-6 py-3 px-1 font-medium text-sm border-b-2 transition-colors ${
-              activeTab === "cancelled"
-                ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400"
-                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-            }`}
-          >
+          <button onClick={() => setActiveTab("cancelled")} className={`mr-4 sm:mr-6 py-3 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === "cancelled" ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400" : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"}`}>
             Cancelled ({myPosts.filter((p) => p.status === "cancelled").length})
           </button>
         </nav>
@@ -488,20 +555,10 @@ export default function WorksFinderPage() {
 
       {/* Works List */}
       {filteredPosts.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900 p-8 text-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900 p-6 sm:p-8 text-center">
           <div className="text-gray-400 dark:text-gray-500 mb-4">
-            <svg
-              className="mx-auto h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-              />
+            <svg className="mx-auto h-10 w-10 sm:h-12 sm:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -513,39 +570,23 @@ export default function WorksFinderPage() {
               ? "No completed works yet"
               : "No cancelled works"}
           </h3>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
             {activeTab === "available"
               ? "Check back later for new service requests"
               : "Accept available works to get started"}
           </p>
-          <button
-            onClick={fetchAllPosts}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
-          >
+          <button onClick={fetchAllPosts} className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
             Refresh
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredPosts.map((post) => (
-            <div
-              key={post._id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900 hover:shadow-md dark:hover:shadow-gray-800 transition-shadow overflow-hidden"
-            >
-              <div className="p-6">
+            <div key={post._id} className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900 hover:shadow-md dark:hover:shadow-gray-800 transition-shadow overflow-hidden">
+              <div className="p-4 sm:p-6">
                 {/* Status Badge */}
                 <div className="flex justify-between items-start mb-4">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      post.status === "pending"
-                        ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300"
-                        : post.status === "processing"
-                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                        : post.status === "completed"
-                        ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                        : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
-                    }`}
-                  >
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${post.status === "pending" ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300" : post.status === "processing" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300" : post.status === "completed" ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"}`}>
                     {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
                   </span>
                   <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -554,7 +595,7 @@ export default function WorksFinderPage() {
                 </div>
 
                 {/* Service Info */}
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1">
                   {post.service?.title || "Untitled Service"}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
@@ -568,29 +609,22 @@ export default function WorksFinderPage() {
                       Required Files:
                     </p>
                     <div className="space-y-1">
-                      {post.files.slice(0, 3).map((file, index) => (
-                        <div
-                          key={file._id || index}
-                          className="flex items-center text-sm"
-                        >
-                          <span className="text-gray-500 dark:text-gray-400 mr-2">
-                            •
-                          </span>
-                          <span className="text-gray-600 dark:text-gray-400 truncate">
-                            {file.name}
-                          </span>
+                      {post.files.slice(0, 2).map((file, index) => (
+                        <div key={file._id || index} className="flex items-center text-sm">
+                          <span className="text-gray-500 dark:text-gray-400 mr-2">•</span>
+                          <span className="text-gray-600 dark:text-gray-400 truncate text-xs sm:text-sm">{file.name}</span>
                         </div>
                       ))}
-                      {post.files.length > 3 && (
+                      {post.files.length > 2 && (
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          +{post.files.length - 3} more files
+                          +{post.files.length - 2} more files
                         </div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* Delivery File (for completed posts in list view) */}
+                {/* Delivery File */}
                 {post.status === "completed" && post.deliveryFile && (
                   <div className="mb-4">
                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -598,49 +632,39 @@ export default function WorksFinderPage() {
                     </p>
                     <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg">
                       <div className="flex items-center flex-1 min-w-0">
-                        <svg
-                          className="w-4 h-4 text-green-600 dark:text-green-400 mr-2 flex-shrink-0"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                            clipRule="evenodd"
-                          />
+                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                          {post.deliveryFile.name}
-                        </span>
+                        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 truncate">{post.deliveryFile.name}</span>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          downloadDeliveryFile(post);
-                        }}
-                        className="ml-2 p-1 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 focus:outline-none"
-                        title="Download delivery file"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
+                      <button onClick={(e) => { e.stopPropagation(); downloadDeliveryFile(post); }} className="ml-2 p-1 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 focus:outline-none flex-shrink-0" title="Download delivery file">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                       </button>
                     </div>
                   </div>
                 )}
 
+                {/* Cancellation Reason */}
+                {post.status === "cancelled" && post.cancellation && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Cancellation Reason:
+                    </p>
+                    <div className="p-2 sm:p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{post.cancellation.reason}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {format(new Date(post.cancellation.cancelledAt), "MMM d")}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Price & Actions */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700 gap-3 sm:gap-0">
                   <div>
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                       ৳{post.worker_fee || 0}
                     </span>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -648,84 +672,52 @@ export default function WorksFinderPage() {
                     </p>
                   </div>
 
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setSelectedPost(post)}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
-                    >
-                      <svg
-                        className="w-4 h-4 mr-1.5"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => setSelectedPost(post)} className="inline-flex items-center px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 flex-1 sm:flex-none justify-center">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                          clipRule="evenodd"
-                        />
+                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                       </svg>
                       View
                     </button>
 
                     {activeTab === "available" && (
-                      <button
-                        onClick={() => handleAcceptWork(post._id)}
-                        disabled={acceptingPostId === post._id}
-                        className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 ${
-                          acceptingPostId === post._id
-                            ? "bg-blue-400 dark:bg-blue-600 text-white cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
-                        }`}
-                      >
+                      <button onClick={() => handleAcceptWork(post._id)} disabled={acceptingPostId === post._id} className={`inline-flex items-center px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 ${acceptingPostId === post._id ? "bg-blue-400 dark:bg-blue-600 text-white cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"} flex-1 sm:flex-none justify-center`}>
                         {acceptingPostId === post._id ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-1.5"></div>
-                            Accepting...
+                            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent mr-1.5"></div>
+                            <span className="hidden xs:inline">Accepting...</span>
+                            <span className="xs:hidden">...</span>
                           </>
                         ) : (
                           <>
-                            <svg
-                              className="w-4 h-4 mr-1.5"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
-                            Accept Work
+                            <span className="hidden xs:inline">Accept</span>
+                            <span className="xs:hidden">Take</span>
                           </>
                         )}
                       </button>
                     )}
 
-                    {activeTab === "my_works" &&
-                      post.status === "processing" && (
-                        <button
-                          onClick={() => {
-                            setSelectedPost(post);
-                            setSelectedFile(null);
-                            setFileName("");
-                          }}
-                          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800"
-                        >
-                          <svg
-                            className="w-4 h-4 mr-1.5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
+                    {activeTab === "my_works" && post.status === "processing" && (
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <button onClick={() => { setSelectedPost(post); setSelectedFile(null); setFileName(""); }} className="inline-flex items-center px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 flex-1 justify-center">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
-                          Complete
+                          <span className="hidden xs:inline">Complete</span>
+                          <span className="xs:hidden">Done</span>
                         </button>
-                      )}
+                        <button onClick={() => { setSelectedPost(post); setShowCancelModal(true); }} className="inline-flex items-center px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 flex-1 justify-center">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -737,162 +729,76 @@ export default function WorksFinderPage() {
       {/* Post Details Modal */}
       {selectedPost && (
         <div className="fixed inset-0 z-50">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 modal-backdrop"
-            onClick={() => {
-              setSelectedPost(null);
-              setSelectedFile(null);
-              setFileName("");
-              if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-              }
-            }}
-          ></div>
-
-          {/* Modal Content */}
+          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 modal-backdrop" onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}></div>
           <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
-              <div className="relative w-full max-w-3xl bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900">
-                {/* Header */}
-                <div className="px-6 pt-6 pb-4">
+            <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
+              <div className="relative w-full max-w-3xl bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900 max-h-[90vh] overflow-hidden">
+                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
                   <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
                         {selectedPost.service?.title || "Work Details"}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
                         ID: {selectedPost._id}
                       </p>
                     </div>
-                    <button
-                      onClick={() => {
-                        setSelectedPost(null);
-                        setSelectedFile(null);
-                        setFileName("");
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = "";
-                        }
-                      }}
-                      className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
-                    >
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
+                    <button onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none ml-2 flex-shrink-0">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
 
-                  {/* Content */}
-                  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                  <div className="space-y-4 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-1 sm:pr-2">
                     {/* Status */}
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                        Status
-                      </h4>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          selectedPost.status === "pending"
-                            ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300"
-                            : selectedPost.status === "processing"
-                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                            : selectedPost.status === "completed"
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-                            : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
-                        }`}
-                      >
-                        {selectedPost.status.charAt(0).toUpperCase() +
-                          selectedPost.status.slice(1)}
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Status</h4>
+                      <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${selectedPost.status === "pending" ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300" : selectedPost.status === "processing" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300" : selectedPost.status === "completed" ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"}`}>
+                        {selectedPost.status.charAt(0).toUpperCase() + selectedPost.status.slice(1)}
                       </span>
                     </div>
 
                     {/* Price */}
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                        Amount
-                      </h4>
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Amount</h4>
                       <div className="flex items-baseline">
-                        <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                          ৳{selectedPost.worker || 0}
+                        <span className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                          ৳{selectedPost.worker_fee || 0}
                         </span>
-                        <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                          payment
-                        </span>
+                        <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">payment</span>
                       </div>
                     </div>
 
                     {/* Description */}
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                        Description
-                      </h4>
-                      <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                          {selectedPost.description ||
-                            "No description provided"}
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Description</h4>
+                      <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap text-sm sm:text-base">
+                          {selectedPost.description || "No description provided"}
                         </p>
                       </div>
                     </div>
 
                     {/* Original Files */}
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                        Required Files
-                      </h4>
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">Required Files</h4>
                       {selectedPost.files && selectedPost.files.length > 0 ? (
                         <div className="space-y-2">
                           {selectedPost.files.map((file, index) => (
-                            <div
-                              key={file._id || index}
-                              className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-700/30"
-                            >
+                            <div key={file._id || index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-700/30 gap-2">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center">
-                                  <svg
-                                    className="w-5 h-5 text-gray-400 dark:text-gray-500 mr-2 flex-shrink-0"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                                      clipRule="evenodd"
-                                    />
+                                  <svg className="w-5 h-5 text-gray-400 dark:text-gray-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                                   </svg>
-                                  <span className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                                    {file.name}
-                                  </span>
+                                  <span className="text-sm text-gray-600 dark:text-gray-300 truncate">{file.name}</span>
                                 </div>
                               </div>
                               {selectedPost.status === "processing" && (
-                                <button
-                                  onClick={() =>
-                                    downloadFile(
-                                      file.fileId || file._id,
-                                      file.name
-                                    )
-                                  }
-                                  className="ml-4 inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 flex-shrink-0"
-                                >
-                                  <svg
-                                    className="w-4 h-4 mr-1.5"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                                      clipRule="evenodd"
-                                    />
+                                <button onClick={() => downloadFile(file.fileId || file._id, file.name)} className="w-full sm:w-auto inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 flex-shrink-0">
+                                  <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                                   </svg>
                                   Download
                                 </button>
@@ -902,60 +808,47 @@ export default function WorksFinderPage() {
                         </div>
                       ) : (
                         <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-center">
-                          <p className="text-gray-500 dark:text-gray-400">
-                            No files required
-                          </p>
+                          <p className="text-gray-500 dark:text-gray-400">No files required</p>
                         </div>
                       )}
                     </div>
 
+                    {/* Cancellation Reason */}
+                    {selectedPost.status === "cancelled" && selectedPost.cancellation && (
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                        <h4 className="font-medium text-red-900 dark:text-red-300 mb-3">❌ Cancellation Details</h4>
+                        <div className="p-3 bg-white dark:bg-gray-700 rounded-lg border border-red-100 dark:border-red-700">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">Reason:</p>
+                          <p className="text-gray-600 dark:text-gray-300 mb-3 text-sm sm:text-base">{selectedPost.cancellation.reason}</p>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            <p>Cancelled by: {selectedPost.cancellation.cancelledBy}</p>
+                            <p>Cancelled on: {format(new Date(selectedPost.cancellation.cancelledAt), "PPpp")}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Delivery File Upload for Processing Posts */}
                     {selectedPost.status === "processing" && (
                       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
-                        <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-3">
-                          📤 Upload Delivery File
-                        </h4>
-
-                        {/* File Input */}
+                        <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-3">📤 Upload Delivery File</h4>
                         <div className="mb-3">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Select File
                           </label>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            onChange={handleFileSelect}
-                            className="block w-full text-sm text-gray-500 dark:text-gray-400
-                              file:mr-4 file:py-2 file:px-4
-                              file:rounded-lg file:border-0
-                              file:text-sm file:font-semibold
-                              file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/30 dark:file:text-blue-400
-                              hover:file:bg-blue-100 dark:hover:file:bg-blue-900/40
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                          />
+                          <input ref={fileInputRef} type="file" onChange={handleFileSelect} className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/30 dark:file:text-blue-400 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" />
                         </div>
-
-                        {/* File Name Input */}
                         {selectedFile && (
                           <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                               File Display Name
                             </label>
-                            <input
-                              type="text"
-                              value={fileName}
-                              onChange={(e) => setFileName(e.target.value)}
-                              placeholder="Enter a name for this file"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            />
+                            <input type="text" value={fileName} onChange={(e) => setFileName(e.target.value)} placeholder="Enter a name for this file" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              Original: {selectedFile.name} (
-                              {Math.round(selectedFile.size / 1024)}KB)
+                              Original: {selectedFile.name} ({Math.round(selectedFile.size / 1024)}KB)
                             </p>
                           </div>
                         )}
-
-                        {/* Upload Status */}
                         {uploading && completingPostId === selectedPost._id && (
                           <div className="flex items-center text-blue-600 dark:text-blue-400 mb-3">
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 dark:border-blue-400 border-t-transparent mr-2"></div>
@@ -966,77 +859,43 @@ export default function WorksFinderPage() {
                     )}
 
                     {/* Display Delivery File for Completed Posts */}
-                    {selectedPost.status === "completed" &&
-                      selectedPost.deliveryFile && (
-                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
-                          <h4 className="font-medium text-green-900 dark:text-green-300 mb-3">
-                            ✅ Delivery File
-                          </h4>
-                          <div className="flex items-center justify-between p-3 border border-green-200 dark:border-green-700 rounded-lg bg-white dark:bg-gray-700">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center">
-                                <svg
-                                  className="w-5 h-5 text-green-500 dark:text-green-400 mr-2 flex-shrink-0"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                <span className="text-sm text-gray-600 dark:text-gray-300">
-                                  {selectedPost.deliveryFile.name}
-                                </span>
-                              </div>
-                              {selectedPost.deliveryFile.uploadedAt && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                  Delivered on:{" "}
-                                  {format(
-                                    new Date(
-                                      selectedPost.deliveryFile.uploadedAt
-                                    ),
-                                    "PPpp"
-                                  )}
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              onClick={() => downloadDeliveryFile(selectedPost)}
-                              className="ml-4 inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 flex-shrink-0"
-                            >
-                              <svg
-                                className="w-4 h-4 mr-1.5"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                                  clipRule="evenodd"
-                                />
+                    {selectedPost.status === "completed" && selectedPost.deliveryFile && (
+                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-4">
+                        <h4 className="font-medium text-green-900 dark:text-green-300 mb-3">✅ Delivery File</h4>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-green-200 dark:border-green-700 rounded-lg bg-white dark:bg-gray-700 gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center">
+                              <svg className="w-5 h-5 text-green-500 dark:text-green-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
-                              Download
-                            </button>
+                              <span className="text-sm text-gray-600 dark:text-gray-300 truncate">{selectedPost.deliveryFile.name}</span>
+                            </div>
+                            {selectedPost.deliveryFile.uploadedAt && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Delivered on: {format(new Date(selectedPost.deliveryFile.uploadedAt), "PPpp")}
+                              </p>
+                            )}
                           </div>
+                          <button onClick={() => downloadDeliveryFile(selectedPost)} className="w-full sm:w-auto inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 flex-shrink-0">
+                            <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            Download
+                          </button>
                         </div>
-                      )}
+                      </div>
+                    )}
 
                     {/* Timestamps */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                          Created
-                        </h4>
+                        <h4 className="font-medium text-gray-900 dark:text-white mb-2">Created</h4>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
                           {format(new Date(selectedPost.createdAt), "PPpp")}
                         </p>
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                          Last Updated
-                        </h4>
+                        <h4 className="font-medium text-gray-900 dark:text-white mb-2">Last Updated</h4>
                         <p className="text-sm text-gray-600 dark:text-gray-300">
                           {format(new Date(selectedPost.updatedAt), "PPpp")}
                         </p>
@@ -1046,32 +905,14 @@ export default function WorksFinderPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      onClick={() => {
-                        setSelectedPost(null);
-                        setSelectedFile(null);
-                        setFileName("");
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = "";
-                        }
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
-                    >
+                <div className="px-4 sm:px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 order-2 sm:order-1">
                       Close
                     </button>
 
                     {selectedPost.status === "pending" && (
-                      <button
-                        onClick={() => handleAcceptWork(selectedPost._id)}
-                        disabled={acceptingPostId === selectedPost._id}
-                        className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 ${
-                          acceptingPostId === selectedPost._id
-                            ? "bg-blue-400 dark:bg-blue-600 cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                        }`}
-                      >
+                      <button onClick={() => handleAcceptWork(selectedPost._id)} disabled={acceptingPostId === selectedPost._id} className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 ${acceptingPostId === selectedPost._id ? "bg-blue-400 dark:bg-blue-600 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"} order-1 sm:order-2`}>
                         {acceptingPostId === selectedPost._id ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-1.5 inline-block"></div>
@@ -1084,38 +925,111 @@ export default function WorksFinderPage() {
                     )}
 
                     {selectedPost.status === "processing" && (
-                      <button
-                        onClick={() => handleCompleteWork(selectedPost._id)}
-                        disabled={uploading || !selectedFile}
-                        className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 ${
-                          uploading || !selectedFile
-                            ? "bg-green-400 dark:bg-green-600 cursor-not-allowed"
-                            : "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-                        }`}
-                      >
-                        {uploading && completingPostId === selectedPost._id ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-1.5 inline-block"></div>
-                            Completing...
-                          </>
-                        ) : (
-                          <>
-                            <svg
-                              className="w-4 h-4 mr-1.5 inline-block"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            Mark as Complete
-                          </>
-                        )}
-                      </button>
+                      <>
+                        <button onClick={() => setShowCancelModal(true)} className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 order-1 sm:order-2">
+                          Cancel Work
+                        </button>
+                        <button onClick={() => handleCompleteWork(selectedPost._id)} disabled={uploading || !selectedFile} className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 ${uploading || !selectedFile ? "bg-green-400 dark:bg-green-600 cursor-not-allowed" : "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"} order-3`}>
+                          {uploading && completingPostId === selectedPost._id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-1.5 inline-block"></div>
+                              Completing...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4 mr-1.5 inline-block" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              Mark as Complete
+                            </>
+                          )}
+                        </button>
+                      </>
                     )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && selectedPost && (
+        <div className="fixed inset-0 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 modal-backdrop" onClick={() => { setShowCancelModal(false); setCancelNote(""); }}></div>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
+              <div className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900">
+                <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Cancel Work
+                    </h3>
+                    <button onClick={() => { setShowCancelModal(false); setCancelNote(""); }} className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none ml-2 flex-shrink-0">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="mb-6">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                      Are you sure you want to cancel this work? Please provide a reason for cancellation.
+                    </p>
+                    
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Cancellation Reason *
+                      </label>
+                      <textarea
+                        value={cancelNote}
+                        onChange={(e) => setCancelNote(e.target.value)}
+                        placeholder="Explain why you need to cancel this work..."
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        This will be shared with the client and admin.
+                      </p>
+                    </div>
+
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                      <div className="flex items-start">
+                        <svg className="w-5 h-5 text-yellow-500 dark:text-yellow-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <div className="text-sm text-yellow-700 dark:text-yellow-400">
+                          <p>Cancelling a work may affect your reputation and future work opportunities.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-4 sm:px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button
+                      onClick={() => { setShowCancelModal(false); setCancelNote(""); }}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
+                    >
+                      Go Back
+                    </button>
+                    <button
+                      onClick={() => handleCancelWork(selectedPost._id)}
+                      disabled={cancellingPostId === selectedPost._id || !cancelNote.trim()}
+                      className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 ${cancellingPostId === selectedPost._id || !cancelNote.trim() ? "bg-red-400 dark:bg-red-600 cursor-not-allowed" : "bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"}`}
+                    >
+                      {cancellingPostId === selectedPost._id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-1.5 inline-block"></div>
+                          Cancelling...
+                        </>
+                      ) : (
+                        "Confirm Cancellation"
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Post from "@/models/Post";
 import { getUser } from "@/lib/getUser";
+import Transaction from "@/models/Transaction";
 
 export async function DELETE(
   request: Request,
@@ -31,7 +32,17 @@ export async function DELETE(
       );
     }
 
-    user.balance += post.deal_amount;
+    const total = post.admin_fee + post.worker_fee + post.reseller_fee;
+
+    user.balance += total;
+    await Transaction.create({
+      user: user._id,
+      amount: total,
+      trxId: "ADMIN",
+      number: "Refunded",
+      method: "Refund",
+      status: "SUCCESS",
+    });
     await user.save();
 
     await Post.findByIdAndDelete(postId);

@@ -40,6 +40,12 @@ export async function POST(req: Request) {
       );
     }
     const total = service.admin_fee + service.worker_fee + service.reseller_fee;
+    if (user.balance < total) {
+      return NextResponse.json(
+        { success: false, message: "Insufficient balance." },
+        { status: 400 }
+      );
+    }
     user.balance -= total;
     await user.save();
 

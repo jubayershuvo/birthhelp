@@ -8,6 +8,7 @@ export interface IPost extends Document {
   admin_fee: number;
   worker_fee: number;
   reseller_fee: number;
+  note?: string;
   deliveryFile?: {
     name: string;
     fileId: string;
@@ -31,6 +32,7 @@ const PostSchema = new Schema<IPost>(
     admin_fee: { type: Number, required: true },
     worker_fee: { type: Number, required: true },
     reseller_fee: { type: Number, default: 0 },
+    note: { type: String },
     description: { type: String, required: true },
     deliveryFile: {
       name: { type: String },
