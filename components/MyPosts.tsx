@@ -17,6 +17,7 @@ interface Post {
   admin_fee: number;
   worker_fee: number;
   reseller_fee: number;
+  deliveryNote?: string;
   note?: string;
   service: {
     _id: string;
@@ -750,6 +751,17 @@ export default function MyPostsPage() {
                         </p>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                <div className="">
+                  <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                    Note
+                  </h4>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                      {selectedPost.deliveryNote || "No additional notes provided."}
+                    </p>
                   </div>
                 </div>
 

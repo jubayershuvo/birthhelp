@@ -26,7 +26,8 @@ export async function POST(req: Request) {
       (s: { service: string }) =>
         s.service.toString() === service._id.toString()
     );
-    if (!service || !userService || !userService.isAvailable) {
+    if (!service || !userService || !service.isAvailable) {
+      console.log(userService)
       return NextResponse.json(
         { success: false, message: "Invalid service selected." },
         { status: 404 }
