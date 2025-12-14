@@ -20,6 +20,7 @@ interface IService {
   admin_fee: number;
   worker_fee: number;
   reseller_fee: number;
+  isAvailable: boolean;
   attachments: { _id: string; name: string }[];
 }
 
@@ -121,6 +122,8 @@ export default function CreatePostPage() {
   };
 
   const handleServiceSelect = (service: IService) => {
+    if (!service.isAvailable) return;
+
     setSelectedService(service);
     setUploaded([]);
     setDescription(service.description || "");
@@ -210,8 +213,10 @@ export default function CreatePostPage() {
                       )}
                     </div>
 
-                    <button className="w-full mt-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-600 dark:to-purple-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-700 dark:hover:to-purple-700 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg">
-                      Select Service
+                    <button
+                      className={`w-full mt-4 py-3 ${service.isAvailable ? "bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-600 dark:to-purple-600 hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-700 dark:hover:to-purple-700" : "bg-gray-300 dark:bg-gray-600"} rounded-xl text-sm font-bold text-white transition-all shadow-md hover:shadow-lg`}
+                    >
+                      {service.isAvailable ? "Select Service" : "Unavailable"}
                     </button>
                   </div>
                 ))}

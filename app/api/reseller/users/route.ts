@@ -80,6 +80,14 @@ export async function POST(request: Request) {
           };
         }
       ),
+      postServices: body.postServices.map(
+        (service: { service: string; fee: number }) => {
+          return {
+            service: new Types.ObjectId(service.service),
+            reseller_fee: service.fee,
+          };
+        }
+      ),
     });
     // Add the new user to reseller's users array
     await Reseller.findByIdAndUpdate(

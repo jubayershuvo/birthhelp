@@ -6,7 +6,7 @@ export interface IData extends Document {
   description: string; // long textarea
   admin_fee: number;
   worker_fee: number;
-  reseller_fee: number;
+  isAvailable?: boolean;
   attachments: [
     {
       name: string;
@@ -20,7 +20,7 @@ const dataSchema = new Schema<IData>(
     description: { type: String, required: true }, // long textarea
     admin_fee: { type: Number, required: true },
     worker_fee: { type: Number, required: true },
-    reseller_fee: { type: Number, default: 0 },
+    isAvailable: { type: Boolean, default: true },
     attachments: [
       {
         name: { type: String },

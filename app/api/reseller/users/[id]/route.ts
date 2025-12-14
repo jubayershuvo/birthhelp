@@ -56,6 +56,7 @@ export async function PUT(
       balance?: number;
       isBanned?: boolean;
       services: ServiceInput[];
+      postServices: ServiceInput[];
     }>;
     const reseller = await getReseller();
 
@@ -132,6 +133,16 @@ export async function PUT(
     }
     if (body.services) {
       user.services = body.services;
+    }
+
+    if (body.postServices) {
+      console.log(body.postServices)
+      user.postServices = body.postServices.map(
+        (service: { service: string; fee: number }) => ({
+          service: new Types.ObjectId(service.service),
+          reseller_fee: service.fee,
+        })
+      );
     }
     user.isBanned = body.isBanned || false;
     await user.save();

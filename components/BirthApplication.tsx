@@ -2253,18 +2253,12 @@ export default function BirthRegistrationForm() {
           errors["personInfoForBirth.personFirstNameBn"] =
             "নামের প্রথম অংশ বাংলায় প্রয়োজন";
         }
-        if (!formData.personInfoForBirth.personLastNameBn.trim()) {
-          errors["personInfoForBirth.personLastNameBn"] =
-            "নামের শেষ অংশ বাংলায় প্রয়োজন";
-        }
+
         if (!formData.personInfoForBirth.personFirstNameEn.trim()) {
           errors["personInfoForBirth.personFirstNameEn"] =
             "নামের প্রথম অংশ ইংরেজিতে প্রয়োজন";
         }
-        if (!formData.personInfoForBirth.personLastNameEn.trim()) {
-          errors["personInfoForBirth.personLastNameEn"] =
-            "নামের শেষ অংশ ইংরেজিতে প্রয়োজন";
-        }
+
         if (!formData.personInfoForBirth.personBirthDate) {
           errors["personInfoForBirth.personBirthDate"] = "জন্ম তারিখ প্রয়োজন";
         } else {
@@ -3250,8 +3244,7 @@ export default function BirthRegistrationForm() {
 
                   <div data-field="personInfoForBirth.personLastNameBn">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      নামের শেষ অংশ বাংলায়{" "}
-                      <span className="text-red-500">*</span>
+                      নামের শেষ অংশ বাংলায়
                     </label>
                     <input
                       type="text"
@@ -3310,8 +3303,7 @@ export default function BirthRegistrationForm() {
 
                   <div data-field="personInfoForBirth.personLastNameEn">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      নামের শেষ অংশ ইংরেজিতে{" "}
-                      <span className="text-red-500">*</span>
+                      নামের শেষ অংশ ইংরেজিতে
                     </label>
                     <input
                       type="text"

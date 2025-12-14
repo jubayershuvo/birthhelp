@@ -22,7 +22,11 @@ export async function POST(req: Request) {
 
     // Validate service
     const service = await PostService.findById(service_id);
-    if (!service) {
+    const userService = user.postServices.find(
+      (s: { service: string }) =>
+        s.service.toString() === service._id.toString()
+    );
+    if (!service || !userService || !userService.isAvailable) {
       return NextResponse.json(
         { success: false, message: "Invalid service selected." },
         { status: 404 }
@@ -39,7 +43,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const total = service.admin_fee + service.worker_fee + service.reseller_fee;
+    const total = service.admin_fee + service.worker_fee + userService.reseller_fee;
     if (user.balance < total) {
       return NextResponse.json(
         { success: false, message: "Insufficient balance." },
@@ -56,7 +60,7 @@ export async function POST(req: Request) {
       description,
       admin_fee: service.admin_fee,
       worker_fee: service.worker_fee,
-      reseller_fee: service.reseller_fee,
+      reseller_fee: userService.reseller_fee,
       files: JSON.parse(JSON.stringify(files)) || [],
       status: "pending",
     });

@@ -15,13 +15,34 @@ import {
   User,
   Shield,
   CreditCard,
+  MessageCircle,
+  FileText,
+  Plus,
+  X,
+  Filter,
+  DollarSign,
+  Hash,
+  Tag,
+  Activity,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+// Service types remain the same
 interface Service {
   _id: string;
   name: string;
   fee: number;
+  category?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+// Post Service interface - UPDATED to match backend
+interface PostService {
+  _id: string;
+  title: string;
+  admin_fee: number;
+  worker_fee: number;
 }
 
 interface ServiceAccess {
@@ -29,6 +50,14 @@ interface ServiceAccess {
   fee: number; // reseller fee
   _id?: string;
   serviceName?: string;
+  category?: string;
+}
+
+interface PostServiceAccess {
+  postService: string; // post service ID - FIXED: using postService to match frontend
+  reseller_fee: number; // reseller fee
+  _id?: string;
+  postServiceName?: string;
 }
 
 interface User {
@@ -44,6 +73,7 @@ interface User {
   loginAttempts: number;
   createdAt: Date;
   services: ServiceAccess[];
+  postServices: PostServiceAccess[]; // FIXED: using postServices
   reseller?: string;
 }
 
@@ -59,6 +89,11 @@ interface ApiUser {
   services: Array<{
     service: string;
     fee: number;
+    _id: string;
+  }>;
+  postServices: Array<{
+    service: string; // FIXED: backend returns 'service' not 'postService'
+    reseller_fee: number;
     _id: string;
   }>;
   reseller: string;
@@ -78,6 +113,16 @@ interface ApiService {
   _id: string;
   name: string;
   fee: number;
+  category?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+interface ApiPostService {
+  _id: string;
+  title: string;
+  admin_fee: number;
+  worker_fee: number;
 }
 
 interface ApiResponse<T> {
@@ -97,6 +142,7 @@ interface FormData {
   isBanned: boolean;
   isEmailVerified: boolean;
   services: ServiceAccess[];
+  postServices: PostServiceAccess[];
 }
 
 const UserManagement = () => {
@@ -109,7 +155,11 @@ const UserManagement = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
+  const [postServices, setPostServices] = useState<PostService[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [activeTab, setActiveTab] = useState<"services" | "postServices">(
+    "services"
+  );
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -121,12 +171,14 @@ const UserManagement = () => {
     isBanned: false,
     isEmailVerified: true,
     services: [],
+    postServices: [],
   });
 
-  // Fetch users and services
+  // Fetch users, services, and post services
   useEffect(() => {
     fetchUsers();
     fetchServices();
+    fetchPostServices();
   }, []);
 
   const fetchUsers = async () => {
@@ -139,30 +191,54 @@ const UserManagement = () => {
       }
 
       const result: ApiUser[] = await response.json();
-      
-      const mappedUsers: User[] = result.map((user: ApiUser) => ({
-        _id: user._id,
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        balance: user.balance,
-        isActive: !user.isBanned,
-        isBanned: user.isBanned,
-        isEmailVerified: user.isEmailVerified,
-        lastLogin: user.lastLogin,
-        loginAttempts: user.loginAttempts,
-        createdAt: new Date(user.createdAt),
-        reseller: user.reseller,
-        services: user.services.map((service) => {
-          const fullService = services.find((s: Service) => s._id === service.service);
+
+      const mappedUsers: User[] = result.map((user: ApiUser) => {
+        // Map services
+        const mappedServices = user.services.map((service) => {
+          const fullService = services.find(
+            (s: Service) => s._id === service.service
+          );
           return {
             service: service.service,
-            fee: service.fee, // This is the reseller fee
+            fee: service.fee,
             _id: service._id,
-            serviceName: fullService?.name || `Service ${service.service.substring(0, 8)}...`,
+            serviceName:
+              fullService?.name ||
+              `Service ${service.service.substring(0, 8)}...`,
+            category: fullService?.category,
           };
-        })
-      }));
+        });
+
+        // Map postServices - FIXED: backend returns 'service' field
+        const mappedPostServices = user.postServices.map((postService) => {
+          const fullPostService = postServices.find(
+            (ps: PostService) => ps._id === postService.service // FIXED: using postService.service
+          );
+          return {
+            postService: postService.service, // FIXED: mapping from service to postService
+            reseller_fee: postService.reseller_fee,
+            _id: postService._id,
+            postServiceName: fullPostService?.title,
+          };
+        });
+
+        return {
+          _id: user._id,
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          balance: user.balance,
+          isActive: !user.isBanned,
+          isBanned: user.isBanned,
+          isEmailVerified: user.isEmailVerified,
+          lastLogin: user.lastLogin,
+          loginAttempts: user.loginAttempts,
+          createdAt: new Date(user.createdAt),
+          reseller: user.reseller,
+          services: mappedServices,
+          postServices: mappedPostServices, // FIXED: using correct mapping
+        };
+      });
 
       setUsers(mappedUsers);
       setFilteredUsers(mappedUsers);
@@ -190,23 +266,53 @@ const UserManagement = () => {
     }
   };
 
-  // Refresh users when services are loaded to update service names
+  const fetchPostServices = async () => {
+    try {
+      const response = await fetch("/api/reseller/post-services");
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch post services: ${response.status}`);
+      }
+
+      const result: ApiPostService[] = await response.json();
+      setPostServices(result);
+    } catch (error) {
+      console.error("Error fetching post services:", error);
+      toast.error("Failed to fetch post services");
+    }
+  };
+
+  // Refresh users when services are loaded to update names
   useEffect(() => {
-    if (services.length > 0 && users.length > 0) {
-      const updatedUsers: User[] = users.map(user => ({
+    if ((services.length > 0 || postServices.length > 0) && users.length > 0) {
+      const updatedUsers: User[] = users.map((user) => ({
         ...user,
-        services: user.services.map(service => {
-          const fullService = services.find((s: Service) => s._id === service.service);
+        services: user.services.map((service) => {
+          const fullService = services.find(
+            (s: Service) => s._id === service.service
+          );
           return {
             ...service,
-            serviceName: fullService?.name || `Service ${service.service.substring(0, 8)}...`,
+            serviceName:
+              fullService?.name ||
+              `Service ${service.service.substring(0, 8)}...`,
+            category: fullService?.category,
           };
-        })
+        }),
+        postServices: user.postServices.map((postService) => {
+          const fullPostService = postServices.find(
+            (ps: PostService) => ps._id === postService.postService
+          );
+          return {
+            ...postService,
+            postServiceName: fullPostService?.title,
+          };
+        }),
       }));
       setUsers(updatedUsers);
       setFilteredUsers(updatedUsers);
     }
-  }, [services, users.length]);
+  }, [services, postServices, users.length]);
 
   // Search filter
   useEffect(() => {
@@ -219,20 +325,32 @@ const UserManagement = () => {
     setFilteredUsers(filtered);
   }, [searchTerm, users]);
 
-  // Format currency with BDT symbol
-
   // Get official fee for a service
   const getOfficialFee = (serviceId: string): number => {
     const service = services.find((s) => s._id === serviceId);
     return service?.fee || 0;
   };
 
-  // Get full service details for a service ID
+  // Get official fee for a post service
+  const getPostServiceOfficialFee = (postServiceId: string): number => {
+    const postService = postServices.find((ps) => ps._id === postServiceId);
+    if (postService) {
+      return postService.admin_fee + postService.worker_fee;
+    }
+    return 0;
+  };
+
+  // Get full service details
   const getFullServiceDetails = (serviceId: string): Service | undefined => {
     return services.find((s) => s._id === serviceId);
   };
 
-  // Calculate total fee (official + reseller)
+  // Get full post service details
+  const getFullPostServiceDetails = (
+    postServiceId: string
+  ): PostService | undefined => {
+    return postServices.find((ps) => ps._id === postServiceId);
+  };
 
   // Validate service data before submission
   const validateServices = (services: ServiceAccess[]): boolean => {
@@ -240,13 +358,29 @@ const UserManagement = () => {
     const uniqueServiceIds = new Set(serviceIds);
 
     if (serviceIds.length !== uniqueServiceIds.size) {
-      toast.error(
-        "Duplicate services are not allowed. Please remove duplicate service entries."
-      );
+      toast.error("Duplicate services are not allowed.");
       return false;
     }
 
     if (services.some((s) => s.fee < 0)) {
+      toast.error("Reseller fees cannot be negative.");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Validate post service data before submission
+  const validatePostServices = (postServices: PostServiceAccess[]): boolean => {
+    const postServiceIds = postServices.map((ps) => ps.postService);
+    const uniquePostServiceIds = new Set(postServiceIds);
+
+    if (postServiceIds.length !== uniquePostServiceIds.size) {
+      toast.error("Duplicate post services are not allowed.");
+      return false;
+    }
+
+    if (postServices.some((ps) => ps.reseller_fee < 0)) {
       toast.error("Reseller fees cannot be negative.");
       return false;
     }
@@ -282,12 +416,21 @@ const UserManagement = () => {
       return false;
     }
 
+    if (!validateServices(formData.services)) {
+      return false;
+    }
+
+    if (!validatePostServices(formData.postServices)) {
+      return false;
+    }
+
     return true;
   };
 
   const openModal = (mode: "create" | "edit", user: User | null = null) => {
     setModalMode(mode);
     setSelectedUser(user);
+    setActiveTab("services");
 
     if (mode === "create") {
       setFormData({
@@ -300,22 +443,30 @@ const UserManagement = () => {
         isBanned: false,
         isEmailVerified: false,
         services: [],
+        postServices: [],
       });
     } else if (mode === "edit" && user) {
       setFormData({
         name: user.name,
         username: user.username,
         email: user.email,
-        password: "", // Don't show password in edit mode
+        password: "",
         balance: user.balance,
         isActive: user.isActive,
         isBanned: user.isBanned,
         isEmailVerified: user.isEmailVerified,
-        services: user.services.map(service => ({
+        services: user.services.map((service) => ({
           service: service.service,
-          fee: service.fee, // This is the reseller fee
+          fee: service.fee,
           _id: service._id,
           serviceName: service.serviceName,
+          category: service.category,
+        })),
+        postServices: user.postServices.map((postService) => ({
+          postService: postService.postService,
+          reseller_fee: postService.reseller_fee,
+          _id: postService._id,
+          postServiceName: postService.postServiceName,
         })),
       });
     }
@@ -332,10 +483,6 @@ const UserManagement = () => {
     e.preventDefault();
 
     if (!validateFormData()) {
-      return;
-    }
-
-    if (!validateServices(formData.services)) {
       return;
     }
 
@@ -356,13 +503,18 @@ const UserManagement = () => {
           email: formData.email,
           password: formData.password,
           isBanned: formData.isBanned,
-          services: formData.services.map(service => ({
+          services: formData.services.map((service) => ({
             service: service.service,
-            fee: service.fee, // reseller fee
+            fee: service.fee,
+          })),
+          postServices: formData.postServices.map((postService) => ({
+            // FIXED: send as service field to match backend
+            service: postService.postService,
+            fee: postService.reseller_fee,
           })),
         };
 
-
+        console.log("Submitting data:", submitData); // For debugging
 
         const response = await fetch(url, {
           method,
@@ -373,7 +525,9 @@ const UserManagement = () => {
         });
 
         if (!response.ok) {
-          const errorData: ApiResponse<never> = await response.json().catch(() => ({}));
+          const errorData: ApiResponse<never> = await response
+            .json()
+            .catch(() => ({}));
           throw new Error(
             errorData.message || `HTTP error! status: ${response.status}`
           );
@@ -427,7 +581,9 @@ const UserManagement = () => {
         });
 
         if (!response.ok) {
-          const errorData: ApiResponse<never> = await response.json().catch(() => ({}));
+          const errorData: ApiResponse<never> = await response
+            .json()
+            .catch(() => ({}));
           throw new Error(
             errorData.error || `HTTP error! status: ${response.status}`
           );
@@ -467,20 +623,49 @@ const UserManagement = () => {
     }
 
     const firstAvailableService = availableServices[0];
-    
+
     setFormData((prev) => ({
       ...prev,
       services: [
         ...prev.services,
         {
           service: firstAvailableService._id,
-          fee: 0, // Default reseller fee
-          serviceName: firstAvailableService.name
+          fee: 0,
+          serviceName: firstAvailableService.name,
+          category: firstAvailableService.category,
         },
       ],
     }));
 
     toast.success(`Added ${firstAvailableService.name} service`);
+  };
+
+  const addPostService = () => {
+    const availablePostServices = postServices.filter(
+      (postService) =>
+        !formData.postServices.some((ps) => ps.postService === postService._id)
+    );
+
+    if (availablePostServices.length === 0) {
+      toast.error("All available post services have already been added.");
+      return;
+    }
+
+    const firstAvailablePostService = availablePostServices[0];
+
+    setFormData((prev) => ({
+      ...prev,
+      postServices: [
+        ...prev.postServices,
+        {
+          postService: firstAvailablePostService._id,
+          reseller_fee: 0,
+          postServiceName: firstAvailablePostService.title,
+        },
+      ],
+    }));
+
+    toast.success(`Added ${firstAvailablePostService.title} post service`);
   };
 
   const updateService = (
@@ -496,19 +681,49 @@ const UserManagement = () => {
             return {
               ...service,
               service: value,
-              serviceName: selectedService?.name
+              serviceName: selectedService?.name,
+              category: selectedService?.category,
             };
           }
 
           return {
             ...service,
-            [field]: value
+            [field]: value,
           };
         }
         return service;
       });
 
       return { ...prev, services: updatedServices };
+    });
+  };
+
+  const updatePostService = (
+    index: number,
+    field: keyof PostServiceAccess,
+    value: string | number
+  ) => {
+    setFormData((prev) => {
+      const updatedPostServices = prev.postServices.map((postService, i) => {
+        if (i === index) {
+          if (field === "postService" && typeof value === "string") {
+            const selectedPostService = getFullPostServiceDetails(value);
+            return {
+              ...postService,
+              postService: value,
+              postServiceName: selectedPostService?.title,
+            };
+          }
+
+          return {
+            ...postService,
+            [field]: value,
+          };
+        }
+        return postService;
+      });
+
+      return { ...prev, postServices: updatedPostServices };
     });
   };
 
@@ -524,6 +739,19 @@ const UserManagement = () => {
     toast.success(`Removed ${serviceName} service`);
   };
 
+  const removePostService = (index: number) => {
+    const postServiceToRemove = formData.postServices[index];
+    const postServiceName =
+      postServiceToRemove.postServiceName || "Post Service";
+
+    setFormData((prev) => ({
+      ...prev,
+      postServices: prev.postServices.filter((_, i) => i !== index),
+    }));
+
+    toast.success(`Removed ${postServiceName} post service`);
+  };
+
   const getAvailableServices = (currentServiceId: string = ""): Service[] => {
     return services.filter(
       (service) =>
@@ -532,14 +760,62 @@ const UserManagement = () => {
     );
   };
 
+  const getAvailablePostServices = (
+    currentPostServiceId: string = ""
+  ): PostService[] => {
+    return postServices.filter(
+      (postService) =>
+        !formData.postServices.some(
+          (ps) => ps.postService === postService._id
+        ) || postService._id === currentPostServiceId
+    );
+  };
+
   // Format date for display
   const formatDate = (date: Date | null): string => {
     if (!date) return "Never";
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
+  };
+
+  // Service Chip Component
+  const ServiceChip = ({
+    service,
+    isPostService = false,
+  }: {
+    service: ServiceAccess | PostServiceAccess;
+    isPostService?: boolean;
+  }) => {
+    const officialFee = isPostService
+      ? getPostServiceOfficialFee((service as PostServiceAccess).postService)
+      : getOfficialFee((service as ServiceAccess).service);
+
+    const resellerFee = isPostService
+      ? (service as PostServiceAccess).reseller_fee
+      : (service as ServiceAccess).fee;
+
+    const totalFee = officialFee + resellerFee;
+    const serviceName = isPostService
+      ? (service as PostServiceAccess).postServiceName
+      : (service as ServiceAccess).serviceName;
+    const icon = isPostService ? (
+      <MessageCircle className="w-3 h-3" />
+    ) : (
+      <Shield className="w-3 h-3" />
+    );
+
+    return (
+      <div className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+        {icon}
+        <span className="truncate max-w-16">{serviceName}</span>
+        <span className="text-green-600 dark:text-green-400 font-medium ml-1">
+          ৳{totalFee}
+        </span>
+      </div>
+    );
   };
 
   // User Card Component
@@ -554,8 +830,12 @@ const UserManagement = () => {
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h3 className="text-gray-900 dark:text-white font-semibold text-lg truncate">{user.name}</h3>
-                <p className="text-gray-600 dark:text-gray-300 text-sm">@{user.username}</p>
+                <h3 className="text-gray-900 dark:text-white font-semibold text-lg truncate">
+                  {user.name}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  @{user.username}
+                </p>
               </div>
             </div>
           </div>
@@ -572,7 +852,11 @@ const UserManagement = () => {
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               title={user.isBanned ? "Unban" : "Ban"}
             >
-              <Ban className={`w-4 h-4 ${user.isBanned ? "text-green-500" : "text-yellow-500"}`} />
+              <Ban
+                className={`w-4 h-4 ${
+                  user.isBanned ? "text-green-500" : "text-yellow-500"
+                }`}
+              />
             </button>
           </div>
         </div>
@@ -580,7 +864,9 @@ const UserManagement = () => {
         {/* Email and Verification */}
         <div className="flex items-center gap-2 mb-4">
           <Mail className="w-4 h-4 text-gray-500" />
-          <span className="text-gray-600 dark:text-gray-300 text-sm truncate flex-1">{user.email}</span>
+          <span className="text-gray-600 dark:text-gray-300 text-sm truncate flex-1">
+            {user.email}
+          </span>
           {user.isEmailVerified ? (
             <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
           ) : (
@@ -609,42 +895,58 @@ const UserManagement = () => {
               <span className="text-gray-600 dark:text-gray-300">Services</span>
             </div>
             <span className="text-gray-500 dark:text-gray-400 text-sm">
-              {user.services.length} service{user.services.length !== 1 ? 's' : ''}
+              {user.services.length} service
+              {user.services.length !== 1 ? "s" : ""}
             </span>
           </div>
-          
-          <div className="space-y-2">
-            {user.services.slice(0, 3).map((service, index) => {
-              const officialFee = getOfficialFee(service.service);
-              const totalFee = officialFee + service.fee;
-              
-              return (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-900 dark:text-white truncate flex-1 mr-2">
-                    {service.serviceName || `Service ${index + 1}`}
-                  </span>
-                  <div className="flex flex-col items-end">
-                    <span className="text-green-600 dark:text-green-400 font-medium whitespace-nowrap">
-                      ৳{totalFee}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      (Admin: ৳{officialFee} + Reseller: ৳{service.fee})
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+
+          <div className="flex flex-wrap gap-1 mb-2">
+            {user.services.slice(0, 3).map((service, index) => (
+              <ServiceChip key={index} service={service} />
+            ))}
             {user.services.length > 3 && (
-              <div className="text-center pt-1">
-                <span className="text-gray-500 dark:text-gray-400 text-xs">
-                  +{user.services.length - 3} more services
-                </span>
-              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400 px-2">
+                +{user.services.length - 3} more
+              </span>
             )}
             {user.services.length === 0 && (
-              <div className="text-center py-2">
-                <span className="text-gray-500 dark:text-gray-400 text-xs">No services assigned</span>
-              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                No services
+              </span>
+            )}
+          </div>
+
+          {/* Post Services Section */}
+          <div className="flex items-center justify-between mb-3 mt-4">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-gray-500" />
+              <span className="text-gray-600 dark:text-gray-300">
+                Post Services
+              </span>
+            </div>
+            <span className="text-gray-500 dark:text-gray-400 text-sm">
+              {user.postServices.length} post service
+              {user.postServices.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap gap-1">
+            {user.postServices.slice(0, 3).map((postService, index) => (
+              <ServiceChip
+                key={index}
+                service={postService}
+                isPostService={true}
+              />
+            ))}
+            {user.postServices.length > 3 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 px-2">
+                +{user.postServices.length - 3} more
+              </span>
+            )}
+            {user.postServices.length === 0 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                No post services
+              </span>
             )}
           </div>
         </div>
@@ -653,19 +955,31 @@ const UserManagement = () => {
         <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
-              <span className={`text-xs ${user.isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
-                {user.isActive ? 'Active' : 'Inactive'}
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  user.isActive ? "bg-green-500" : "bg-gray-400"
+                }`}
+              />
+              <span
+                className={`text-xs ${
+                  user.isActive
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-gray-500"
+                }`}
+              >
+                {user.isActive ? "Active" : "Inactive"}
               </span>
             </div>
             {user.isBanned && (
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-xs text-red-600 dark:text-red-400">Banned</span>
+                <span className="text-xs text-red-600 dark:text-red-400">
+                  Banned
+                </span>
               </div>
             )}
           </div>
-          
+
           <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
               <Calendar className="w-3 h-3" />
@@ -707,14 +1021,14 @@ const UserManagement = () => {
                   className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              
+
               {/* View Mode Toggle */}
               <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded-md transition-all ${
-                    viewMode === "grid" 
-                      ? "bg-blue-500 text-white" 
+                    viewMode === "grid"
+                      ? "bg-blue-500 text-white"
                       : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                   }`}
                   title="Grid View"
@@ -729,8 +1043,8 @@ const UserManagement = () => {
                 <button
                   onClick={() => setViewMode("list")}
                   className={`p-2 rounded-md transition-all ${
-                    viewMode === "list" 
-                      ? "bg-blue-500 text-white" 
+                    viewMode === "list"
+                      ? "bg-blue-500 text-white"
                       : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                   }`}
                   title="List View"
@@ -744,15 +1058,17 @@ const UserManagement = () => {
                 </button>
               </div>
             </div>
-            
-            <button
-              onClick={() => openModal("create")}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-              disabled={loading}
-            >
-              <UserPlus className="w-5 h-5" />
-              Create User
-            </button>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => openModal("create")}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                disabled={loading}
+              >
+                <UserPlus className="w-5 h-5" />
+                Create User
+              </button>
+            </div>
           </div>
         </div>
 
@@ -795,6 +1111,9 @@ const UserManagement = () => {
                           Services
                         </th>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">
+                          Post Services
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">
                           Status
                         </th>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">
@@ -823,7 +1142,9 @@ const UserManagement = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <span className="text-gray-600 dark:text-gray-300">{user.email}</span>
+                              <span className="text-gray-600 dark:text-gray-300">
+                                {user.email}
+                              </span>
                               {user.isEmailVerified ? (
                                 <CheckCircle className="w-4 h-4 text-green-500" />
                               ) : (
@@ -833,41 +1154,93 @@ const UserManagement = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
-                              <span className="text-green-600 dark:text-green-400 font-medium">৳</span>
+                              <span className="text-green-600 dark:text-green-400 font-medium">
+                                ৳
+                              </span>
                               <span className="text-gray-900 dark:text-white font-medium">
                                 {user.balance.toFixed(2)}
                               </span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-1">
-                              {user.services.map((service, index) => {
-                                const officialFee = getOfficialFee(service.service);
-                                const totalFee = officialFee + service.fee;
-                                
-                                return (
-                                  <div
-                                    key={index}
-                                    className="inline-flex flex-col px-3 py-1 rounded-lg text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700"
-                                    title={`${service.serviceName} - Total: ৳${totalFee} (Admin: ৳${officialFee} + Reseller: ৳${service.fee})`}
-                                  >
-                                    <div className="flex items-center gap-1">
-                                      <span className="truncate max-w-20">
-                                        {service.serviceName || `Service ${index + 1}`}
-                                      </span>
-                                      <span className="text-green-600 dark:text-green-400 font-medium">
-                                        ৳{totalFee}
-                                      </span>
+                            <div className="flex flex-wrap gap-1 max-w-xs">
+                              {user.services
+                                .slice(0, 2)
+                                .map((service, index) => {
+                                  const officialFee = getOfficialFee(
+                                    service.service
+                                  );
+                                  const totalFee = officialFee + service.fee;
+
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="inline-flex flex-col px-2 py-1 rounded-md text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                                      title={`${service.serviceName} - Total: ৳${totalFee} (Admin: ৳${officialFee} + Reseller: ৳${service.fee})`}
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        <Shield className="w-3 h-3" />
+                                        <span className="truncate max-w-16">
+                                          {service.serviceName ||
+                                            `Service ${index + 1}`}
+                                        </span>
+                                        <span className="text-green-600 dark:text-green-400 font-medium">
+                                          ৳{totalFee}
+                                        </span>
+                                      </div>
                                     </div>
-                                    <div className="text-[10px] text-gray-600 dark:text-gray-400">
-                                      (A:৳{officialFee} + R:৳{service.fee})
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                                  );
+                                })}
+                              {user.services.length > 2 && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400 px-2">
+                                  +{user.services.length - 2} more
+                                </span>
+                              )}
                               {user.services.length === 0 && (
                                 <span className="text-gray-400 dark:text-gray-500 text-sm">
                                   No services
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap gap-1 max-w-xs">
+                              {user.postServices
+                                .slice(0, 2)
+                                .map((postService, index) => {
+                                  const officialFee = getPostServiceOfficialFee(
+                                    postService.postService
+                                  );
+                                  const totalFee =
+                                    officialFee + postService.reseller_fee;
+
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="inline-flex flex-col px-2 py-1 rounded-md text-xs bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+                                      title={`${postService.postServiceName} - Total: ৳${totalFee} (Admin: ৳${officialFee} + Reseller: ৳${postService.reseller_fee})`}
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        <MessageCircle className="w-3 h-3" />
+                                        <span className="truncate max-w-16">
+                                          {postService.postServiceName ||
+                                            `Post Service ${index + 1}`}
+                                        </span>
+                                        <span className="text-green-600 dark:text-green-400 font-medium">
+                                          ৳{totalFee}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              {user.postServices.length > 2 && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400 px-2">
+                                  +{user.postServices.length - 2} more
+                                </span>
+                              )}
+                              {user.postServices.length === 0 && (
+                                <span className="text-gray-400 dark:text-gray-500 text-sm">
+                                  No post services
                                 </span>
                               )}
                             </div>
@@ -940,7 +1313,7 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Modal */}
+        {/* User Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -1028,137 +1401,328 @@ const UserManagement = () => {
                   </div>
                 </div>
 
-                {/* Enhanced Services Section */}
+                {/* Service Tabs */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium">
-                      Services Access & Pricing
-                    </label>
+                  <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
                     <button
                       type="button"
-                      onClick={addService}
-                      className="flex items-center gap-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm transition-colors"
+                      onClick={() => setActiveTab("services")}
+                      className={`px-4 py-2 font-medium text-sm transition-colors ${
+                        activeTab === "services"
+                          ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
+                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300"
+                      }`}
                     >
-                      <UserPlus className="w-4 h-4" />
-                      Add Service
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        Services ({formData.services.length})
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("postServices")}
+                      className={`px-4 py-2 font-medium text-sm transition-colors ${
+                        activeTab === "postServices"
+                          ? "border-b-2 border-purple-500 text-purple-600 dark:text-purple-400"
+                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4" />
+                        Post Services ({formData.postServices.length})
+                      </div>
                     </button>
                   </div>
 
-                  <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                    {formData.services.map((service, index) => {
-                      const fullService = getFullServiceDetails(service.service);
-                      const officialFee = getOfficialFee(service.service);
-                      const totalFee = officialFee + service.fee;
-
-                      return (
-                        <div
-                          key={index}
-                          className="flex gap-3 items-start p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                  {/* Services Tab Content */}
+                  {activeTab === "services" && (
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium">
+                          Services Access & Pricing
+                        </label>
+                        <button
+                          type="button"
+                          onClick={addService}
+                          className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition-colors"
+                          disabled={services.length === 0}
                         >
-                          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div>
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-                                Service
-                              </label>
-                              <select
-                                value={service.service}
-                                onChange={(e) =>
-                                  updateService(
-                                    index,
-                                    "service",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="">Select a Service</option>
-                                {getAvailableServices(service.service).map(
-                                  (svc) => (
-                                    <option key={svc._id} value={svc._id}>
-                                      {svc.name} (Admin: ৳{svc.fee})
-                                    </option>
-                                  )
-                                )}
-                              </select>
-                              {fullService && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                  Current Admin Fee: ৳{officialFee}
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div>
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-                                Admin Fee (৳)
-                                <span className="text-blue-600 dark:text-blue-400 ml-1">
-                                  Inner Fee
-                                </span>
-                              </label>
-                              <div className="relative">
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">৳</span>
-                                <input
-                                  type="number"
-                                  step="1"
-                                  value={officialFee}
-                                  readOnly
-                                  className="w-full pl-10 pr-3 py-2 bg-gray-100 dark:bg-gray-500 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none cursor-not-allowed"
-                                />
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Set by admin (read-only)
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-                                Reseller Fee (৳)
-                                <span className="text-green-600 dark:text-green-400 ml-1">
-                                  Outer Fee
-                                </span>
-                              </label>
-                              <div className="relative">
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">৳</span>
-                                <input
-                                  type="number"
-                                  step="1"
-                                  min="0"
-                                  placeholder="0"
-                                  value={service.fee}
-                                  onChange={(e) =>
-                                    updateService(
-                                      index,
-                                      "fee",
-                                      parseFloat(e.target.value) || 0
-                                    )
-                                  }
-                                  className="w-full pl-10 pr-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                              </div>
-                              <div className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                Total: ৳{totalFee}
-                              </div>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeService(index)}
-                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors mt-6"
-                            title="Remove Service"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      );
-                    })}
-
-                    {formData.services.length === 0 && (
-                      <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-sm">
-                        <UserPlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        No services added. Click &quot;Add Service&quot; to
-                        grant access.
+                          <Plus className="w-4 h-4" />
+                          Add Service
+                        </button>
                       </div>
-                    )}
-                  </div>
+
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        {formData.services.map((service, index) => {
+                          const fullService = getFullServiceDetails(
+                            service.service
+                          );
+                          const officialFee = getOfficialFee(service.service);
+                          const totalFee = officialFee + service.fee;
+
+                          return (
+                            <div
+                              key={index}
+                              className="flex gap-3 items-start p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                            >
+                              <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                    Service
+                                  </label>
+                                  <select
+                                    value={service.service}
+                                    onChange={(e) =>
+                                      updateService(
+                                        index,
+                                        "service",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  >
+                                    <option value="">Select a Service</option>
+                                    {getAvailableServices(service.service).map(
+                                      (svc) => (
+                                        <option key={svc._id} value={svc._id}>
+                                          {svc.name} (Admin: ৳{svc.fee})
+                                        </option>
+                                      )
+                                    )}
+                                  </select>
+                                  {fullService && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      Current Admin Fee: ৳{officialFee}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                    Admin Fee (৳)
+                                    <span className="text-blue-600 dark:text-blue-400 ml-1">
+                                      Inner Fee
+                                    </span>
+                                  </label>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
+                                      ৳
+                                    </span>
+                                    <input
+                                      type="number"
+                                      step="1"
+                                      value={officialFee}
+                                      readOnly
+                                      className="w-full pl-10 pr-3 py-2 bg-gray-100 dark:bg-gray-500 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none cursor-not-allowed"
+                                    />
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Set by admin (read-only)
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                    Reseller Fee (৳)
+                                    <span className="text-green-600 dark:text-green-400 ml-1">
+                                      Outer Fee
+                                    </span>
+                                  </label>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
+                                      ৳
+                                    </span>
+                                    <input
+                                      type="number"
+                                      step="1"
+                                      min="0"
+                                      placeholder="0"
+                                      value={service.fee}
+                                      onChange={(e) =>
+                                        updateService(
+                                          index,
+                                          "fee",
+                                          parseFloat(e.target.value) || 0
+                                        )
+                                      }
+                                      className="w-full pl-10 pr-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    />
+                                  </div>
+                                  <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                    Total: ৳{totalFee}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeService(index)}
+                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors mt-6"
+                                title="Remove Service"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          );
+                        })}
+
+                        {formData.services.length === 0 && (
+                          <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-sm">
+                            <Shield className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            No services added. Click &quot;Add Service&quot; to
+                            grant access.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Post Services Tab Content */}
+                  {activeTab === "postServices" && (
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium">
+                          Post Services Access & Pricing
+                        </label>
+                        <button
+                          type="button"
+                          onClick={addPostService}
+                          className="flex items-center gap-2 px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm transition-colors"
+                          disabled={postServices.length === 0}
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Post Service
+                        </button>
+                      </div>
+
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        {formData.postServices.map((postService, index) => {
+                          const fullPostService = getFullPostServiceDetails(
+                            postService.postService
+                          );
+                          const officialFee = getPostServiceOfficialFee(
+                            postService.postService
+                          );
+                          const totalFee =
+                            officialFee + postService.reseller_fee;
+
+                          return (
+                            <div
+                              key={index}
+                              className="flex gap-3 items-start p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                            >
+                              <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                    Post Service
+                                  </label>
+                                  <select
+                                    value={postService.postService}
+                                    onChange={(e) =>
+                                      updatePostService(
+                                        index,
+                                        "postService",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  >
+                                    <option value="">
+                                      Select a Post Service
+                                    </option>
+                                    {getAvailablePostServices(
+                                      postService.postService
+                                    ).map((ps) => (
+                                      <option key={ps._id} value={ps._id}>
+                                        {ps.title} (Admin: ৳
+                                        {ps.admin_fee + ps.worker_fee})
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {fullPostService && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      Current Admin Fee: ৳{officialFee}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                    Admin Fee (৳)
+                                    <span className="text-blue-600 dark:text-blue-400 ml-1">
+                                      Inner Fee
+                                    </span>
+                                  </label>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
+                                      ৳
+                                    </span>
+                                    <input
+                                      type="number"
+                                      step="1"
+                                      value={officialFee}
+                                      readOnly
+                                      className="w-full pl-10 pr-3 py-2 bg-gray-100 dark:bg-gray-500 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none cursor-not-allowed"
+                                    />
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Set by admin (read-only)
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                    Reseller Fee (৳)
+                                    <span className="text-green-600 dark:text-green-400 ml-1">
+                                      Outer Fee
+                                    </span>
+                                  </label>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
+                                      ৳
+                                    </span>
+                                    <input
+                                      type="number"
+                                      step="1"
+                                      min="0"
+                                      placeholder="0"
+                                      value={postService.reseller_fee}
+                                      onChange={(e) =>
+                                        updatePostService(
+                                          index,
+                                          "reseller_fee",
+                                          parseFloat(e.target.value) || 0
+                                        )
+                                      }
+                                      className="w-full pl-10 pr-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    />
+                                  </div>
+                                  <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                    Total: ৳{totalFee}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removePostService(index)}
+                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors mt-6"
+                                title="Remove Post Service"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          );
+                        })}
+
+                        {formData.postServices.length === 0 && (
+                          <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-sm">
+                            <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                            No post services added. Click &quot;Add Post
+                            Service&quot; to grant access.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
@@ -1171,7 +1735,9 @@ const UserManagement = () => {
                       }
                       className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
                     />
-                    <span className="text-gray-700 dark:text-gray-300">Banned</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Banned
+                    </span>
                   </label>
                 </div>
 

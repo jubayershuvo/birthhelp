@@ -38,9 +38,9 @@ export async function DELETE(
     await Transaction.create({
       user: user._id,
       amount: total,
-      trxId: "ADMIN",
+      trxId: "REFUND",
       number: "Refunded",
-      method: "Refund",
+      method: "ADMIN",
       status: "SUCCESS",
     });
     await user.save();

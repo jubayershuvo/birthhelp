@@ -71,9 +71,9 @@ export async function POST(
     await Transaction.create({
       user: poster._id,
       amount: post.admin_fee + post.worker_fee + post.reseller_fee,
-      trxId: "ADMIN",
+      trxId: "REFUND",
       number: "Refunded",
-      method: "Refund",
+      method: "ADMIN",
       status: "SUCCESS",
     });
     await poster.save();

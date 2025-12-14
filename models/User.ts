@@ -30,6 +30,12 @@ export interface IUser extends Document {
       fee: number;
     }
   ];
+  postServices: [
+    {
+      service: Types.ObjectId;
+      reseller_fee: number;
+    }
+  ];
 
   createdAt: Date;
   updatedAt: Date;
@@ -55,6 +61,17 @@ const UserSchema = new Schema<IUser>(
           ref: "Service",
         },
         fee: { type: Number },
+      },
+      { _id: false },
+    ],
+    postServices: [
+      {
+        service: {
+          // FIXED: Changed from postService to service
+          type: Schema.Types.ObjectId,
+          ref: "PostService",
+        },
+        reseller_fee: { type: Number },
       },
       { _id: false },
     ],
