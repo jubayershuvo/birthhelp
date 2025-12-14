@@ -40,13 +40,19 @@ export async function POST(
 
     const { id: postId } = await params;
 
-    // Parse form data for file upload
+    // Parse form data
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const deliveryNote = formData.get("deliveryNote") as string | null;
+  
 
-    if (!file) {
+    // Validate that at least one of file or deliveryNote is provided
+    if (!file && !deliveryNote?.trim()) {
       return NextResponse.json(
-        { success: false, message: "Delivery file is required" },
+        {
+          success: false,
+          message: "Please provide either a delivery file or a delivery note",
+        },
         { status: 400 }
       );
     }
@@ -87,45 +93,60 @@ export async function POST(
       );
     }
 
-    // Handle file upload
-    const uploadPath = await ensureUploadDir();
+    let uploadedFile = null;
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // Handle file upload if provided
+    if (file) {
+      const uploadPath = await ensureUploadDir();
 
-    // Get file extension
-    const fileExt = path.extname(file.name) || "";
+      // Convert file to buffer
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
 
-    // Create unique filename
-    const uniqueFilename = `${postId}_${Date.now()}${fileExt}`;
-    const fullFilePath = path.join(uploadPath, uniqueFilename);
+      // Get file extension
+      const fileExt = path.extname(file.name) || "";
 
-    // Save file to disk
-    await fs.writeFile(fullFilePath, buffer);
+      // Create unique filename
+      const uniqueFilename = `${postId}_${Date.now()}${fileExt}`;
+      const fullFilePath = path.join(uploadPath, uniqueFilename);
 
-    // Create file record in database
-    const uploadedFile = await PostFile.create({
-      name: `${post.service.title}_${Date.now()}`,
-      path: fullFilePath,
-      ext: fileExt,
-    });
+      // Save file to disk
+      await fs.writeFile(fullFilePath, buffer);
+
+      // Create file record in database
+      uploadedFile = await PostFile.create({
+        name: `${post.service.title}_${Date.now()}`,
+        path: fullFilePath,
+        ext: fileExt,
+      });
+    }
 
     // Update post to completed
     post.status = "completed";
-    post.deliveryFile = {
-      name: uploadedFile.name,
-      fileId: uploadedFile._id.toString(),
-    };
+
+    // Set delivery file if provided
+    if (uploadedFile) {
+      post.deliveryFile = {
+        name: uploadedFile.name,
+        fileId: uploadedFile._id.toString(),
+      };
+    }
+
+    // Set delivery note if provided
+    if (deliveryNote?.trim()) {
+      post.deliveryNote = deliveryNote.trim();
+    }
+
     post.updatedAt = new Date();
     post.completedAt = new Date();
 
+    // Update user balance
     user.balance += Number(post.worker_fee);
 
     await user.save();
     await post.save();
 
-    // Create earnings record
+    // Create earnings record for worker
     await Earnings.create({
       user: post.user.toString(),
       reseller: user._id,
@@ -134,6 +155,8 @@ export async function POST(
       data: post._id.toString(),
       dataSchema: "CompletedWork",
     });
+
+    // Create earnings record for poster's reseller commission
     await Earnings.create({
       user: post.user.toString(),
       reseller: poster_reseller._id,
@@ -150,10 +173,12 @@ export async function POST(
         _id: post._id.toString(),
         status: post.status,
         deliveryFile: post.deliveryFile,
+        deliveryNote: post.deliveryNote,
+        completedAt: post.completedAt,
       },
     });
   } catch (error) {
-    console.error("Error in POST /api/works/complete/[id]:", error);
+    console.error("Error in POST /api/reseller/works/complete/[id]:", error);
     return NextResponse.json(
       {
         success: false,

@@ -1,4 +1,4 @@
-// app/(protected)/works/page.tsx (updated - fully responsive)
+// app/(protected)/works/page.tsx (updated - with deliveryNote and deliveryFile)
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -42,6 +42,7 @@ interface Post {
     path?: string;
     uploadedAt?: string;
   };
+  deliveryNote?: string;
   cancellation?: {
     cancelledBy: string;
     cancelledAt: string;
@@ -64,6 +65,7 @@ export default function WorksFinderPage() {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
+  const [deliveryNote, setDeliveryNote] = useState("");
   const [completingPostId, setCompletingPostId] = useState<string | null>(null);
   const [cancellingPostId, setCancellingPostId] = useState<string | null>(null);
   const [cancelNote, setCancelNote] = useState("");
@@ -219,10 +221,11 @@ export default function WorksFinderPage() {
   };
 
   const handleCompleteWork = async (postId: string) => {
-    if (!selectedFile) {
+    // Validate that at least one field is provided
+    if (!selectedFile && !deliveryNote.trim()) {
       setMessage({
         type: "error",
-        text: "Please select a delivery file",
+        text: "Please provide at least a delivery note or upload a file",
       });
       return;
     }
@@ -233,8 +236,13 @@ export default function WorksFinderPage() {
       setMessage(null);
 
       const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("fileName", fileName || selectedFile.name);
+      if (selectedFile) {
+        formData.append("file", selectedFile);
+        formData.append("fileName", fileName || selectedFile.name);
+      }
+      if (deliveryNote.trim()) {
+        formData.append("deliveryNote", deliveryNote);
+      }
 
       const response = await fetch(`/api/reseller/works/complete/${postId}`, {
         method: "POST",
@@ -256,6 +264,7 @@ export default function WorksFinderPage() {
                   ...post,
                   status: "completed",
                   deliveryFile: data.post.deliveryFile,
+                  deliveryNote: data.post.deliveryNote,
                 }
               : post
           )
@@ -268,6 +277,7 @@ export default function WorksFinderPage() {
                   ...prev,
                   status: "completed",
                   deliveryFile: data.post.deliveryFile,
+                  deliveryNote: data.post.deliveryNote,
                 }
               : null
           );
@@ -276,6 +286,7 @@ export default function WorksFinderPage() {
         setSelectedPost(null);
         setSelectedFile(null);
         setFileName("");
+        setDeliveryNote("");
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -383,6 +394,7 @@ export default function WorksFinderPage() {
           setShowMobileMenu(false);
         } else {
           setSelectedPost(null);
+          setDeliveryNote("");
         }
       }
     };
@@ -397,6 +409,7 @@ export default function WorksFinderPage() {
         setSelectedPost(null);
         setSelectedFile(null);
         setFileName("");
+        setDeliveryNote("");
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -602,6 +615,18 @@ export default function WorksFinderPage() {
                   {post.description || "No description provided"}
                 </p>
 
+                {/* Delivery Note Preview for Completed Posts */}
+                {post.status === "completed" && post.deliveryNote && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Delivery Note:
+                    </p>
+                    <div className="p-2 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-lg">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{post.deliveryNote}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Files */}
                 {post.files && post.files.length > 0 && (
                   <div className="mb-4">
@@ -703,7 +728,7 @@ export default function WorksFinderPage() {
 
                     {activeTab === "my_works" && post.status === "processing" && (
                       <div className="flex gap-2 w-full sm:w-auto">
-                        <button onClick={() => { setSelectedPost(post); setSelectedFile(null); setFileName(""); }} className="inline-flex items-center px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 flex-1 justify-center">
+                        <button onClick={() => { setSelectedPost(post); setSelectedFile(null); setFileName(""); setDeliveryNote(""); }} className="inline-flex items-center px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 flex-1 justify-center">
                           <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
@@ -729,7 +754,7 @@ export default function WorksFinderPage() {
       {/* Post Details Modal */}
       {selectedPost && (
         <div className="fixed inset-0 z-50">
-          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 modal-backdrop" onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}></div>
+          <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 modal-backdrop" onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); setDeliveryNote(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}></div>
           <div className="fixed inset-0 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
               <div className="relative w-full max-w-3xl bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900 max-h-[90vh] overflow-hidden">
@@ -743,7 +768,7 @@ export default function WorksFinderPage() {
                         ID: {selectedPost._id}
                       </p>
                     </div>
-                    <button onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none ml-2 flex-shrink-0">
+                    <button onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); setDeliveryNote(""); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none ml-2 flex-shrink-0">
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -813,6 +838,18 @@ export default function WorksFinderPage() {
                       )}
                     </div>
 
+                    {/* Delivery Note for Completed Posts */}
+                    {selectedPost.status === "completed" && selectedPost.deliveryNote && (
+                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <h4 className="font-medium text-green-900 dark:text-green-300 mb-3">📝 Delivery Note</h4>
+                        <div className="p-3 bg-white dark:bg-gray-700 rounded-lg border border-green-100 dark:border-green-700">
+                          <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap text-sm sm:text-base">
+                            {selectedPost.deliveryNote}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Cancellation Reason */}
                     {selectedPost.status === "cancelled" && selectedPost.cancellation && (
                       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
@@ -828,15 +865,42 @@ export default function WorksFinderPage() {
                       </div>
                     )}
 
-                    {/* Delivery File Upload for Processing Posts */}
+                    {/* Delivery File Upload and Note for Processing Posts */}
                     {selectedPost.status === "processing" && (
                       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
-                        <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-3">📤 Upload Delivery File</h4>
+                        <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-3">📤 Deliver Completed Work</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                          Provide at least one of the following to mark this work as complete:
+                        </p>
+                        
+                        {/* Delivery Note Input */}
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Delivery Note (Optional)
+                          </label>
+                          <textarea
+                            value={deliveryNote}
+                            onChange={(e) => setDeliveryNote(e.target.value)}
+                            placeholder="Add any notes about the completed work..."
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                          />
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Add any instructions, notes, or comments about the completed work
+                          </p>
+                        </div>
+
+                        {/* Delivery File Upload */}
                         <div className="mb-3">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Select File
+                            Delivery File (Optional)
                           </label>
-                          <input ref={fileInputRef} type="file" onChange={handleFileSelect} className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/30 dark:file:text-blue-400 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" />
+                          <input 
+                            ref={fileInputRef} 
+                            type="file" 
+                            onChange={handleFileSelect} 
+                            className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/30 dark:file:text-blue-400 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" 
+                          />
                         </div>
                         {selectedFile && (
                           <div className="mb-4">
@@ -849,6 +913,16 @@ export default function WorksFinderPage() {
                             </p>
                           </div>
                         )}
+
+                        {/* Validation Message */}
+                        {!selectedFile && !deliveryNote.trim() && (
+                          <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                            <p className="text-sm text-red-600 dark:text-red-400">
+                              <span className="font-medium">Note:</span> You must provide at least a delivery note or upload a file to complete this work.
+                            </p>
+                          </div>
+                        )}
+
                         {uploading && completingPostId === selectedPost._id && (
                           <div className="flex items-center text-blue-600 dark:text-blue-400 mb-3">
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 dark:border-blue-400 border-t-transparent mr-2"></div>
@@ -907,7 +981,7 @@ export default function WorksFinderPage() {
                 {/* Footer */}
                 <div className="px-4 sm:px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3">
-                    <button onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 order-2 sm:order-1">
+                    <button onClick={() => { setSelectedPost(null); setSelectedFile(null); setFileName(""); setDeliveryNote(""); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 order-2 sm:order-1">
                       Close
                     </button>
 
@@ -929,7 +1003,11 @@ export default function WorksFinderPage() {
                         <button onClick={() => setShowCancelModal(true)} className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 order-1 sm:order-2">
                           Cancel Work
                         </button>
-                        <button onClick={() => handleCompleteWork(selectedPost._id)} disabled={uploading || !selectedFile} className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 ${uploading || !selectedFile ? "bg-green-400 dark:bg-green-600 cursor-not-allowed" : "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"} order-3`}>
+                        <button 
+                          onClick={() => handleCompleteWork(selectedPost._id)} 
+                          disabled={uploading || (!selectedFile && !deliveryNote.trim())}
+                          className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 ${uploading || (!selectedFile && !deliveryNote.trim()) ? "bg-green-400 dark:bg-green-600 cursor-not-allowed" : "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"} order-3`}
+                        >
                           {uploading && completingPostId === selectedPost._id ? (
                             <>
                               <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-1.5 inline-block"></div>
