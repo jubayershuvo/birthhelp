@@ -5,6 +5,7 @@ import { countriesList, nationalityOptions } from "@/json/countries";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import SimpleUnicodeLoader from "./Loader";
+import Link from "next/link";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Types
@@ -2280,7 +2281,12 @@ export default function BirthCorrectionForm() {
                   </div>
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  <Link href="/birth/application/correction/history">
+                    <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-500 transition">
+                      History
+                    </button>
+                  </Link>
                   <button
                     type="button"
                     onClick={searchByUbrn}

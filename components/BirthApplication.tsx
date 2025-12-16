@@ -5,6 +5,7 @@ import {
   dutaBasCountries,
   nationalityOptions,
 } from "@/json/countries";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
@@ -3191,7 +3192,12 @@ export default function BirthRegistrationForm() {
                 </div>
               )}
 
-              <div className="flex justify-end">
+              <div className="flex justify-between">
+                <Link href="/birth/application/registration/history">
+                  <button className="px-4 py-2 border border-blue-500 rounded-md hover:bg-blue-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                    History
+                  </button>
+                </Link>
                 <button
                   type="button"
                   onClick={nextStep}
