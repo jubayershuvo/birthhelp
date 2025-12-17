@@ -283,7 +283,7 @@ const BirthCertificate: React.FC = () => {
                 alignItems: "flex-start",
               }}
             >
-              {certificateData.pdfType === "Duplicate" ? (
+              {certificateData?.pdfType === "Duplicate" ? (
                 <div
                   style={{
                     position: "absolute",
@@ -322,7 +322,7 @@ const BirthCertificate: React.FC = () => {
                     </span>
                   </p>
                 </div>
-              ) : certificateData.pdfType === "Corrected" ? (
+              ) : certificateData?.pdfType === "Corrected" ? (
                  <div
                   style={{
                     position: "absolute",
@@ -382,7 +382,7 @@ const BirthCertificate: React.FC = () => {
                     paddingLeft: "5px",
                   }}
                 >
-                  <img src={certificateData.qrCode} alt="QR Code" />
+                  <img src={certificateData?.qrCode} alt="QR Code" />
                 </div>
                 <p
                   style={{
@@ -394,7 +394,7 @@ const BirthCertificate: React.FC = () => {
                     textAlign: "center",
                   }}
                 >
-                  {certificateData.randomCode}
+                  {certificateData?.randomCode}
                 </p>
               </div>
 
@@ -444,7 +444,7 @@ const BirthCertificate: React.FC = () => {
                     color: "#000000",
                   }}
                 >
-                  {capitalizeWords(certificateData.registrationOffice)}
+                  {capitalizeWords(certificateData?.registrationOffice)}
                 </p>
                 <p
                   style={{
@@ -453,7 +453,7 @@ const BirthCertificate: React.FC = () => {
                     color: "#000000",
                   }}
                 >
-                  {processOfficeLocation(certificateData.officeLocation)}
+                  {processOfficeLocation(certificateData?.officeLocation)}
                 </p>
                 <p
                   style={{
@@ -476,7 +476,7 @@ const BirthCertificate: React.FC = () => {
               >
                 <img
                   style={{ width: "190px", height: "25px" }}
-                  src={certificateData.barCode}
+                  src={certificateData?.barCode}
                   alt="Barcode"
                 ></img>
               </div>
@@ -555,7 +555,7 @@ const BirthCertificate: React.FC = () => {
                     fontFamily: "Prima Sans",
                   }}
                 >
-                  {certificateData.registrationDate}
+                  {certificateData?.registrationDate}
                 </p>
               </div>
               <div style={{ textAlign: "center", marginLeft: "-37px" }}>
@@ -578,7 +578,7 @@ const BirthCertificate: React.FC = () => {
                     letterSpacing: "0.05em",
                   }}
                 >
-                  {certificateData.birthRegNumber || "N/A"}
+                  {certificateData?.birthRegNumber || "N/A"}
                 </h1>
               </div>
               <div style={{ textAlign: "left" }}>
@@ -601,7 +601,7 @@ const BirthCertificate: React.FC = () => {
                     fontFamily: "Prima Sans",
                   }}
                 >
-                  {certificateData.issuanceDate}
+                  {certificateData?.issuanceDate}
                 </p>
               </div>
             </div>
@@ -643,7 +643,7 @@ const BirthCertificate: React.FC = () => {
                       fontWeight: "500",
                     }}
                   >
-                    {certificateData.dateOfBirth}
+                    {certificateData?.dateOfBirth}
                   </span>
                 </div>
                 <div
@@ -667,7 +667,7 @@ const BirthCertificate: React.FC = () => {
                       fontWeight: "500",
                     }}
                   >
-                    {capitalizeWords(certificateData.sex)}
+                    {capitalizeWords(certificateData?.sex)}
                   </span>
                 </div>
               </div>
@@ -711,7 +711,7 @@ const BirthCertificate: React.FC = () => {
                     width: "400px",
                   }}
                 >
-                  {certificateData.dateInWords}
+                  {certificateData?.dateInWords}
                 </span>
               </div>
 
@@ -752,7 +752,7 @@ const BirthCertificate: React.FC = () => {
                       fontFamily: "Kalpurush",
                     }}
                   >
-                    {capitalizeWords(certificateData.personNameBn)}
+                    {capitalizeWords(certificateData?.personNameBn)}
                   </span>
                 </div>
                 <div style={{ flex: 1, display: "flex" }}>
@@ -786,7 +786,7 @@ const BirthCertificate: React.FC = () => {
                       fontFamily: "Prima Sans",
                     }}
                   >
-                    {capitalizeWords(certificateData.personNameEn)}
+                    {capitalizeWords(certificateData?.personNameEn)}
                   </span>
                 </div>
               </div>
@@ -830,7 +830,7 @@ const BirthCertificate: React.FC = () => {
                       fontFamily: "Kalpurush",
                     }}
                   >
-                    {capitalizeWords(certificateData.motherNameBn)}
+                    {capitalizeWords(certificateData?.motherNameBn)}
                   </span>
                 </div>
                 <div style={{ flex: 1, display: "flex" }}>
@@ -864,7 +864,7 @@ const BirthCertificate: React.FC = () => {
                       width: "188px",
                     }}
                   >
-                    {capitalizeWords(certificateData.motherNameEn)}
+                    {capitalizeWords(certificateData?.motherNameEn)}
                   </span>
                 </div>
               </div>
@@ -908,7 +908,7 @@ const BirthCertificate: React.FC = () => {
                       fontFamily: "Kalpurush",
                     }}
                   >
-                    {capitalizeWords(certificateData.motherNationalityBn)}
+                    {capitalizeWords(certificateData?.motherNationalityBn)}
                   </span>
                 </div>
                 <div style={{ flex: 1, display: "flex" }}>
@@ -942,7 +942,7 @@ const BirthCertificate: React.FC = () => {
                       width: "188px",
                     }}
                   >
-                    {capitalizeWords(certificateData.motherNationalityEn)}
+                    {capitalizeWords(certificateData?.motherNationalityEn)}
                   </span>
                 </div>
               </div>
@@ -986,7 +986,7 @@ const BirthCertificate: React.FC = () => {
                       fontFamily: "Kalpurush",
                     }}
                   >
-                    {capitalizeWords(certificateData.fatherNameBn)}
+                    {capitalizeWords(certificateData?.fatherNameBn)}
                   </span>
                 </div>
                 <div style={{ flex: 1, display: "flex" }}>
@@ -1020,7 +1020,7 @@ const BirthCertificate: React.FC = () => {
                       width: "188px",
                     }}
                   >
-                    {capitalizeWords(certificateData.fatherNameEn)}
+                    {capitalizeWords(certificateData?.fatherNameEn)}
                   </span>
                 </div>
               </div>
@@ -1064,7 +1064,7 @@ const BirthCertificate: React.FC = () => {
                       fontFamily: "Kalpurush",
                     }}
                   >
-                    {capitalizeWords(certificateData.fatherNationalityBn)}
+                    {capitalizeWords(certificateData?.fatherNationalityBn)}
                   </span>
                 </div>
                 <div style={{ flex: 1, display: "flex" }}>
@@ -1098,7 +1098,7 @@ const BirthCertificate: React.FC = () => {
                       width: "188px",
                     }}
                   >
-                    {capitalizeWords(certificateData.fatherNationalityEn)}
+                    {capitalizeWords(certificateData?.fatherNationalityEn)}
                   </span>
                 </div>
               </div>
@@ -1142,7 +1142,7 @@ const BirthCertificate: React.FC = () => {
                       fontFamily: "Kalpurush",
                     }}
                   >
-                    {capitalizeWords(certificateData.birthPlaceBn)}
+                    {capitalizeWords(certificateData?.birthPlaceBn)}
                   </span>
                 </div>
                 <div style={{ flex: 1, display: "flex", alignItems: "start" }}>
@@ -1176,7 +1176,7 @@ const BirthCertificate: React.FC = () => {
                       width: "188px",
                     }}
                   >
-                    {capitalizeWords(certificateData.birthPlaceEn)}
+                    {capitalizeWords(certificateData?.birthPlaceEn)}
                   </span>
                 </div>
               </div>
@@ -1214,7 +1214,7 @@ const BirthCertificate: React.FC = () => {
                       fontFamily: "Kalpurush",
                     }}
                   >
-                    {capitalizeWords(certificateData.permanentAddressBn)}
+                    {capitalizeWords(certificateData?.permanentAddressBn)}
                   </span>
                 </div>
                 <div style={{ flex: 1, display: "flex", alignItems: "start" }}>
@@ -1249,7 +1249,7 @@ const BirthCertificate: React.FC = () => {
                       width: "188px",
                     }}
                   >
-                    {capitalizeWords(certificateData.permanentAddressEn)}
+                    {capitalizeWords(certificateData?.permanentAddressEn)}
                   </span>
                 </div>
               </div>
