@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 // Limited data interface for search results
 interface ISearchData {
@@ -199,6 +200,11 @@ export default function BirthCertificateSearch() {
 
         {/* Search Button */}
         <div className="flex gap-4">
+          <Link href="/birth/certificate/history">
+            <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+              History
+            </button>
+          </Link>
           <button
             onClick={handleSearch}
             disabled={loading}
