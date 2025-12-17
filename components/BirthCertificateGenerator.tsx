@@ -31,6 +31,7 @@ interface CertificateData {
   randomCode?: string;
   qrCode?: string;
   barCode?: string;
+  pdfType?: string;
 }
 
 const BirthCertificate: React.FC = () => {
@@ -89,7 +90,6 @@ const BirthCertificate: React.FC = () => {
     if (!str) return "N/A";
     return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   };
-
 
   const processOfficeLocation = (location: string | undefined): string => {
     if (!location) return "N/A";
@@ -283,6 +283,86 @@ const BirthCertificate: React.FC = () => {
                 alignItems: "flex-start",
               }}
             >
+              {certificateData.pdfType === "Duplicate" ? (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "20px",
+                    right: "80px",
+                    border: "1px solid #000",
+                    padding: "5px",
+                    letterSpacing: "0.05em",
+                    fontWeight: "400",
+                    fontSize: "12px",
+                    textAlign: "center",
+                    height: "25px",
+                  }}
+                >
+                  <p
+                    style={{
+                      padding: "0 10px",
+                      margin: 0,
+                      marginTop: "-10px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "Arial",
+                      }}
+                    >
+                      প্রতিলিপি
+                    </span>
+                    /
+                    <span
+                      style={{
+                        fontFamily: "Arial",
+                      }}
+                    >
+                      Duplicate
+                    </span>
+                  </p>
+                </div>
+              ) : certificateData.pdfType === "Corrected" ? (
+                 <div
+                  style={{
+                    position: "absolute",
+                    top: "20px",
+                    right: "80px",
+                    border: "1px solid #000",
+                    padding: "5px",
+                    letterSpacing: "0.05em",
+                    fontWeight: "400",
+                    fontSize: "12px",
+                    textAlign: "center",
+                    height: "25px",
+                  }}
+                >
+                  <p
+                    style={{
+                      padding: "0 10px",
+                      margin: 0,
+                      marginTop: "-10px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "Arial",
+                      }}
+                    >
+                      সংশোধিত
+                    </span>
+                    /
+                    <span
+                      style={{
+                        fontFamily: "Arial",
+                      }}
+                    >
+                      Corrected
+                    </span>
+                  </p>
+                </div>
+              ) : null}
+
               {/* Left - QR Code */}
               <div
                 style={{
@@ -403,7 +483,14 @@ const BirthCertificate: React.FC = () => {
             </div>
 
             {/* Certificate Title */}
-            <div style={{ textAlign: "center", marginBottom: "5px", marginLeft: "25px",marginTop:"-5px" }}>
+            <div
+              style={{
+                textAlign: "center",
+                marginBottom: "5px",
+                marginLeft: "25px",
+                marginTop: "-5px",
+              }}
+            >
               <p
                 style={{
                   fontSize: "18px",
@@ -425,7 +512,6 @@ const BirthCertificate: React.FC = () => {
                     fontFamily: "Nikosh",
                     fontWeight: "500",
                     fontSize: "20px",
-
                   }}
                 >
                   Birth Registration Certificate
@@ -443,7 +529,13 @@ const BirthCertificate: React.FC = () => {
                 marginBottom: "20px",
               }}
             >
-              <div style={{ textAlign: "left", paddingRight: "10px",paddingLeft:"10px" }}>
+              <div
+                style={{
+                  textAlign: "left",
+                  paddingRight: "10px",
+                  paddingLeft: "10px",
+                }}
+              >
                 <p
                   style={{
                     fontSize: "15px",
