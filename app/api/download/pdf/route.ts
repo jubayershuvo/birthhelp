@@ -154,12 +154,18 @@ export async function GET(request: NextRequest) {
     // Deduct balance and create records after successful PDF generation
     user.balance -= serviceCost;
     reseller.balance += userService.fee;
-
+    const file = await File.create({
+      user: user._id,
+      path: filePath,
+      name: appId,
+      type: "pdf",
+      title: `Application Pdf`,
+    });
     await Spent.create({
       user: user._id,
       service: userService._id,
       amount: serviceCost,
-      data: "DownloadPDF",
+      data: file._id,
       dataSchema: "DownloadPDF",
     });
 
@@ -168,17 +174,11 @@ export async function GET(request: NextRequest) {
       reseller: reseller._id,
       service: userService._id,
       amount: userService.fee,
-      data: "DownloadPDF",
+      data: file._id,
       dataSchema: "DownloadPDF",
     });
 
-    const file = await File.create({
-      user: user._id,
-      path: filePath,
-      name: appId,
-      type: "pdf",
-      title: `Application Pdf`,
-    });
+
 
     await reseller.save();
     await user.save();

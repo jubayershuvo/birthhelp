@@ -8,6 +8,7 @@ import { useAppSelector } from "@/lib/hooks";
 
 interface PassportData {
   passportNumber?: string;
+  user: string;
   name?: string;
   fathersName?: string;
   mothersName?: string;
@@ -38,7 +39,9 @@ const PassportCard: React.FC = () => {
   const params = useParams();
   const passportRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [passportData, setPassportData] = useState<PassportData>({});
+  const [passportData, setPassportData] = useState<PassportData>({
+    user: "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const id = params.id as string;
@@ -50,46 +53,18 @@ const PassportCard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/passport/get/${id}`);
+      const response = await fetch(`/api/passport?id=${id}`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch passport data: ${response.status}`);
       }
       const resData = await response.json();
+      const data = resData as PassportData;
 
-      if (user._id !== resData.data.user) {
-        router.push(`/passport/edit/${id}`);
+      if (user._id !== data.user) {
+        router.push(`/passport?id=${id}`);
         return;
       }
-
-      const data: PassportData = {
-        passportNumber: resData.data.passport_number,
-        name: resData.data.name,
-        fathersName: resData.data.fathers_name,
-        mothersName: resData.data.mothers_name,
-        spousesName: resData.data.spouses_name,
-        permanentAddress: resData.data.permanent_address,
-        emergencyContactName: resData.data.emergency_contact_name,
-        emergencyContactRelationship:
-          resData.data.emergency_contact_relationship,
-        emergencyContactAddress: resData.data.emergency_contact_address,
-        emergencyContactTelephone: resData.data.emergency_contact_telephone,
-        surname: resData.data.surname,
-        givenName: resData.data.given_name,
-        nationality: resData.data.nationality,
-        personalNumber: resData.data.personal_number,
-        birthDate: resData.data.birth_date,
-        gender: resData.data.gender,
-        birthPlace: resData.data.birth_place,
-        issueDate: resData.data.issue_date,
-        issuingAuthority: resData.data.issuing_authority,
-        expiryDate: resData.data.expiry_date,
-        photo: resData.data.photo,
-        signature: resData.data.signature,
-        mrzLine1: resData.data.mrz_line_1,
-        mrzLine2: resData.data.mrz_line_2,
-        previousPassportNo: resData.data.previous_passport_no,
-      };
 
       if (!data || Object.keys(data).length === 0) {
         throw new Error("No passport data found");
@@ -102,36 +77,9 @@ const PassportCard: React.FC = () => {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load passport data";
       setError(errorMessage);
-      toast.error("Using static data instead");
-      // Set fallback data
-      setPassportData({
-        passportNumber: "EH0454913",
-        name: "MD TAHSAN CHOWDHORY",
-        fathersName: "MD JOBBER KHAN",
-        mothersName: "RAHELA KHATUN",
-        spousesName: "RUJINA AKTER",
-        permanentAddress: "PATHALIA, JAMALPUR, JAMALPUR SADAR, JAMALPUR",
-        emergencyContactName: "RIFAT BIN EMDAD",
-        emergencyContactRelationship: "SON-IN-LAW",
-        emergencyContactAddress:
-          "MUKANDA BARI, KALABAGAN, JAMALPUR, JAMALPUR SADAR, JAMALPUR",
-        emergencyContactTelephone: "01836874656",
-        surname: "CHOWDHORY",
-        givenName: "MD TAHSAN",
-        nationality: "BANGLADESHI",
-        personalNumber: "5984636273",
-        birthDate: "01 JAN 1960",
-        gender: "M",
-        birthPlace: "JAMALPUR",
-        issueDate: "12 JAN 2021",
-        issuingAuthority: "DIP / DHAKA",
-        expiryDate: "01 JAN 2026",
-        photo: "/photo.png",
-        signature: "/signature.png",
-        mrzLine1: "P<BGDBEGUM<<MOMTAZ<<<<<<<<<<<<<<<<<<<<<<",
-        mrzLine2: "EH0454913BGD60010F260111135984636273<<<<<<56",
-        previousPassportNo: "",
-      });
+      toast.error("Failed to load passport data");
+      router.push("/passport");
+      
     } finally {
       setLoading(false);
     }
@@ -143,6 +91,7 @@ const PassportCard: React.FC = () => {
     } else {
       setError("No passport ID provided");
       toast.error("Using static data instead");
+      router.push("/passport");
     }
   }, [id]);
 
@@ -165,7 +114,7 @@ const PassportCard: React.FC = () => {
         useCORS: true,
         allowTaint: true,
         logging: false,
-        
+
         backgroundColor: "#ffffff",
         width: 2480,
         height: 3508,
@@ -817,7 +766,7 @@ const PassportCard: React.FC = () => {
                     letterSpacing: "1px",
                     textShadow: "0 0 1.5px #000",
                     top: "464px",
-                    right: "479px",
+                    right: "400px",
                   }}
                 >
                   {passportData.personalNumber}
@@ -989,7 +938,7 @@ const PassportCard: React.FC = () => {
                 >
                   <p
                     style={{
-                      letterSpacing: "12.3px",
+                      letterSpacing: "10.5px",
                       fontSize: "40px",
                       fontWeight: "bold",
                       fontFamily: "'OCR-B', monospace",

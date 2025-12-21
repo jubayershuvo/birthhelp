@@ -1,3 +1,5 @@
-export default function MakePage() {
-  return <div>Make Page</div>;
+import PassportPage from "@/components/MakePassport";
+
+export default function Passport() {
+  return <PassportPage />;
 }

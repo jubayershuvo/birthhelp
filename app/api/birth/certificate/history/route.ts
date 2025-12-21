@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import BirthCertificate from "@/models/BirthCertificate";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     await connectDB();
     const user = await getUser();
