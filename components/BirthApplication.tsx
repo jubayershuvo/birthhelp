@@ -1675,7 +1675,7 @@ export default function BirthRegistrationForm() {
       } else {
         // For adults 18+: use self as applicant
         const fullNameBn =
-          `${formData.personInfoForBirth.personFirstNameBn} ${formData.personInfoForBirth.personLastNameBn}`.trim();
+          `${formData.personInfoForBirth.personFirstNameBn} ${formData.personInfoForBirth?.personLastNameBn}`.trim();
 
         setFormData((prev) => ({
           ...prev,
@@ -2076,8 +2076,7 @@ export default function BirthRegistrationForm() {
     try {
       // Check if required personal information is available
       if (
-        !formData.personInfoForBirth.personFirstNameBn ||
-        !formData.personInfoForBirth.personLastNameBn
+        !formData.personInfoForBirth.personFirstNameBn
       ) {
         toast.error("প্রথমে ব্যক্তির তথ্য পূরণ করুন");
         return;
