@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-  ChangeEvent,
-  FormEvent,
-} from "react";
+import { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -52,8 +47,6 @@ interface PassportFormData {
   expiryDate: string;
   photo?: string;
   signature?: string;
-  mrzLine1: string;
-  mrzLine2: string;
   previousPassportNo: string;
 }
 
@@ -80,8 +73,6 @@ const emptyForm: PassportFormData = {
   expiryDate: "",
   photo: "",
   signature: "",
-  mrzLine1: "",
-  mrzLine2: "",
   previousPassportNo: "",
 };
 
@@ -124,8 +115,7 @@ const exampleData: { [key: string]: string } = {
   issueDate: "e.g. 01 JAN 2023",
   expiryDate: "e.g. 01 JAN 2033",
   issuingAuthority: "e.g. DIP / DHAKA",
-  mrzLine1: "e.g. P<BGDKARIM<<MD<ABDUL<<<<<<<<<<<<<<<<<<<<<<",
-  mrzLine2: "e.g. A12345678<7BGD9005159M2301155100000000<<<<<94",
+
   previousPassportNo: "e.g. B98765432 (if any)",
 };
 
@@ -155,15 +145,63 @@ const formSections = [
     icon: <User className="w-5 h-5" />,
     description: "Enter your personal details as shown in your passport",
     fields: [
-      { name: "givenName", label: "Given Name", required: true, type: "text", colSpan: 1 },
-      { name: "surname", label: "Surname", required: true, type: "text", colSpan: 1 },
-      { name: "name", label: "Full Name", required: true, type: "text", colSpan: 2 },
-      { name: "gender", label: "Gender", required: true, type: "gender", colSpan: 1 },
-      { name: "birthDate", label: "Date of Birth", required: true, type: "text", colSpan: 1 },
-      { name: "birthPlace", label: "Place of Birth", required: true, type: "text", colSpan: 1 },
-      { name: "nationality", label: "Nationality", required: true, type: "select", colSpan: 1 },
-      { name: "personalNumber", label: "Personal Number", required: true, type: "text", colSpan: 1 },
-    ]
+      {
+        name: "givenName",
+        label: "Given Name",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "surname",
+        label: "Surname",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "name",
+        label: "Full Name",
+        required: true,
+        type: "text",
+        colSpan: 2,
+      },
+      {
+        name: "gender",
+        label: "Gender",
+        required: true,
+        type: "gender",
+        colSpan: 1,
+      },
+      {
+        name: "birthDate",
+        label: "Date of Birth",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "birthPlace",
+        label: "Place of Birth",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "nationality",
+        label: "Nationality",
+        required: true,
+        type: "select",
+        colSpan: 1,
+      },
+      {
+        name: "personalNumber",
+        label: "Personal Number",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+    ],
   },
   {
     id: "passport-details",
@@ -171,14 +209,42 @@ const formSections = [
     icon: <Book className="w-5 h-5" />,
     description: "Enter your passport information",
     fields: [
-      { name: "passportNumber", label: "Passport Number", required: true, type: "text", colSpan: 1 },
-      { name: "previousPassportNo", label: "Previous Passport No", required: false, type: "text", colSpan: 1 },
-      { name: "issueDate", label: "Issue Date", required: true, type: "text", colSpan: 1 },
-      { name: "expiryDate", label: "Expiry Date", required: true, type: "text", colSpan: 1 },
-      { name: "issuingAuthority", label: "Issuing Authority", required: true, type: "text", colSpan: 1 },
-      { name: "mrzLine1", label: "MRZ Line 1", required: false, type: "text", colSpan: 2 },
-      { name: "mrzLine2", label: "MRZ Line 2", required: false, type: "text", colSpan: 2 },
-    ]
+      {
+        name: "passportNumber",
+        label: "Passport Number",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "previousPassportNo",
+        label: "Previous Passport No",
+        required: false,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "issueDate",
+        label: "Issue Date",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "expiryDate",
+        label: "Expiry Date",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "issuingAuthority",
+        label: "Issuing Authority",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+    ],
   },
   {
     id: "family-info",
@@ -186,10 +252,28 @@ const formSections = [
     icon: <Users className="w-5 h-5" />,
     description: "Enter your family details",
     fields: [
-      { name: "fathersName", label: "Father's Name", required: true, type: "text", colSpan: 1 },
-      { name: "mothersName", label: "Mother's Name", required: true, type: "text", colSpan: 1 },
-      { name: "spousesName", label: "Spouse's Name", required: false, type: "text", colSpan: 2 },
-    ]
+      {
+        name: "fathersName",
+        label: "Father's Name",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "mothersName",
+        label: "Mother's Name",
+        required: true,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "spousesName",
+        label: "Spouse's Name",
+        required: false,
+        type: "text",
+        colSpan: 2,
+      },
+    ],
   },
   {
     id: "contact-info",
@@ -197,8 +281,14 @@ const formSections = [
     icon: <Home className="w-5 h-5" />,
     description: "Enter your contact details",
     fields: [
-      { name: "permanentAddress", label: "Permanent Address", required: true, type: "textarea", colSpan: 2 },
-    ]
+      {
+        name: "permanentAddress",
+        label: "Permanent Address",
+        required: true,
+        type: "textarea",
+        colSpan: 2,
+      },
+    ],
   },
   {
     id: "emergency-contact",
@@ -206,43 +296,65 @@ const formSections = [
     icon: <Phone className="w-5 h-5" />,
     description: "Enter emergency contact information",
     fields: [
-      { name: "emergencyContactName", label: "Emergency Contact Name", required: false, type: "text", colSpan: 1 },
-      { name: "emergencyContactRelationship", label: "Relationship", required: false, type: "text", colSpan: 1 },
-      { name: "emergencyContactAddress", label: "Emergency Contact Address", required: false, type: "textarea", colSpan: 2 },
-      { name: "emergencyContactTelephone", label: "Emergency Contact Telephone", required: false, type: "text", colSpan: 1 },
-    ]
-  }
+      {
+        name: "emergencyContactName",
+        label: "Emergency Contact Name",
+        required: false,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "emergencyContactRelationship",
+        label: "Relationship",
+        required: false,
+        type: "text",
+        colSpan: 1,
+      },
+      {
+        name: "emergencyContactAddress",
+        label: "Emergency Contact Address",
+        required: false,
+        type: "textarea",
+        colSpan: 2,
+      },
+      {
+        name: "emergencyContactTelephone",
+        label: "Emergency Contact Telephone",
+        required: false,
+        type: "text",
+        colSpan: 1,
+      },
+    ],
+  },
 ];
 
 const getFieldIcon = (fieldName: string) => {
   switch (fieldName) {
-    case 'name':
-    case 'surname':
-    case 'givenName':
-    case 'fathersName':
-    case 'mothersName':
-    case 'spousesName':
-    case 'emergencyContactName':
+    case "name":
+    case "surname":
+    case "givenName":
+    case "fathersName":
+    case "mothersName":
+    case "spousesName":
+    case "emergencyContactName":
       return <User className="w-4 h-4 text-gray-400" />;
-    case 'birthDate':
-    case 'issueDate':
-    case 'expiryDate':
+    case "birthDate":
+    case "issueDate":
+    case "expiryDate":
       return <Calendar className="w-4 h-4 text-gray-400" />;
-    case 'birthPlace':
-    case 'permanentAddress':
-    case 'emergencyContactAddress':
+    case "birthPlace":
+    case "permanentAddress":
+    case "emergencyContactAddress":
       return <MapPin className="w-4 h-4 text-gray-400" />;
-    case 'emergencyContactTelephone':
+    case "emergencyContactTelephone":
       return <Phone className="w-4 h-4 text-gray-400" />;
-    case 'nationality':
+    case "nationality":
       return <Globe className="w-4 h-4 text-gray-400" />;
-    case 'passportNumber':
-    case 'previousPassportNo':
-    case 'personalNumber':
-    case 'mrzLine1':
-    case 'mrzLine2':
+    case "passportNumber":
+    case "previousPassportNo":
+    case "personalNumber":
       return <FileText className="w-4 h-4 text-gray-400" />;
-    case 'issuingAuthority':
+    case "issuingAuthority":
       return <Home className="w-4 h-4 text-gray-400" />;
     default:
       return <FileText className="w-4 h-4 text-gray-400" />;
@@ -261,9 +373,13 @@ export default function PassportPage() {
   const [signaturePreview, setSignaturePreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
   const [showAllErrors, setShowAllErrors] = useState(false);
-  const [completionStatus, setCompletionStatus] = useState<Record<string, boolean>>({});
+  const [completionStatus, setCompletionStatus] = useState<
+    Record<string, boolean>
+  >({});
 
   /* 🔹 Fetch passport (EDIT MODE) */
   useEffect(() => {
@@ -310,18 +426,20 @@ export default function PassportPage() {
   /* 🔹 Update completion status */
   useEffect(() => {
     const status: Record<string, boolean> = {};
-    requiredFields.forEach(field => {
-      status[field] = !!form[field as keyof PassportFormData]?.toString().trim();
+    requiredFields.forEach((field) => {
+      status[field] = !!form[field as keyof PassportFormData]
+        ?.toString()
+        .trim();
     });
-    status['photo'] = !!(photoPreview || form.photo);
-    status['signature'] = !!(signaturePreview || form.signature);
+    status["photo"] = !!(photoPreview || form.photo);
+    status["signature"] = !!(signaturePreview || form.signature);
     setCompletionStatus(status);
   }, [form, photoPreview, signaturePreview]);
 
   /* 🔹 Validate all fields */
   const validateAllFields = () => {
     const errors: Record<string, string> = {};
-    
+
     requiredFields.forEach((field) => {
       if (!form[field as keyof PassportFormData]?.toString().trim()) {
         errors[field] = `${field} is required`;
@@ -329,56 +447,60 @@ export default function PassportPage() {
     });
 
     if (!form.gender) {
-      errors.gender = 'Gender is required';
+      errors.gender = "Gender is required";
     }
 
     if (!photoPreview && !form.photo) {
-      errors.photo = 'Passport photo is required';
+      errors.photo = "Passport photo is required";
     }
 
     if (!signaturePreview && !form.signature) {
-      errors.signature = 'Signature is required';
+      errors.signature = "Signature is required";
     }
 
     // Date validations
     if (form.birthDate) {
       const birthDate = new Date(form.birthDate);
       if (isNaN(birthDate.getTime())) {
-        errors.birthDate = 'Please enter a valid birth date';
+        errors.birthDate = "Please enter a valid birth date";
       } else if (birthDate > new Date()) {
-        errors.birthDate = 'Birth date cannot be in the future';
+        errors.birthDate = "Birth date cannot be in the future";
       }
     }
 
     if (form.issueDate) {
       const issueDate = new Date(form.issueDate);
       if (isNaN(issueDate.getTime())) {
-        errors.issueDate = 'Please enter a valid issue date';
+        errors.issueDate = "Please enter a valid issue date";
       }
     }
 
     if (form.expiryDate) {
       const expiryDate = new Date(form.expiryDate);
       if (isNaN(expiryDate.getTime())) {
-        errors.expiryDate = 'Please enter a valid expiry date';
+        errors.expiryDate = "Please enter a valid expiry date";
       }
     }
 
     if (form.expiryDate && form.issueDate) {
       const issueDate = new Date(form.issueDate);
       const expiryDate = new Date(form.expiryDate);
-      if (!isNaN(issueDate.getTime()) && !isNaN(expiryDate.getTime()) && expiryDate <= issueDate) {
-        errors.expiryDate = 'Expiry date must be after issue date';
+      if (
+        !isNaN(issueDate.getTime()) &&
+        !isNaN(expiryDate.getTime()) &&
+        expiryDate <= issueDate
+      ) {
+        errors.expiryDate = "Expiry date must be after issue date";
       }
     }
 
     // Format validations
     if (form.passportNumber && !/^[A-Z][0-9]{8}$/.test(form.passportNumber)) {
-      errors.passportNumber = 'Passport number should be like A12345678';
+      errors.passportNumber = "Passport number should be like A12345678";
     }
 
     if (form.personalNumber && !/^\d{10,15}$/.test(form.personalNumber)) {
-      errors.personalNumber = 'Personal number should be 10-15 digits';
+      errors.personalNumber = "Personal number should be 10-15 digits";
     }
 
     setValidationErrors(errors);
@@ -387,16 +509,18 @@ export default function PassportPage() {
   };
 
   /* 🔹 Text change */
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
-    
+
     // Clear validation error for this field when user starts typing
     if (validationErrors[name]) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -409,13 +533,13 @@ export default function PassportPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload an image file");
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      setError('Photo size should be less than 2MB');
+      setError("Photo size should be less than 2MB");
       return;
     }
 
@@ -425,10 +549,10 @@ export default function PassportPage() {
 
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
-    setError('');
-    
+    setError("");
+
     if (validationErrors.photo) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.photo;
         return newErrors;
@@ -440,13 +564,13 @@ export default function PassportPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload an image file");
       return;
     }
 
     if (file.size > 1 * 1024 * 1024) {
-      setError('Signature size should be less than 1MB');
+      setError("Signature size should be less than 1MB");
       return;
     }
 
@@ -456,10 +580,10 @@ export default function PassportPage() {
 
     setSignatureFile(file);
     setSignaturePreview(URL.createObjectURL(file));
-    setError('');
-    
+    setError("");
+
     if (validationErrors.signature) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.signature;
         return newErrors;
@@ -477,20 +601,20 @@ export default function PassportPage() {
     // Validate all fields
     if (!validateAllFields()) {
       setLoading(false);
-      
+
       // Scroll to first error
       const firstErrorField = Object.keys(validationErrors)[0];
       if (firstErrorField) {
         let element = document.querySelector(`[name="${firstErrorField}"]`);
         if (!element) {
-          if (firstErrorField === 'photo') {
-            element = document.getElementById('photo-upload');
-          } else if (firstErrorField === 'signature') {
-            element = document.getElementById('signature-upload');
+          if (firstErrorField === "photo") {
+            element = document.getElementById("photo-upload");
+          } else if (firstErrorField === "signature") {
+            element = document.getElementById("signature-upload");
           }
         }
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }
       return;
@@ -514,13 +638,13 @@ export default function PassportPage() {
       // Append files if they exist
       if (photoFile) {
         fd.append("photo", photoFile);
-      } else if (form.photo && !photoPreview.startsWith('blob:')) {
+      } else if (form.photo && !photoPreview.startsWith("blob:")) {
         fd.append("photo", form.photo);
       }
-      
+
       if (signatureFile) {
         fd.append("signature", signatureFile);
-      } else if (form.signature && !signaturePreview.startsWith('blob:')) {
+      } else if (form.signature && !signaturePreview.startsWith("blob:")) {
         fd.append("signature", form.signature);
       }
 
@@ -574,8 +698,6 @@ export default function PassportPage() {
       issueDate: "01 JAN 2023",
       expiryDate: "01 JAN 2033",
       issuingAuthority: "DIP / DHAKA",
-      mrzLine1: "P<BGDKARIM<<MD<ABDUL<<<<<<<<<<<<<<<<<<<<<<",
-      mrzLine2: "A12345678<7BGD9005159M2301155100000000<<<<<94",
       previousPassportNo: "B98765432",
       gender: "M",
     });
@@ -600,20 +722,27 @@ export default function PassportPage() {
   // Calculate completion percentage
   const completionPercentage = () => {
     const totalFields = requiredFields.length + 2; // +2 for photo and signature
-    const completedFields = Object.values(completionStatus).filter(Boolean).length;
+    const completedFields =
+      Object.values(completionStatus).filter(Boolean).length;
     return Math.round((completedFields / totalFields) * 100);
   };
 
-  const renderField = (field: { name: string; label: string; required: boolean; type: string; colSpan: number }) => {
+  const renderField = (field: {
+    name: string;
+    label: string;
+    required: boolean;
+    type: string;
+    colSpan: number;
+  }) => {
     const { name, label, required, type, colSpan } = field;
     const hasError = validationErrors[name];
     const value = form[name as keyof PassportFormData] || "";
     const isComplete = completionStatus[name];
 
     return (
-      <div 
-        key={name} 
-        className={`space-y-2 ${colSpan === 2 ? 'md:col-span-2' : ''}`}
+      <div
+        key={name}
+        className={`space-y-2 ${colSpan === 2 ? "md:col-span-2" : ""}`}
       >
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           <div className="flex items-center justify-between">
@@ -625,13 +754,11 @@ export default function PassportPage() {
             {isComplete && !hasError && (
               <CheckCircle className="w-4 h-4 text-green-500" />
             )}
-            {hasError && (
-              <XCircle className="w-4 h-4 text-red-500" />
-            )}
+            {hasError && <XCircle className="w-4 h-4 text-red-500" />}
           </div>
         </label>
 
-        {type === 'gender' ? (
+        {type === "gender" ? (
           <div>
             <div className="grid grid-cols-3 gap-3">
               {genderOptions.map((option) => (
@@ -639,9 +766,9 @@ export default function PassportPage() {
                   key={option.value}
                   type="button"
                   onClick={() => {
-                    setForm(prev => ({ ...prev, gender: option.value }));
+                    setForm((prev) => ({ ...prev, gender: option.value }));
                     if (validationErrors.gender) {
-                      setValidationErrors(prev => {
+                      setValidationErrors((prev) => {
                         const newErrors = { ...prev };
                         delete newErrors.gender;
                         return newErrors;
@@ -650,9 +777,9 @@ export default function PassportPage() {
                   }}
                   className={`p-3 rounded-lg border-2 transition-all ${
                     form.gender === option.value
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                  } ${hasError ? 'border-red-500' : ''}`}
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                  } ${hasError ? "border-red-500" : ""}`}
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-xl">{option.icon}</span>
@@ -665,7 +792,7 @@ export default function PassportPage() {
               <p className="text-xs text-red-500 mt-1">{hasError}</p>
             )}
           </div>
-        ) : type === 'select' ? (
+        ) : type === "select" ? (
           <div>
             <div className="relative">
               <select
@@ -673,7 +800,9 @@ export default function PassportPage() {
                 value={value}
                 onChange={handleChange}
                 className={`w-full px-4 py-3 pl-10 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none ${
-                  hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  hasError
+                    ? "border-red-500"
+                    : "border-gray-300 dark:border-gray-600"
                 }`}
               >
                 <option value="">Select {label}</option>
@@ -689,7 +818,7 @@ export default function PassportPage() {
               <p className="text-xs text-red-500 mt-1">{hasError}</p>
             )}
           </div>
-        ) : type === 'textarea' ? (
+        ) : type === "textarea" ? (
           <div>
             <textarea
               name={name}
@@ -697,7 +826,9 @@ export default function PassportPage() {
               onChange={handleChange}
               rows={3}
               className={`w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
-                hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                hasError
+                  ? "border-red-500"
+                  : "border-gray-300 dark:border-gray-600"
               }`}
               placeholder={exampleData[name] || `Enter ${label.toLowerCase()}`}
             />
@@ -709,23 +840,26 @@ export default function PassportPage() {
           <div>
             <div className="relative">
               <input
-                type={type === 'date' ? 'date' : 'text'}
+                type={type === "date" ? "date" : "text"}
                 name={name}
                 value={value}
                 onChange={handleChange}
                 className={`w-full px-4 py-3 pl-10 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  hasError
+                    ? "border-red-500"
+                    : "border-gray-300 dark:border-gray-600"
                 }`}
-                placeholder={exampleData[name] || `Enter ${label.toLowerCase()}`}
+                placeholder={
+                  exampleData[name] || `Enter ${label.toLowerCase()}`
+                }
               />
-              
             </div>
             {hasError && (
               <p className="text-xs text-red-500 mt-1">{hasError}</p>
             )}
           </div>
         )}
-        
+
         {!hasError && exampleData[name] && (
           <p className="text-xs text-gray-500 dark:text-gray-400 italic">
             {exampleData[name]}
@@ -747,7 +881,7 @@ export default function PassportPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
-          
+
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
@@ -757,14 +891,17 @@ export default function PassportPage() {
                 Fill in all required fields. Fields marked with * are mandatory.
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex items-center gap-3 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-sm">
                 <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      completionPercentage() === 100 ? 'bg-green-500' : 
-                      completionPercentage() >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                      completionPercentage() === 100
+                        ? "bg-green-500"
+                        : completionPercentage() >= 50
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
                     }`}
                     style={{ width: `${completionPercentage()}%` }}
                   />
@@ -773,7 +910,7 @@ export default function PassportPage() {
                   {completionPercentage()}% Complete
                 </span>
               </div>
-              
+
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -801,7 +938,9 @@ export default function PassportPage() {
                 <AlertCircle className="h-5 w-5 text-red-500" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {error}
+                </p>
               </div>
             </div>
           </div>
@@ -819,11 +958,13 @@ export default function PassportPage() {
                 </h3>
                 <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-400">
                   <ul className="list-disc pl-5 space-y-1">
-                    {Object.entries(validationErrors).map(([field, message]) => (
-                      <li key={field}>
-                        <strong>{field}:</strong> {message}
-                      </li>
-                    ))}
+                    {Object.entries(validationErrors).map(
+                      ([field, message]) => (
+                        <li key={field}>
+                          <strong>{field}:</strong> {message}
+                        </li>
+                      )
+                    )}
                   </ul>
                 </div>
               </div>
@@ -843,45 +984,96 @@ export default function PassportPage() {
                     Required Fields Status
                   </h3>
                   <div className="space-y-3">
-                    {requiredFields.map(field => {
+                    {requiredFields.map((field) => {
                       const isComplete = completionStatus[field];
                       const hasError = validationErrors[field];
-                      
+
                       return (
-                        <div key={field} className="flex items-center justify-between">
-                          <span className={`text-sm ${hasError ? 'text-red-600 dark:text-red-400' : isComplete ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>
-                            {field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        <div
+                          key={field}
+                          className="flex items-center justify-between"
+                        >
+                          <span
+                            className={`text-sm ${
+                              hasError
+                                ? "text-red-600 dark:text-red-400"
+                                : isComplete
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-gray-600 dark:text-gray-400"
+                            }`}
+                          >
+                            {field
+                              .replace(/([A-Z])/g, " $1")
+                              .replace(/^./, (str) => str.toUpperCase())}
                           </span>
                           <div className="flex items-center gap-2">
-                            {hasError && <XCircle className="w-4 h-4 text-red-500" />}
-                            {isComplete && !hasError && <CheckCircle className="w-4 h-4 text-green-500" />}
-                            {!isComplete && !hasError && <div className="w-3 h-3 rounded-full bg-gray-300" />}
+                            {hasError && (
+                              <XCircle className="w-4 h-4 text-red-500" />
+                            )}
+                            {isComplete && !hasError && (
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            )}
+                            {!isComplete && !hasError && (
+                              <div className="w-3 h-3 rounded-full bg-gray-300" />
+                            )}
                           </div>
                         </div>
                       );
                     })}
-                    
+
                     {/* Photo and Signature status */}
                     <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
                       <div className="flex items-center justify-between">
-                        <span className={`text-sm ${validationErrors.photo ? 'text-red-600 dark:text-red-400' : completionStatus.photo ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                        <span
+                          className={`text-sm ${
+                            validationErrors.photo
+                              ? "text-red-600 dark:text-red-400"
+                              : completionStatus.photo
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-gray-600 dark:text-gray-400"
+                          }`}
+                        >
                           Passport Photo
                         </span>
                         <div className="flex items-center gap-2">
-                          {validationErrors.photo && <XCircle className="w-4 h-4 text-red-500" />}
-                          {completionStatus.photo && !validationErrors.photo && <CheckCircle className="w-4 h-4 text-green-500" />}
-                          {!completionStatus.photo && !validationErrors.photo && <div className="w-3 h-3 rounded-full bg-gray-300" />}
+                          {validationErrors.photo && (
+                            <XCircle className="w-4 h-4 text-red-500" />
+                          )}
+                          {completionStatus.photo &&
+                            !validationErrors.photo && (
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            )}
+                          {!completionStatus.photo &&
+                            !validationErrors.photo && (
+                              <div className="w-3 h-3 rounded-full bg-gray-300" />
+                            )}
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between mt-2">
-                        <span className={`text-sm ${validationErrors.signature ? 'text-red-600 dark:text-red-400' : completionStatus.signature ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                        <span
+                          className={`text-sm ${
+                            validationErrors.signature
+                              ? "text-red-600 dark:text-red-400"
+                              : completionStatus.signature
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-gray-600 dark:text-gray-400"
+                          }`}
+                        >
                           Signature
                         </span>
                         <div className="flex items-center gap-2">
-                          {validationErrors.signature && <XCircle className="w-4 h-4 text-red-500" />}
-                          {completionStatus.signature && !validationErrors.signature && <CheckCircle className="w-4 h-4 text-green-500" />}
-                          {!completionStatus.signature && !validationErrors.signature && <div className="w-3 h-3 rounded-full bg-gray-300" />}
+                          {validationErrors.signature && (
+                            <XCircle className="w-4 h-4 text-red-500" />
+                          )}
+                          {completionStatus.signature &&
+                            !validationErrors.signature && (
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            )}
+                          {!completionStatus.signature &&
+                            !validationErrors.signature && (
+                              <div className="w-3 h-3 rounded-full bg-gray-300" />
+                            )}
                         </div>
                       </div>
                     </div>
@@ -889,21 +1081,29 @@ export default function PassportPage() {
                 </div>
 
                 {/* Photo Preview */}
-                <div className={`bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 ${validationErrors.photo ? 'border-2 border-red-500' : ''}`}>
+                <div
+                  className={`bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 ${
+                    validationErrors.photo ? "border-2 border-red-500" : ""
+                  }`}
+                >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                       <Camera className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-800 dark:text-white">Passport Photo *</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">35×45mm, White Background</p>
+                      <h4 className="font-medium text-gray-800 dark:text-white">
+                        Passport Photo *
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        35×45mm, White Background
+                      </p>
                     </div>
                     {validationErrors.photo && (
                       <AlertCircle className="w-4 h-4 text-red-500 ml-auto" />
                     )}
                   </div>
                   <div className="relative w-full h-48 bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-                    {(photoPreview || form.photo) ? (
+                    {photoPreview || form.photo ? (
                       <Image
                         src={photoPreview || form.photo || "/placeholder.png"}
                         alt="Passport photo preview"
@@ -914,9 +1114,13 @@ export default function PassportPage() {
                     ) : (
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <Camera className="w-12 h-12 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500">No photo selected</p>
+                        <p className="text-sm text-gray-500">
+                          No photo selected
+                        </p>
                         {validationErrors.photo && (
-                          <p className="text-xs text-red-500 mt-1">{validationErrors.photo}</p>
+                          <p className="text-xs text-red-500 mt-1">
+                            {validationErrors.photo}
+                          </p>
                         )}
                       </div>
                     )}
@@ -924,23 +1128,35 @@ export default function PassportPage() {
                 </div>
 
                 {/* Signature Preview */}
-                <div className={`bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 ${validationErrors.signature ? 'border-2 border-red-500' : ''}`}>
+                <div
+                  className={`bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 ${
+                    validationErrors.signature ? "border-2 border-red-500" : ""
+                  }`}
+                >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                       <Signature className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-800 dark:text-white">Signature *</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Black ink on white paper</p>
+                      <h4 className="font-medium text-gray-800 dark:text-white">
+                        Signature *
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Black ink on white paper
+                      </p>
                     </div>
                     {validationErrors.signature && (
                       <AlertCircle className="w-4 h-4 text-red-500 ml-auto" />
                     )}
                   </div>
                   <div className="relative w-full h-24 bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-                    {(signaturePreview || form.signature) ? (
+                    {signaturePreview || form.signature ? (
                       <Image
-                        src={signaturePreview || form.signature || "/placeholder.png"}
+                        src={
+                          signaturePreview ||
+                          form.signature ||
+                          "/placeholder.png"
+                        }
                         alt="Signature preview"
                         fill
                         className="object-contain"
@@ -949,9 +1165,13 @@ export default function PassportPage() {
                     ) : (
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <Signature className="w-10 h-10 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500">No signature selected</p>
+                        <p className="text-sm text-gray-500">
+                          No signature selected
+                        </p>
                         {validationErrors.signature && (
-                          <p className="text-xs text-red-500 mt-1">{validationErrors.signature}</p>
+                          <p className="text-xs text-red-500 mt-1">
+                            {validationErrors.signature}
+                          </p>
                         )}
                       </div>
                     )}
@@ -963,7 +1183,10 @@ export default function PassportPage() {
             {/* Main Form Content */}
             <div className="lg:col-span-2">
               {formSections.map((section) => (
-                <div key={section.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
+                <div
+                  key={section.id}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6"
+                >
                   <div className="flex items-center gap-3 mb-6">
                     {section.icon}
                     <div>
@@ -988,7 +1211,7 @@ export default function PassportPage() {
                   <Upload className="w-5 h-5" />
                   Upload Required Documents *
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Photo Upload */}
                   <div className="space-y-4">
@@ -997,8 +1220,12 @@ export default function PassportPage() {
                         <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-800 dark:text-white">Passport Photo</h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Requirements: 35×45mm, White background</p>
+                        <h4 className="font-medium text-gray-800 dark:text-white">
+                          Passport Photo
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Requirements: 35×45mm, White background
+                        </p>
                       </div>
                       {validationErrors.photo && (
                         <AlertCircle className="w-5 h-5 text-red-500 ml-auto" />
@@ -1015,9 +1242,9 @@ export default function PassportPage() {
                       <label
                         htmlFor="photo-upload"
                         className={`block p-4 border-2 border-dashed rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors cursor-pointer ${
-                          validationErrors.photo 
-                            ? 'border-red-500 bg-red-50 dark:bg-red-900/20' 
-                            : 'border-gray-300 dark:border-gray-600'
+                          validationErrors.photo
+                            ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                            : "border-gray-300 dark:border-gray-600"
                         }`}
                       >
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -1029,7 +1256,9 @@ export default function PassportPage() {
                             PNG, JPG up to 2MB
                           </p>
                           {validationErrors.photo && (
-                            <p className="text-xs text-red-500 mt-1">{validationErrors.photo}</p>
+                            <p className="text-xs text-red-500 mt-1">
+                              {validationErrors.photo}
+                            </p>
                           )}
                         </div>
                       </label>
@@ -1043,8 +1272,12 @@ export default function PassportPage() {
                         <Signature className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-800 dark:text-white">Signature</h4>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Requirements: Black ink on white paper</p>
+                        <h4 className="font-medium text-gray-800 dark:text-white">
+                          Signature
+                        </h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Requirements: Black ink on white paper
+                        </p>
                       </div>
                       {validationErrors.signature && (
                         <AlertCircle className="w-5 h-5 text-red-500 ml-auto" />
@@ -1061,9 +1294,9 @@ export default function PassportPage() {
                       <label
                         htmlFor="signature-upload"
                         className={`block p-4 border-2 border-dashed rounded-lg hover:border-purple-500 dark:hover:border-purple-500 transition-colors cursor-pointer ${
-                          validationErrors.signature 
-                            ? 'border-red-500 bg-red-50 dark:bg-red-900/20' 
-                            : 'border-gray-300 dark:border-gray-600'
+                          validationErrors.signature
+                            ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                            : "border-gray-300 dark:border-gray-600"
                         }`}
                       >
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -1075,7 +1308,9 @@ export default function PassportPage() {
                             PNG, JPG up to 1MB
                           </p>
                           {validationErrors.signature && (
-                            <p className="text-xs text-red-500 mt-1">{validationErrors.signature}</p>
+                            <p className="text-xs text-red-500 mt-1">
+                              {validationErrors.signature}
+                            </p>
                           )}
                         </div>
                       </label>
@@ -1093,14 +1328,18 @@ export default function PassportPage() {
                         Ready to {id ? "Update" : "Create"} Passport
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Review all information before submitting. Make sure all required fields are filled.
+                        Review all information before submitting. Make sure all
+                        required fields are filled.
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div 
+                          <div
                             className={`h-2 rounded-full transition-all duration-300 ${
-                              completionPercentage() === 100 ? 'bg-green-500' : 
-                              completionPercentage() >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                              completionPercentage() === 100
+                                ? "bg-green-500"
+                                : completionPercentage() >= 50
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
                             }`}
                             style={{ width: `${completionPercentage()}%` }}
                           />

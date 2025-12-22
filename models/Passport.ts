@@ -31,8 +31,6 @@ export interface PassportData {
   photo?: string;
   signature?: string;
 
-  mrzLine1?: string;
-  mrzLine2?: string;
   previousPassportNo?: string;
 }
 
@@ -69,8 +67,6 @@ const PassportSchema = new Schema<PassportData>(
     photo: String,
     signature: String,
 
-    mrzLine1: String,
-    mrzLine2: String,
     previousPassportNo: String,
   },
   {

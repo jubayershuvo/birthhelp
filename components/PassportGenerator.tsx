@@ -47,6 +47,103 @@ const PassportCard: React.FC = () => {
   const id = params.id as string;
   const { user } = useAppSelector((state) => state.userAuth);
   const router = useRouter();
+  function normalizeNationality(input: string): string {
+  const map: Record<string, string> = {
+    BANGLADESH: "BGD",
+    BANGLADESHI: "BGD",
+    INDIA: "IND",
+    INDIAN: "IND",
+    PAKISTAN: "PAK",
+    PAKISTANI: "PAK",
+    UNITEDSTATES: "USA",
+    AMERICAN: "USA",
+    UNITEDKINGDOM: "GBR",
+    BRITISH: "GBR",
+  };
+
+  const key = input
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "");
+
+  return map[key] || input.toUpperCase().slice(0, 3);
+}
+
+  function generatePassportMRZ({
+  country,
+  passportNo,
+  surname,
+  givenName,
+  nationality,
+  dob,
+  sex,
+  expiry,
+  personalNo = "",
+}: {
+  country: string;
+  passportNo: string;
+  surname: string;
+  givenName: string;
+  nationality: string;
+  dob: string;
+  sex: string;
+  expiry: string;
+  personalNo?: string;
+}) {
+  const weights = [7, 3, 1];
+
+  const months: Record<string, string> = {
+    JAN: "01", FEB: "02", MAR: "03", APR: "04",
+    MAY: "05", JUN: "06", JUL: "07", AUG: "08",
+    SEP: "09", OCT: "10", NOV: "11", DEC: "12",
+  };
+
+  const charValue = (c: string) => {
+    if (c >= "0" && c <= "9") return Number(c);
+    if (c >= "A" && c <= "Z") return c.charCodeAt(0) - 55;
+    return 0;
+  };
+
+  const checkDigit = (str: string) =>
+    (
+      str.split("").reduce(
+        (sum, c, i) => sum + charValue(c) * weights[i % 3],
+        0
+      ) % 10
+    ).toString();
+
+  const padRight = (str: string, len: number) =>
+    (str.toUpperCase().replace(/ /g, "<") + "<".repeat(len)).slice(0, len);
+
+  const toYYMMDD = (dateStr: string) => {
+    const [day, mon, year] = dateStr.toUpperCase().split(" ");
+    return year.slice(-2) + months[mon] + day.padStart(2, "0");
+  };
+
+  const dobYYMMDD = toYYMMDD(dob);
+  const expYYMMDD = toYYMMDD(expiry);
+
+  // -------- LINE 1 (44 chars) --------
+  const line1 = padRight(
+    `P<${country.toUpperCase()}${surname}<<${givenName}`,
+    44
+  );
+
+  // -------- LINE 2 (44 chars) --------
+  const pNo = padRight(passportNo, 9);
+  const line2 =
+    `${pNo}${checkDigit(pNo)}` +
+    `${nationality.toUpperCase()}` +
+    `${dobYYMMDD}${checkDigit(dobYYMMDD)}` +
+    `${sex}` +
+    `${expYYMMDD}${checkDigit(expYYMMDD)}` +
+    `${padRight(personalNo, 14)}${checkDigit(padRight(personalNo, 14))}`;
+
+  return {
+    line1,
+    line2: padRight(line2, 44),
+  };
+}
+
 
   const fetchPassportData = async () => {
     try {
@@ -70,7 +167,22 @@ const PassportCard: React.FC = () => {
         throw new Error("No passport data found");
       }
 
-      setPassportData(data);
+      const mrz = generatePassportMRZ({
+        country: "BGD",
+        passportNo: data.passportNumber || "",
+        surname: data.surname || "",
+        givenName: data.givenName || "",
+        nationality: normalizeNationality(data.nationality || ""),
+        dob: data.birthDate || "",
+        sex: data.gender || "",
+        expiry: data.expiryDate || "",
+        personalNo: data.personalNumber || "",
+      });
+      setPassportData({
+        ...data,
+        mrzLine1: mrz.line1,
+        mrzLine2: mrz.line2,
+      });
       toast.success("Passport data loaded successfully");
     } catch (err) {
       console.error("Error fetching passport data:", err);
@@ -79,7 +191,6 @@ const PassportCard: React.FC = () => {
       setError(errorMessage);
       toast.error("Failed to load passport data");
       router.push("/passport");
-      
     } finally {
       setLoading(false);
     }
@@ -938,7 +1049,7 @@ const PassportCard: React.FC = () => {
                 >
                   <p
                     style={{
-                      letterSpacing: "10.5px",
+                      letterSpacing: "8.3px",
                       fontSize: "40px",
                       fontWeight: "bold",
                       fontFamily: "'OCR-B', monospace",
