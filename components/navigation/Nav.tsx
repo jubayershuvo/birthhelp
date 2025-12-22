@@ -28,7 +28,7 @@ const menuItemsd = [
     href: "/services",
   },
   {
-    label: "My Posts",
+    label: "Order Posts",
     icon: <MessageCircle size={20} />,
     href: "/my-posts",
   },
