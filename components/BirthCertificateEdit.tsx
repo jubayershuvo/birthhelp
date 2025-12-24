@@ -236,7 +236,7 @@ export default function EditBirthCertificate() {
         key: "personNameEn",
         type: "text",
         validation: {
-          required: true,
+          required: false,
           pattern: validationPatterns.english,
           message:
             "English characters, numbers, and special characters allowed",
@@ -326,7 +326,7 @@ export default function EditBirthCertificate() {
         key: "motherNameEn",
         type: "text",
         validation: {
-          required: true,
+          required: false,
           pattern: validationPatterns.english,
           message:
             "English characters, numbers, and special characters allowed",
@@ -372,7 +372,7 @@ export default function EditBirthCertificate() {
         key: "fatherNameEn",
         type: "text",
         validation: {
-          required: true,
+          required: false,
           pattern: validationPatterns.english,
           message:
             "English characters, numbers, and special characters allowed",

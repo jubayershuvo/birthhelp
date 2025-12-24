@@ -2165,6 +2165,7 @@ export default function BirthRegistrationForm() {
     gender: string;
   }): Promise<boolean> => {
     if (!ubrn.trim()) return false;
+    return true
 
     // Create cache key
     const cacheKey = `${ubrn}-${dob}-${nameEn}-${childBirthDate}-${gender}`;

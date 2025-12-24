@@ -5,6 +5,10 @@ import mongoose from "mongoose";
 import Passport from "@/models/Passport";
 import { connectDB } from "@/lib/mongodb";
 import { getUser } from "@/lib/getUser";
+import Reseller from "@/models/Reseller";
+import Services from "@/models/Services";
+import Earnings from "@/models/Earnings";
+import Spent from "@/models/Use";
 
 /* 📂 Upload directory */
 const UPLOAD_DIR = path.join(process.cwd(), "upload", "passports");
@@ -64,7 +68,7 @@ async function pathToBase64(filePath: string): Promise<string> {
   try {
     if (!filePath) return "";
 
-    const fullPath = filePath
+    const fullPath = filePath;
     try {
       await fs.access(fullPath);
     } catch {
@@ -132,7 +136,7 @@ export async function GET(req: NextRequest) {
 
     /* Convert file paths to base64 strings */
     const photoBase64 = await pathToBase64(passport.photo || "");
-  
+
     const signatureBase64 = await pathToBase64(passport.signature || "");
 
     return NextResponse.json({
@@ -152,11 +156,42 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
-
     const user = await getUser();
-    if (!user?._id) {
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
+    const servicePath = "/passport/make";
+
+    const service = await Services.findOne({ href: servicePath });
+    if (!service) {
+      return NextResponse.json(
+        { success: false, error: "Service not found" },
+        { status: 404 }
+      );
+    }
+
+    const userService = user.services.find(
+      (s: { service: string }) =>
+        s.service.toString() === service._id.toString()
+    );
+
+    if (!userService) {
+      return NextResponse.json(
+        { success: false, error: "User does not have access to this service" },
+        { status: 403 }
+      );
+    }
+    const serviceCost = userService.fee + service.fee;
+
+    if (user.balance < serviceCost) {
+      return NextResponse.json(
+        { success: false, error: "User does not have enough balance" },
+        { status: 403 }
+      );
+    }
+
+    const reseller = await Reseller.findById(user.reseller);
 
     const formData = await req.formData();
 
@@ -182,7 +217,26 @@ export async function POST(req: NextRequest) {
       photo: photoPath,
       signature: signaturePath,
     });
+    user.balance -= serviceCost;
+    reseller.balance += userService.fee;
 
+    await Spent.create({
+      user: user._id,
+      service: userService._id,
+      amount: serviceCost,
+      data: passport._id,
+      dataSchema: "PassportMake",
+    });
+    await Earnings.create({
+      user: user._id,
+      reseller: reseller._id,
+      service: userService._id,
+      amount: userService.fee,
+      data: passport._id,
+      dataSchema: "PassportMake",
+    });
+    await reseller.save();
+    await user.save();
     return NextResponse.json(passport, { status: 201 });
   } catch (err: unknown) {
     console.error("POST Error:", err);

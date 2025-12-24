@@ -22,6 +22,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 /* 🔹 Types */
 interface PassportFormData {
@@ -381,6 +382,28 @@ export default function PassportPage() {
     Record<string, boolean>
   >({});
 
+  const [serviceCost, setServiceCost] = useState(0);
+
+  const sessionReload = async () => {
+    if (loading) return;
+    try {
+      const response = await fetch("/api/passport/session");
+
+      if (response.ok) {
+        const newData = await response.json();
+        setServiceCost(newData.serviceCost);
+      } else {
+        toast.error("সেশন রিলোড করতে সমস্যা হয়েছে");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    sessionReload();
+  }, []);
+
   /* 🔹 Fetch passport (EDIT MODE) */
   useEffect(() => {
     if (!id) return;
@@ -495,9 +518,12 @@ export default function PassportPage() {
     }
 
     // Format validations
-    if (form.passportNumber && !/^[A-Z]{1,2}[0-9]{8,14}$/.test(form.passportNumber)) {
-      errors.passportNumber = "Passport number should be like A12345678 or AH48545214";
-  
+    if (
+      form.passportNumber &&
+      !/^[A-Z]{1,2}[0-9]{8,14}$/.test(form.passportNumber)
+    ) {
+      errors.passportNumber =
+        "Passport number should be like A12345678 or AH48545214";
     }
 
     if (form.personalNumber && !/^\d{10,15}$/.test(form.personalNumber)) {
@@ -888,8 +914,8 @@ export default function PassportPage() {
               <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
                 {id ? "Edit Passport" : "Create New Passport"}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Fill in all required fields. Fields marked with * are mandatory.
+              <p className="mt-2 text-red-600">
+                {!id && `প্রতি বার ${serviceCost} টাকা করে কাটা হবে`}
               </p>
             </div>
 
