@@ -178,6 +178,7 @@ const PassportCard: React.FC = () => {
         expiry: data.expiryDate || "",
         personalNo: data.personalNumber || "",
       });
+
       setPassportData({
         ...data,
         mrzLine1: mrz.line1,
@@ -225,7 +226,7 @@ const PassportCard: React.FC = () => {
         useCORS: true,
         allowTaint: true,
         logging: false,
-
+        scale: .4,
         backgroundColor: "#ffffff",
         width: 2480,
         height: 3508,
@@ -1064,7 +1065,7 @@ const PassportCard: React.FC = () => {
                       fontSize: "40px",
                       fontWeight: "bold",
                       fontFamily: "'OCR-B', monospace",
-                      letterSpacing: "8.3px",
+                      letterSpacing: "9.3px",
                     }}
                   >
                     {passportData.mrzLine2}

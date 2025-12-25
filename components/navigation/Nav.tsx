@@ -209,7 +209,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR (desktop) */}
         <aside
-          className={`hidden pt-1 md:flex flex-col transition-all duration-300 ease-in-out 
+          className={`hidden overflow-y-auto pt-1 md:flex flex-col transition-all duration-300 ease-in-out 
             bg-gradient-to-b from-slate-100 to-slate-50 
             dark:from-slate-900 dark:to-slate-800
             text-gray-900 dark:text-gray-100 shadow-lg
@@ -266,7 +266,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
 
         {/* SIDEBAR (mobile) */}
         <div
-          className={`md:hidden fixed top-16 left-0 h-[calc(100%-4rem)] w-64 
+          className={`md:hidden overflow-y-auto fixed top-16 left-0 h-[calc(100%-4rem)] w-64 
               bg-gradient-to-b from-slate-100 to-slate-50 
               dark:from-slate-900 dark:to-slate-800
               text-gray-900 dark:text-gray-100 shadow-lg z-40 transform transition-transform duration-300 

@@ -689,9 +689,7 @@ export default function PassportPage() {
         throw new Error(data.message || "Failed to save passport");
       }
 
-      alert(
-        id ? "Passport updated successfully" : "Passport created successfully"
-      );
+
       router.push(`/passport/pdf/${data._id}`);
       router.refresh();
     } catch (err: unknown) {
