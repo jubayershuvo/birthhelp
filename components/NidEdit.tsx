@@ -768,8 +768,9 @@ export default function EditNIDPage() {
               />
             </div>
 
+
             {/* Present Address - Detailed */}
-            <div>
+            {/* <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white pb-2 border-b border-gray-200 dark:border-gray-700">
                   Present Address (Detailed)
@@ -892,7 +893,7 @@ export default function EditNIDPage() {
                 />
               </div>
 
-              {/* Present Address Full */}
+             
               <div className="mt-4">
                 <TextAreaField
                   label="Present Address (Full Text)"
@@ -903,11 +904,11 @@ export default function EditNIDPage() {
                   rows={3}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Permanent Address - Detailed */}
             <div>
-              <div className="flex items-center justify-between mb-4">
+              {/* <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white pb-2 border-b border-gray-200 dark:border-gray-700">
                   Permanent Address (Detailed)
                 </h3>
@@ -1034,7 +1035,7 @@ export default function EditNIDPage() {
                   value={formData?.permanent_address.region || ""}
                   onChange={handleInputChange}
                 />
-              </div>
+              </div> */}
 
               {/* Permanent Address Full */}
               <div className="mt-4">
