@@ -16,9 +16,14 @@ import {
   Shield,
   CreditCard,
   MessageCircle,
+  FileText,
   Plus,
   X,
-  Users,
+  Filter,
+  DollarSign,
+  Hash,
+  Tag,
+  Activity,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -70,7 +75,6 @@ interface User {
   services: ServiceAccess[];
   postServices: PostServiceAccess[]; // FIXED: using postServices
   reseller?: string;
-  selected?: boolean; // Added for bulk operations
 }
 
 interface ApiUser {
@@ -141,41 +145,6 @@ interface FormData {
   postServices: PostServiceAccess[];
 }
 
-// Bulk Operation Types
-type BulkOperationType = "service" | "postService";
-type BulkAction = "add" | "remove";
-
-interface ServiceBulkItem {
-  service: string;
-  fee: number;
-}
-
-interface PostServiceBulkItem {
-  service: string;
-  fee: number;
-}
-
-interface BulkServiceRequest {
-  users: string[];
-  action: BulkAction;
-  services: ServiceBulkItem[];
-}
-
-interface BulkPostServiceRequest {
-  users: string[];
-  action: BulkAction;
-  postServices: PostServiceBulkItem[];
-}
-
-interface BulkOperationData {
-  type: BulkOperationType;
-  action: BulkAction;
-  serviceId?: string;
-  postServiceId?: string;
-  resellerFee?: number;
-  users: string[];
-}
-
 const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -191,18 +160,6 @@ const UserManagement = () => {
   const [activeTab, setActiveTab] = useState<"services" | "postServices">(
     "services"
   );
-
-  // Bulk Operation States
-  const [showBulkModal, setShowBulkModal] = useState(false);
-  const [bulkOperation, setBulkOperation] = useState<BulkOperationData>({
-    type: "service",
-    action: "add",
-    serviceId: "",
-    postServiceId: "",
-    resellerFee: 0,
-    users: [],
-  });
-  const [selectAll, setSelectAll] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -280,7 +237,6 @@ const UserManagement = () => {
           reseller: user.reseller,
           services: mappedServices,
           postServices: mappedPostServices, // FIXED: using correct mapping
-          selected: false,
         };
       });
 
@@ -825,273 +781,6 @@ const UserManagement = () => {
     });
   };
 
-  // ==================== BULK OPERATIONS ====================
-
-  const openBulkModal = () => {
-    setBulkOperation({
-      type: "service",
-      action: "add",
-      serviceId: services.length > 0 ? services[0]._id : "",
-      postServiceId: postServices.length > 0 ? postServices[0]._id : "",
-      resellerFee: 0,
-      users: [],
-    });
-    setSelectAll(false);
-    setShowBulkModal(true);
-  };
-
-  const closeBulkModal = () => {
-    setShowBulkModal(false);
-    // Reset user selections
-    setUsers(users.map(user => ({ ...user, selected: false })));
-    setFilteredUsers(filteredUsers.map(user => ({ ...user, selected: false })));
-  };
-
-  const handleBulkOperationChange = (
-    field: keyof BulkOperationData,
-    value: string | number | BulkAction | BulkOperationType
-  ) => {
-    setBulkOperation((prev) => {
-      const updated = { ...prev, [field]: value };
-      
-      // Reset related fields when type changes
-      if (field === "type") {
-        if (value === "service") {
-          updated.serviceId = services.length > 0 ? services[0]._id : "";
-          updated.postServiceId = "";
-        } else {
-          updated.serviceId = "";
-          updated.postServiceId = postServices.length > 0 ? postServices[0]._id : "";
-        }
-      }
-      
-      // Reset reseller fee when service changes
-      if (field === "serviceId" || field === "postServiceId") {
-        updated.resellerFee = 0;
-      }
-      
-      return updated;
-    });
-  };
-
-  const handleUserSelection = (userId: string, checked: boolean) => {
-    setUsers(users.map(user => 
-      user._id === userId ? { ...user, selected: checked } : user
-    ));
-    setFilteredUsers(filteredUsers.map(user => 
-      user._id === userId ? { ...user, selected: checked } : user
-    ));
-  };
-
-  const handleSelectAll = () => {
-    const newSelectAll = !selectAll;
-    setSelectAll(newSelectAll);
-    
-    setUsers(users.map(user => ({ ...user, selected: newSelectAll })));
-    setFilteredUsers(filteredUsers.map(user => ({ ...user, selected: newSelectAll })));
-  };
-
-  const selectAssignedUsers = () => {
-    if (bulkOperation.type === "service" && bulkOperation.serviceId) {
-      const updatedUsers = users.map(user => ({
-        ...user,
-        selected: user.services.some(s => s.service === bulkOperation.serviceId)
-      }));
-      setUsers(updatedUsers);
-      setFilteredUsers(updatedUsers);
-    } else if (bulkOperation.type === "postService" && bulkOperation.postServiceId) {
-      const updatedUsers = users.map(user => ({
-        ...user,
-        selected: user.postServices.some(ps => ps.postService === bulkOperation.postServiceId)
-      }));
-      setUsers(updatedUsers);
-      setFilteredUsers(updatedUsers);
-    }
-  };
-
-  const selectUnassignedUsers = () => {
-    if (bulkOperation.type === "service" && bulkOperation.serviceId) {
-      const updatedUsers = users.map(user => ({
-        ...user,
-        selected: !user.services.some(s => s.service === bulkOperation.serviceId)
-      }));
-      setUsers(updatedUsers);
-      setFilteredUsers(updatedUsers);
-    } else if (bulkOperation.type === "postService" && bulkOperation.postServiceId) {
-      const updatedUsers = users.map(user => ({
-        ...user,
-        selected: !user.postServices.some(ps => ps.postService === bulkOperation.postServiceId)
-      }));
-      setUsers(updatedUsers);
-      setFilteredUsers(updatedUsers);
-    }
-  };
-
-  const validateBulkOperation = (): boolean => {
-    // Validate service/post service selection
-    if (bulkOperation.type === "service" && !bulkOperation.serviceId) {
-      toast.error("Please select a service");
-      return false;
-    }
-    
-    if (bulkOperation.type === "postService" && !bulkOperation.postServiceId) {
-      toast.error("Please select a post service");
-      return false;
-    }
-
-    // Validate reseller fee for add action
-    if (bulkOperation.action === "add" && bulkOperation.resellerFee === undefined) {
-      toast.error("Please enter reseller fee");
-      return false;
-    }
-
-    if (bulkOperation.action === "add" && (bulkOperation.resellerFee || 0) < 0) {
-      toast.error("Reseller fee cannot be negative");
-      return false;
-    }
-
-    // Get selected users
-    const selectedUsers = users.filter(user => user.selected);
-    
-    if (selectedUsers.length === 0) {
-      toast.error("Please select at least one user");
-      return false;
-    }
-
-    // For remove action, ensure users actually have the service
-    if (bulkOperation.action === "remove") {
-      if (bulkOperation.type === "service") {
-        const usersWithService = selectedUsers.filter(user => 
-          user.services.some(s => s.service === bulkOperation.serviceId)
-        );
-        if (usersWithService.length === 0) {
-          toast.error("Selected users don't have this service");
-          return false;
-        }
-      } else {
-        const usersWithPostService = selectedUsers.filter(user => 
-          user.postServices.some(ps => ps.postService === bulkOperation.postServiceId)
-        );
-        if (usersWithPostService.length === 0) {
-          toast.error("Selected users don't have this post service");
-          return false;
-        }
-      }
-    }
-
-    return true;
-  };
-
-  const handleBulkSubmit = async () => {
-    if (!validateBulkOperation()) {
-      return;
-    }
-
-    setLoading(true);
-
-    const selectedUsers = users.filter(user => user.selected);
-    
-    // Prepare request body based on type
-    let requestBody: BulkServiceRequest | BulkPostServiceRequest;
-    let endpoint: string;
-
-    if (bulkOperation.type === "service") {
-      const serviceBulkRequest: BulkServiceRequest = {
-        users: selectedUsers.map(user => user._id),
-        action: bulkOperation.action,
-        services: [{
-          service: bulkOperation.serviceId!,
-          fee: bulkOperation.action === "add" ? (bulkOperation.resellerFee || 0) : 0
-        }]
-      };
-      requestBody = serviceBulkRequest;
-      endpoint = "/api/reseller/users/service/bulk";
-    } else {
-      const postServiceBulkRequest: BulkPostServiceRequest = {
-        users: selectedUsers.map(user => user._id),
-        action: bulkOperation.action,
-        postServices: [{
-          service: bulkOperation.postServiceId!, // Note: using 'service' field for backend
-          fee: bulkOperation.action === "add" ? (bulkOperation.resellerFee || 0) : 0
-        }]
-      };
-      requestBody = postServiceBulkRequest;
-      endpoint = "/api/reseller/users/postService/bulk";
-    }
-
-    console.log("Bulk operation request:", requestBody);
-
-    const bulkPromise = new Promise(async (resolve, reject) => {
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        });
-
-        if (!response.ok) {
-          const errorData: ApiResponse<never> = await response
-            .json()
-            .catch(() => ({}));
-          throw new Error(
-            errorData.message || `HTTP error! status: ${response.status}`
-          );
-        }
-
-        const result: ApiResponse<{ updatedCount: number }> = await response.json();
-
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
-        resolve(result);
-      } catch (error) {
-        reject(error);
-      }
-    });
-
-    toast
-      .promise(bulkPromise, {
-        loading: "Processing bulk operation...",
-        success: () => {
-          fetchUsers();
-          closeBulkModal();
-          return `Bulk ${bulkOperation.action} operation completed successfully!`;
-        },
-        error: (error: Error) => {
-          console.error("Error in bulk operation:", error);
-          return error.message || "Failed to process bulk operation";
-        },
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
-  // Filter users based on selection for remove action
-  useEffect(() => {
-    if (bulkOperation.action === "remove" && showBulkModal) {
-      if (bulkOperation.type === "service" && bulkOperation.serviceId) {
-        // Only show users who have this service
-        const usersWithService = users.filter(user => 
-          user.services.some(s => s.service === bulkOperation.serviceId)
-        );
-        setFilteredUsers(usersWithService);
-      } else if (bulkOperation.type === "postService" && bulkOperation.postServiceId) {
-        // Only show users who have this post service
-        const usersWithPostService = users.filter(user => 
-          user.postServices.some(ps => ps.postService === bulkOperation.postServiceId)
-        );
-        setFilteredUsers(usersWithPostService);
-      }
-    } else if (showBulkModal) {
-      // For add action, show all users
-      setFilteredUsers(users);
-    }
-  }, [bulkOperation, showBulkModal, users]);
-
   // Service Chip Component
   const ServiceChip = ({
     service,
@@ -1372,14 +1061,6 @@ const UserManagement = () => {
 
             <div className="flex gap-3">
               <button
-                onClick={openBulkModal}
-                className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                disabled={loading}
-              >
-                <Users className="w-5 h-5" />
-                Bulk Actions
-              </button>
-              <button
                 onClick={() => openModal("create")}
                 className="flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 disabled={loading}
@@ -1417,16 +1098,6 @@ const UserManagement = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                       <tr>
-                        {showBulkModal && (
-                          <th className="px-6 py-4 text-center text-sm font-semibold text-gray-600 dark:text-gray-300 w-12">
-                            <input
-                              type="checkbox"
-                              checked={selectAll}
-                              onChange={handleSelectAll}
-                              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
-                            />
-                          </th>
-                        )}
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">
                           User
                         </th>
@@ -1448,11 +1119,9 @@ const UserManagement = () => {
                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-300">
                           Last Login
                         </th>
-                        {!showBulkModal && (
-                          <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-300">
-                            Actions
-                          </th>
-                        )}
+                        <th className="px-6 py-4 text-right text-sm font-semibold text-gray-600 dark:text-gray-300">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
@@ -1461,16 +1130,6 @@ const UserManagement = () => {
                           key={user._id}
                           className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                         >
-                          {showBulkModal && (
-                            <td className="px-6 py-4 text-center">
-                              <input
-                                type="checkbox"
-                                checked={user.selected || false}
-                                onChange={(e) => handleUserSelection(user._id, e.target.checked)}
-                                className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
-                              />
-                            </td>
-                          )}
                           <td className="px-6 py-4">
                             <div>
                               <div className="font-semibold text-gray-900 dark:text-white">
@@ -1607,32 +1266,30 @@ const UserManagement = () => {
                           <td className="px-6 py-4 text-gray-600 dark:text-gray-300 text-sm">
                             {formatDate(user.lastLogin)}
                           </td>
-                          {!showBulkModal && (
-                            <td className="px-6 py-4">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() => openModal("edit", user)}
-                                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
-                                  title="Edit"
-                                >
-                                  <Edit2 className="w-4 h-4 text-blue-500" />
-                                </button>
-                                <button
-                                  onClick={() => handleBanToggle(user._id)}
-                                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
-                                  title={user.isBanned ? "Unban" : "Ban"}
-                                >
-                                  <Ban
-                                    className={`w-4 h-4 ${
-                                      user.isBanned
-                                        ? "text-green-500"
-                                        : "text-yellow-500"
-                                    }`}
-                                  />
-                                </button>
-                              </div>
-                            </td>
-                          )}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => openModal("edit", user)}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <Edit2 className="w-4 h-4 text-blue-500" />
+                              </button>
+                              <button
+                                onClick={() => handleBanToggle(user._id)}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                                title={user.isBanned ? "Unban" : "Ban"}
+                              >
+                                <Ban
+                                  className={`w-4 h-4 ${
+                                    user.isBanned
+                                      ? "text-green-500"
+                                      : "text-yellow-500"
+                                  }`}
+                                />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1653,232 +1310,6 @@ const UserManagement = () => {
                 </p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Bulk Operation Modal */}
-        {showBulkModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Bulk Service Operations
-                  </h2>
-                  <button
-                    onClick={closeBulkModal}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5 text-gray-500" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-6">
-                {/* Operation Configuration */}
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Configure Operation
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Operation Type */}
-                    <div>
-                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                        Operation Type
-                      </label>
-                      <select
-                        value={bulkOperation.type}
-                        onChange={(e) => handleBulkOperationChange("type", e.target.value as BulkOperationType)}
-                        className="w-full px-4 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="service">Service</option>
-                        <option value="postService">Post Service</option>
-                      </select>
-                    </div>
-
-                    {/* Action */}
-                    <div>
-                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                        Action
-                      </label>
-                      <select
-                        value={bulkOperation.action}
-                        onChange={(e) => handleBulkOperationChange("action", e.target.value as BulkAction)}
-                        className="w-full px-4 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="add">Add</option>
-                        <option value="remove">Remove</option>
-                      </select>
-                    </div>
-
-                    {/* Service/Post Service Selection */}
-                    <div>
-                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                        {bulkOperation.type === "service" ? "Service" : "Post Service"}
-                      </label>
-                      <select
-                        value={bulkOperation.type === "service" ? bulkOperation.serviceId || "" : bulkOperation.postServiceId || ""}
-                        onChange={(e) => handleBulkOperationChange(
-                          bulkOperation.type === "service" ? "serviceId" : "postServiceId",
-                          e.target.value
-                        )}
-                        className="w-full px-4 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select {bulkOperation.type === "service" ? "Service" : "Post Service"}</option>
-                        {bulkOperation.type === "service"
-                          ? services.map((service) => (
-                              <option key={service._id} value={service._id}>
-                                {service.name} (Admin Fee: ৳{service.fee})
-                              </option>
-                            ))
-                          : postServices.map((postService) => (
-                              <option key={postService._id} value={postService._id}>
-                                {postService.title} (Total Admin Fee: ৳{postService.admin_fee + postService.worker_fee})
-                              </option>
-                            ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Reseller Fee (Only for Add action) */}
-                  {bulkOperation.action === "add" && (
-                    <div className="mt-6">
-                      <label className="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
-                        Reseller Fee (Outer Fee)
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
-                          ৳
-                        </span>
-                        <input
-                          type="number"
-                          step="1"
-                          min="0"
-                          placeholder="0"
-                          value={bulkOperation.resellerFee || 0}
-                          onChange={(e) => handleBulkOperationChange("resellerFee", parseFloat(e.target.value) || 0)}
-                          className="w-full pl-10 pr-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* User Selection */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Select Users ({users.filter(u => u.selected).length} selected)
-                    </h3>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleSelectAll}
-                        className="px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-                      >
-                        {selectAll ? "Unselect All" : "Select All"}
-                      </button>
-                      <button
-                        onClick={selectAssignedUsers}
-                        className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg text-sm hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                      >
-                        Select Assigned
-                      </button>
-                      <button
-                        onClick={selectUnassignedUsers}
-                        className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg text-sm hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
-                      >
-                        Select Unassigned
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="overflow-y-auto max-h-64">
-                    <table className="w-full">
-                      <thead className="bg-gray-100 dark:bg-gray-700">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Select
-                          </th>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                            User
-                          </th>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Email
-                          </th>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Current Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-                        {filteredUsers.map((user) => {
-                          const hasAccess = bulkOperation.type === "service"
-                            ? user.services.some(s => s.service === bulkOperation.serviceId)
-                            : user.postServices.some(ps => ps.postService === bulkOperation.postServiceId);
-                          
-                          return (
-                            <tr key={user._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                              <td className="px-4 py-2">
-                                <input
-                                  type="checkbox"
-                                  checked={user.selected || false}
-                                  onChange={(e) => handleUserSelection(user._id, e.target.checked)}
-                                  className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
-                                />
-                              </td>
-                              <td className="px-4 py-2">
-                                <div>
-                                  <div className="font-medium text-gray-900 dark:text-white">
-                                    {user.name}
-                                  </div>
-                                  <div className="text-sm text-gray-600 dark:text-gray-300">
-                                    @{user.username}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-2 text-gray-600 dark:text-gray-300">
-                                {user.email}
-                              </td>
-                              <td className="px-4 py-2">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                  hasAccess
-                                    ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                                    : "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-                                }`}>
-                                  {hasAccess ? "Has Access" : "No Access"}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={closeBulkModal}
-                    className="flex-1 px-4 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleBulkSubmit}
-                    disabled={loading}
-                    className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading
-                      ? "Processing..."
-                      : `${bulkOperation.action === "add" ? "Add" : "Remove"} ${bulkOperation.type === "service" ? "Service" : "Post Service"} to ${users.filter(u => u.selected).length} Users`}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
