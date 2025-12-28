@@ -652,6 +652,7 @@ export async function GET() {
 
     const service = await Services.findOne({ href: servicePath });
     if (!service) {
+      console.log('service missing')
       return NextResponse.json(
         { success: false, error: "Service not found" },
         { status: 404 }
@@ -717,6 +718,7 @@ export async function GET() {
     const captchaSrc = captchaMatch ? captchaMatch[1] : null;
 
     if(!csrf || !captchaSrc || !cookiesArr) {
+     
       return NextResponse.json(
         { success: false, error: "Captcha not found" },
         { status: 404 }
@@ -727,6 +729,7 @@ export async function GET() {
       cookies: cookiesArr,
       csrf,
       serviceCost: serviceCost,
+      note: service.note || '',
       captcha: {
         src: captchaSrc,
       },

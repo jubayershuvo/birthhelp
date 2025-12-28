@@ -34,7 +34,7 @@ export async function GET() {
     }
     const serviceCost = userService.fee + service.fee;
 
-    return NextResponse.json({ serviceCost }, { status: 200 });
+    return NextResponse.json({ serviceCost, note: service.note }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { message: "Internal Server Error" },

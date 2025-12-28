@@ -117,17 +117,7 @@ interface SearchResponse {
   results: Person[];
 }
 
-interface ErrorResponse {
-  error: string;
-  unknownParams?: string[];
-  allowedParams?: string[];
-  allowedHints?: string[];
-  allowedSort?: string[];
-  allowedMatch?: string[];
-  allowedFields?: string[];
-  allowedYearParams?: string[];
-  allowedFilters?: string[];
-}
+
 
 const SearchPage = () => {
   // Search state
@@ -176,6 +166,7 @@ const SearchPage = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [serviceCost, setServiceCost] = useState(0);
+  const [note, setNote] = useState("");
 
   // Field options
   const fieldOptions = [
@@ -441,6 +432,7 @@ const SearchPage = () => {
       if (response.ok) {
         const newData = await response.json();
         setServiceCost(newData.serviceCost);
+        setNote(newData.note);
       } else {
         toast.error("সেশন রিলোড করতে সমস্যা হয়েছে");
       }
@@ -450,7 +442,7 @@ const SearchPage = () => {
   useEffect(() => {
     sessionReload();
   }, []);
-  console.log(serviceCost);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -466,6 +458,10 @@ const SearchPage = () => {
             <p className="text-red-500 dark:text-red-400 mt-2">
               প্রতি বার {serviceCost} টাকা করে কাটা হবে
             </p>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">
+              {note}
+            </p>
+
           </div>
           <Link href="/data/ministry/history">
             <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">

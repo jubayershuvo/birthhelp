@@ -383,6 +383,7 @@ export default function PassportPage() {
   >({});
 
   const [serviceCost, setServiceCost] = useState(0);
+  const [note, setNote] = useState("");
 
   const sessionReload = async () => {
     if (loading) return;
@@ -392,6 +393,7 @@ export default function PassportPage() {
       if (response.ok) {
         const newData = await response.json();
         setServiceCost(newData.serviceCost);
+        setNote(newData.note);
       } else {
         toast.error("সেশন রিলোড করতে সমস্যা হয়েছে");
       }
@@ -914,6 +916,9 @@ export default function PassportPage() {
               </h1>
               <p className="mt-2 text-red-600">
                 {!id && `প্রতি বার ${serviceCost} টাকা করে কাটা হবে`}
+              </p>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">
+                {note}
               </p>
             </div>
 

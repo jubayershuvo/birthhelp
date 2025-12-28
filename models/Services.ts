@@ -6,6 +6,7 @@ export interface IServices extends Document {
   name: string;
   fee: number;
   href: string;
+  note: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -17,6 +18,7 @@ const servicesSchema = new Schema<IServices>(
     name: { type: String, required: true },
     fee: { type: Number, required: true },
     href: { type: String, required: true, unique: true },
+    note: { type: String },
   },
   {
     timestamps: true,

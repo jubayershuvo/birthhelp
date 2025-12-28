@@ -29,6 +29,7 @@ export default function AppDataSearch() {
   const [error, setError] = useState<string | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [serviceCost, setServiceCost] = useState<number | null>(null);
+  const [note, setNote] = useState("");
 
   const toggleExpand = (index: number) => {
     const newExpanded = new Set(expandedItems);
@@ -110,6 +111,7 @@ export default function AppDataSearch() {
       if (response.ok) {
         const newData = await response.json();
         setServiceCost(newData.serviceCost);
+        setNote(newData.note);
       } else {
         toast.error("সেশন রিলোড করতে সমস্যা হয়েছে");
       }
@@ -132,6 +134,9 @@ export default function AppDataSearch() {
           </h1>
           <p className="text-red-600 dark:text-red-300 text-lg">
             প্রতি বার {serviceCost} টাকা করে কাটা হবে
+          </p>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {note}
           </p>
         </div>
 

@@ -693,6 +693,7 @@ export async function GET() {
       cookies: cookiesArr,
       csrf,
       serviceCost: serviceCost,
+      note: service.note || "",
     });
   } catch (error) {
     return NextResponse.json(

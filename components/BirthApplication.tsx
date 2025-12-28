@@ -1324,6 +1324,7 @@ export default function BirthRegistrationForm() {
     cookies: [],
     csrf: "",
     serviceCost: 0,
+    note: "",
   });
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -2909,6 +2910,9 @@ export default function BirthRegistrationForm() {
           </p>
           <p className="text-red-600 text-center text-sm mt-2">
             প্রতি আবেদনে {sessionData.serviceCost} টাকা করে কাটা হবে
+          </p>
+          <p className="text-center text-sm mt-2">
+            {sessionData.note}
           </p>
         </div>
 

@@ -13,7 +13,7 @@ export default function SimpleUnicodeLoader() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    <div className="min-h-screen dark:bg-gray-900 flex items-center justify-center">
       <div className="text-6xl text-blue-500 font-bold">
         {chars[charIndex]}
       </div>

@@ -14,6 +14,7 @@ interface ISearchData {
   personNameBn: string;
   dateOfBirth: string;
   cost: number;
+  note: string;
 }
 
 // Full data interface for edit page (not exposed here)
@@ -261,6 +262,10 @@ export default function BirthCertificateSearch() {
             <p className="text-red-600">
               প্রতি বার {searchData.cost} টাকা করে কাটা হবে
             </p>
+            <p className="">
+              {searchData.note}
+            </p>
+
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">

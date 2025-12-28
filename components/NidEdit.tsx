@@ -59,6 +59,7 @@ interface ApiResponse {
   data: NIDData | null;
   message: string | null;
   serviceCost: number;
+  note: string;
 }
 
 export default function EditNIDPage() {
@@ -76,6 +77,7 @@ export default function EditNIDPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [cost, setCost] = useState(0);
+  const [note, setNote] = useState<string>("");
 
   const photoInputRef = useRef<HTMLInputElement>(null);
   const signatureInputRef = useRef<HTMLInputElement>(null);
@@ -90,6 +92,7 @@ export default function EditNIDPage() {
         if (result.success && result.data) {
           setFormData(result.data);
           setCost(Number(result.serviceCost) || 0);
+          setNote(result.note || "");
           // Set preview URLs for existing images
           if (result.data.photo) {
             setPhotoPreview(result.data.photo);
@@ -377,6 +380,9 @@ export default function EditNIDPage() {
                     প্রতি বার {cost} টাকা করে কাটা হবে
                   </p>
                 )}
+                <p className="text-blue-100 mt-1">
+                  {note}
+                </p>
               </div>
               <button
                 onClick={() => router.back()}

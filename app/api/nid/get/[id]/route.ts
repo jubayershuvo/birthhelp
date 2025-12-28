@@ -70,7 +70,7 @@ export async function GET(
     };
 
     return NextResponse.json(
-      { data: sendData, serviceCost, success: true },
+      { data: sendData, serviceCost, note: service.note, success: true },
       { status: 200 }
     );
   } catch (error) {

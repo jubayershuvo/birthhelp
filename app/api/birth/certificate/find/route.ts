@@ -74,6 +74,7 @@ export async function POST(req: Request) {
       personNameBn: certificate.personNameBn,
       dateOfBirth: certificate.dateOfBirth,
       cost: serviceCost,
+      note: service.note,
     };
 
     return NextResponse.json({ success: true, data: sendData });

@@ -17,6 +17,7 @@ export default function BDRISPrint() {
 
   const [data, setData] = useState({
     serviceCost: 0,
+    note: "",
   });
 
   const url = new URL(window.location.href);
@@ -324,6 +325,9 @@ export default function BDRISPrint() {
               </p>
               <p className="text-red-500 dark:text-red-400 mt-2">
                 প্রতি বার {data.serviceCost} টাকা করে কাটা হবে
+              </p>
+              <p className="text-gray-500 dark:text-gray-400 mt-2">
+                {data.note}
               </p>
             </div>
 
