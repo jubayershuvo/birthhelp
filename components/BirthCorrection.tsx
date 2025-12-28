@@ -173,7 +173,8 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
 
   const [wardLabel, setWardLabel] = useState("ওয়ার্ড");
 
-  const api = "https://fortest.top/address.php?ajax=1";
+  // Add NEXT_PUBLIC_ prefix to your environment variable name
+  const api = `${process.env.NEXT_PUBLIC_ADDRESS_API!}?id=1`;
 
   const refs = {
     country: useRef<HTMLSelectElement>(null),
@@ -1209,7 +1210,7 @@ export default function BirthCorrectionForm() {
     url: "",
     csrf: "",
     serviceCost: 0,
-    note: '',
+    note: "",
     captcha: { src: "" },
   });
   const router = useRouter();
@@ -2129,7 +2130,7 @@ export default function BirthCorrectionForm() {
 
       if (response.ok) {
         const newData = await response.json();
-     
+
         setData(newData);
         handleInputChange("captcha", "");
         toast.success("সেশন রিলোড সফলভাবে হয়েছে", { id: "sessionReload" });
@@ -2177,8 +2178,10 @@ export default function BirthCorrectionForm() {
             <p className="text-red-600 text-center pb-2">
               প্রতি আবেদনে {formatBdt(data.serviceCost)} টাকা করে কাটা হবে
             </p>
-            
-            <p className="text-gray-800 dark:text-white text-center pb-2">{data.note || ""}</p>
+
+            <p className="text-gray-800 dark:text-white text-center pb-2">
+              {data.note || ""}
+            </p>
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center">
                 <div

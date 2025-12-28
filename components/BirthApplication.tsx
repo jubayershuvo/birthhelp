@@ -342,7 +342,8 @@ const AddressSelectorModal: React.FC<{
   const [wardLabel, setWardLabel] = useState("ওয়ার্ড");
   const [showWardSection, setShowWardSection] = useState(false);
 
-  const api = "https://fortest.top/address.php?id=1";
+  // Add NEXT_PUBLIC_ prefix to your environment variable name
+  const api = `${process.env.NEXT_PUBLIC_ADDRESS_API!}?id=1`;
 
   const refs = {
     country: useRef<HTMLSelectElement>(null),
@@ -2076,9 +2077,7 @@ export default function BirthRegistrationForm() {
   const sendOTP = async () => {
     try {
       // Check if required personal information is available
-      if (
-        !formData.personInfoForBirth.personFirstNameBn
-      ) {
+      if (!formData.personInfoForBirth.personFirstNameBn) {
         toast.error("প্রথমে ব্যক্তির তথ্য পূরণ করুন");
         return;
       }
@@ -2166,7 +2165,7 @@ export default function BirthRegistrationForm() {
     gender: string;
   }): Promise<boolean> => {
     if (!ubrn.trim()) return false;
-    return true
+    return true;
 
     // Create cache key
     const cacheKey = `${ubrn}-${dob}-${nameEn}-${childBirthDate}-${gender}`;
@@ -2911,9 +2910,7 @@ export default function BirthRegistrationForm() {
           <p className="text-red-600 text-center text-sm mt-2">
             প্রতি আবেদনে {sessionData.serviceCost} টাকা করে কাটা হবে
           </p>
-          <p className="text-center text-sm mt-2">
-            {sessionData.note}
-          </p>
+          <p className="text-center text-sm mt-2">{sessionData.note}</p>
         </div>
 
         {/* Progress Steps - Always 5 steps */}

@@ -19,6 +19,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { updateUser, userLogout } from "@/lib/userSlice";
 import axios from "axios";
+import TelegramPopup from "../TelegramPopup";
 
 const menuItemsd = [
   { label: "Home", icon: <Home size={20} />, href: "/" },
@@ -162,6 +163,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col h-screen w-screen">
       {/* HEADER */}
       <Toaster position="top-center" reverseOrder={false} />
+      <TelegramPopup />
       <header
         className="w-full h-16 bg-gradient-to-r from-indigo-600 via-indigo-500 to-teal-500 
         flex items-center justify-between px-4 shadow-md"
