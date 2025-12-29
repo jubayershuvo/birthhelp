@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
       relation,
       applicantName,
       officeAddressType,
+      officeId,
     } = await req.json();
 
     // personUbrn, applicantName, relation আর body থেকে আশা করব না
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
     const params = new URLSearchParams({
       appType: "BIRTH_REGISTRATION_APPLICATION",
       phone,
-      officeId: "0",
+      officeId: officeId || "0",
       personUbrn: "",
       relation,
       applicantName: applicantName || "",

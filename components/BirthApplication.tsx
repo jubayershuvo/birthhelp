@@ -7,6 +7,7 @@ import {
 } from "@/json/countries";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { off } from "process";
 import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -1515,6 +1516,7 @@ export default function BirthRegistrationForm() {
     field: keyof FormData,
     value: string | boolean | Address | null
   ) => {
+    
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -2122,6 +2124,7 @@ export default function BirthRegistrationForm() {
           csrf: sessionData.csrf,
           cookies: sessionData.cookies,
           officeAddressType: formData.officeAddressType,
+          officeId: formData.officeAddrOffice,
         }),
       });
 
