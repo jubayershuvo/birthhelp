@@ -173,14 +173,12 @@ export async function POST(
               user.postServices[existingPostServiceIndex].reseller_fee =
                 postServiceItem.fee;
             } else {
-              return NextResponse.json(
-                {
-                  success: false,
-                  message: "Post service not found for user",
-                  error: `User ${user._id} does not have post service ${postServiceId} to update`,
-                } as BulkPostServiceErrorResponse,
-                { status: 400 }
-              );
+              // Add new post service
+              user.postServices.push({
+                service: postServiceId,
+                reseller_fee: postServiceItem.fee,
+              });
+              
             }
           }
 
