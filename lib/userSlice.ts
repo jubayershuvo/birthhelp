@@ -10,6 +10,7 @@ const initialState = {
     username: "",
     email: "",
     avatar: "",
+    whatsapp: "",
     isEmailVerified: false,
     isBanned: false,
     isActive: false,

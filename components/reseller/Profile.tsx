@@ -2,6 +2,7 @@
 
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { resellerLogin } from "@/lib/resellerSlice";
+import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import toast from "react-hot-toast";
 
@@ -10,6 +11,10 @@ import toast from "react-hot-toast";
 interface UpdateProfileData {
   name: string;
   avatar: string;
+  email: string;
+  phone: string;
+  telegramId: string;
+  whatsapp: string;
 }
 
 interface ChangePasswordData {
@@ -23,9 +28,14 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
   const { reseller: user } = useAppSelector((state) => state.resellerAuth);
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const [profileData, setProfileData] = useState<UpdateProfileData>({
     name: user.name,
     avatar: user.avatar,
+    email: user.email,
+    phone: user.phone,
+    telegramId: user.telegramId,
+    whatsapp: user.whatsapp,
   });
   const [passwordData, setPasswordData] = useState<ChangePasswordData>({
     currentPassword: "",
@@ -74,15 +84,19 @@ export default function Profile() {
       },
       body: JSON.stringify(userData),
     });
-
+    const data = await response.json();
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to update profile");
+      toast.error(data.error || "Failed to update profile");
+      return;
     }
 
-    const data = await response.json();
+    toast.success("Profile updated successfully!");
     dispatch(resellerLogin(data.user));
     setIsSettingsOpen(false);
+    if (data.redirect) {
+      // Redirect to another page if needed
+      router.push(data.redirect);
+    }
   };
 
   // API call to change password
@@ -100,7 +114,7 @@ export default function Profile() {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.log(errorData)
+      console.log(errorData);
       throw new Error(errorData.error || "Failed to change password");
     }
 
@@ -159,7 +173,7 @@ export default function Profile() {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!profileData.name.trim()) {
       toast.error("Name is required");
       return;
@@ -169,11 +183,7 @@ export default function Profile() {
 
     const updatePromise = updateUserInfoAPI(profileData);
 
-    toast.promise(updatePromise, {
-      loading: "Updating profile...",
-      success: "Profile updated successfully!",
-      error: (err: Error) => err.message || "Failed to update profile",
-    });
+
 
     try {
       await updatePromise;
@@ -187,7 +197,7 @@ export default function Profile() {
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation
     if (
       !passwordData.currentPassword ||
@@ -305,7 +315,7 @@ export default function Profile() {
                   </span>
                 )}
               </div>
-              <button
+              {/* <button
                 onClick={triggerFileInput}
                 disabled={isLoading}
                 className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white p-1 rounded-full shadow-lg transition-colors"
@@ -330,7 +340,7 @@ export default function Profile() {
                     d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-              </button>
+              </button> */}
               <input
                 type="file"
                 ref={fileInputRef}
@@ -365,7 +375,14 @@ export default function Profile() {
                 ৳{user.balance}
               </p>
             </div>
-
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Joined At
+              </p>
+              <p className="text-gray-900 dark:text-white font-medium">
+                {new Date(user.createdAt as unknown as string).toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -454,6 +471,95 @@ export default function Profile() {
                           placeholder="Enter your name"
                         />
                       </div>
+                      <div>
+                        <label
+                          htmlFor="email"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                          Email
+                        </label>
+                        <input
+                          type="text"
+                          id="email"
+                          value={profileData.email}
+                          onChange={(e) =>
+                            setProfileData((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }))
+                          }
+                          disabled={isLoading}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50"
+                          placeholder="e.g. dMl9Z@example.com"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="phone"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                          Phone
+                        </label>
+                        <input
+                          type="text"
+                          id="phone"
+                          value={profileData.phone}
+                          onChange={(e) =>
+                            setProfileData((prev) => ({
+                              ...prev,
+                              phone: e.target.value,
+                            }))
+                          }
+                          disabled={isLoading}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50"
+                          placeholder="e.g. +1234567890"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="whatsapp"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                          WhatsApp
+                        </label>
+                        <input
+                          type="text"
+                          id="whatsapp"
+                          value={profileData.whatsapp}
+                          onChange={(e) =>
+                            setProfileData((prev) => ({
+                              ...prev,
+                              whatsapp: e.target.value,
+                            }))
+                          }
+                          disabled={isLoading}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50"
+                          placeholder="e.g. +1234567890"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="telegramId"
+                          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                          Telegram ID
+                        </label>
+                        <input
+                          type="text"
+                          id="telegramId"
+                          value={profileData.telegramId}
+                          onChange={(e) =>
+                            setProfileData((prev) => ({
+                              ...prev,
+                              telegramId: e.target.value,
+                            }))
+                          }
+                          disabled={isLoading}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50"
+                          placeholder="e.g. @username or @id"
+                        />
+                      </div>
+
                       <button
                         type="submit"
                         disabled={isLoading}

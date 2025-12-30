@@ -8,22 +8,22 @@ authenticator.options = {
   step: 600, // 10 minutes
 };
 
-// Generate deterministic base32 secret from email
-export const getSecretFromEmail = (email: string): string => {
-  // hash the email (SHA256)
-  const hash = crypto.createHash("sha256").update(email).digest();
+// Generate deterministic base32 secret from whatsapp
+export const getSecretFromWhatsapp = (whatsapp: string): string => {
+  // hash the whatsapp (SHA256)
+  const hash = crypto.createHash("sha256").update(whatsapp).digest();
   // encode as base32
   return base32Encode(hash, "RFC4648", { padding: false });
 };
 
 // Generate OTP
-export const generateOtp = (email: string) => {
-  const secret = getSecretFromEmail(email);
+export const generateOtp = (whatsapp: string) => {
+  const secret = getSecretFromWhatsapp(whatsapp);
   return authenticator.generate(secret);
 };
 
 // Verify OTP
-export const verifyOtp = (token: string, email: string) => {
-  const secret = getSecretFromEmail(email);
-  return authenticator.check(token, secret);
+export const verifyOtp = (otp: string, whatsapp: string) => {
+  const secret = getSecretFromWhatsapp(whatsapp);
+  return authenticator.check(otp, secret);
 };
