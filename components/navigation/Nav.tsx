@@ -20,6 +20,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { updateUser, userLogout } from "@/lib/userSlice";
 import axios from "axios";
 import TelegramPopup from "../TelegramPopup";
+import UpdateWhatsAppPopup from "../WhatsappAdd";
 
 const menuItemsd = [
   { label: "Home", icon: <Home size={20} />, href: "/" },
@@ -91,7 +92,6 @@ export default function Nav({ children }: { children: React.ReactNode }) {
 
   // Fetch user profile and counts
   useEffect(() => {
-
     if (pathname.startsWith("/reseller") || pathname === "/login") return;
 
     // if (!mounted) return;
@@ -164,6 +164,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
       {/* HEADER */}
       <Toaster position="top-center" reverseOrder={false} />
       <TelegramPopup />
+      <UpdateWhatsAppPopup isOpen={!user.whatsapp} />
       <header
         className="w-full h-16 bg-gradient-to-r from-indigo-600 via-indigo-500 to-teal-500 
         flex items-center justify-between px-4 shadow-md"
