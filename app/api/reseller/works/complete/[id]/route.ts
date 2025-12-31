@@ -8,7 +8,7 @@ import path from "path";
 import fs from "fs/promises";
 import User from "@/models/User";
 import Reseller from "@/models/Reseller";
-import { sendWhatsAppFile } from "@/lib/whatsapp";
+import { sendWhatsAppFile, sendWhatsAppText } from "@/lib/whatsapp";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -169,11 +169,18 @@ export async function POST(
     if (poster.whatsapp) {
       // Send WhatsApp notification
       try {
-        await sendWhatsAppFile(
-          poster.whatsapp,
-          uploadedFile ? uploadedFile.path : null,
-          `✅ Delivery Completed Successfully!\n\nYour order for the service "${post.service.title}" has been marked as completed.\n\nThank you for ordering from us!`
-        );
+        if (uploadedFile) {
+          await sendWhatsAppFile(
+            poster.whatsapp,
+            uploadedFile.path,
+            `✅ Delivery Completed Successfully!\n\nYour order for the service "${post.service.title}" has been marked as completed.\n\nThank you for ordering from us!`
+          );
+        } else if (deliveryNote) {
+          await sendWhatsAppText(
+            poster.whatsapp,
+            `✅ Delivery Completed Successfully!\n\nYour order for the service "${post.service.title}" has been marked as completed.\n\nDelivery Note:\n${deliveryNote}\n\nThank you for ordering from us!`
+          );
+        }
       } catch (error) {
         console.log(error);
       }
