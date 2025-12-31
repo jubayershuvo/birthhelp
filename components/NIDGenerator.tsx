@@ -66,7 +66,7 @@ const router = useRouter();
         nidNumber: resData.data.nid,
         bloodGroup: resData.data.blood_group,
         birthPlaceBn: resData.data.birth_place,
-        addressBn: resData.data.permanent_address_full,
+        addressBn: resData.data.voter_at === "present" ? resData.data.present_address_full : resData.data.permanent_address_full,
         photo: resData.data.photo,
         signature: resData.data.signature,
         adminSignature: "/images/sign-administrator.jpg",
@@ -125,7 +125,7 @@ const router = useRouter();
         useCORS: true,
         allowTaint: true,
         logging: false,
-        scale: 2,
+        scale: 4,
         backgroundColor: "#ffffff",
       } as unknown as Parameters<typeof html2canvas>[1]);
 

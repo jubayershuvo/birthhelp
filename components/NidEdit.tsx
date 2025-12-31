@@ -50,6 +50,7 @@ interface NIDData {
   addresses_same: boolean;
   photo: string;
   signature: string;
+  voter_at: string;
   __v: number;
 }
 
@@ -380,9 +381,7 @@ export default function EditNIDPage() {
                     প্রতি বার {cost} টাকা করে কাটা হবে
                   </p>
                 )}
-                <p className="text-blue-100 mt-1">
-                  {note}
-                </p>
+                <p className="text-blue-100 mt-1">{note}</p>
               </div>
               <button
                 onClick={() => router.back()}
@@ -629,6 +628,13 @@ export default function EditNIDPage() {
                 onChange={handleInputChange}
                 required
               />
+              <FormField
+                label="PIN Code"
+                name="pincode"
+                value={formData?.pincode || ""}
+                onChange={handleInputChange}
+                required
+              />
             </div>
 
             {/* Personal Information */}
@@ -678,7 +684,7 @@ export default function EditNIDPage() {
                 onChange={handleInputChange}
               />
 
-              <SelectField
+              {/* <SelectField
                 label="Gender"
                 name="gender"
                 value={formData?.gender || ""}
@@ -688,9 +694,9 @@ export default function EditNIDPage() {
                   { value: "female", label: "Female" },
                   { value: "other", label: "Other" },
                 ]}
-              />
+              /> */}
 
-              <SelectField
+              {/* <SelectField
                 label="Marital Status"
                 name="marital_status"
                 value={formData?.marital_status || ""}
@@ -701,14 +707,14 @@ export default function EditNIDPage() {
                   { value: "divorced", label: "Divorced" },
                   { value: "widowed", label: "Widowed" },
                 ]}
-              />
-
+              /> */}
+{/* 
               <FormField
                 label="Occupation"
                 name="occupation"
                 value={formData?.occupation || ""}
                 onChange={handleInputChange}
-              />
+              /> */}
 
               <SelectField
                 label="Blood Group"
@@ -727,7 +733,7 @@ export default function EditNIDPage() {
                 ]}
               />
 
-              <SelectField
+              {/* <SelectField
                 label="Religion"
                 name="religion"
                 value={formData?.religion || ""}
@@ -739,14 +745,14 @@ export default function EditNIDPage() {
                   { value: "Christianity", label: "Christianity" },
                   { value: "Other", label: "Other" },
                 ]}
-              />
+              /> */}
 
-              <FormField
+              {/* <FormField
                 label="Education"
                 name="education"
                 value={formData?.education || ""}
                 onChange={handleInputChange}
-              />
+              /> */}
             </div>
 
             {/* Family Information */}
@@ -773,7 +779,6 @@ export default function EditNIDPage() {
                 required
               />
             </div>
-
 
             {/* Present Address - Detailed */}
             {/* <div>
@@ -1044,16 +1049,30 @@ export default function EditNIDPage() {
               </div> */}
 
               {/* Permanent Address Full */}
-              <div className="mt-4">
-                <TextAreaField
-                  label="Permanent Address (Full Text)"
-                  name="permanent_address_full"
-                  value={formData?.permanent_address_full || ""}
-                  onChange={handleInputChange}
-                  placeholder="Full address in text format"
-                  rows={3}
-                />
-              </div>
+
+              {formData?.voter_at === "permanent" ? (
+                <div className="mt-4">
+                  <TextAreaField
+                    label="Permanent Address (Full Text)"
+                    name="permanent_address_full"
+                    value={formData?.permanent_address_full || ""}
+                    onChange={handleInputChange}
+                    placeholder="Full address in text format"
+                    rows={3}
+                  />
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <TextAreaField
+                    label="Present Address (Full Text)"
+                    name="present_address_full"
+                    value={formData?.present_address_full || ""}
+                    onChange={handleInputChange}
+                    placeholder="Full address in text format"
+                    rows={3}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Form Actions */}
