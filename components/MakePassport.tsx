@@ -522,14 +522,14 @@ export default function PassportPage() {
     // Format validations
     if (
       form.passportNumber &&
-      !/^[A-Z]{1,2}[0-9]{8,14}$/.test(form.passportNumber)
+      !/^[A-Z]{1,2}[0-9]{7,17}$/.test(form.passportNumber)
     ) {
       errors.passportNumber =
         "Passport number should be like A12345678 or AH48545214";
     }
 
-    if (form.personalNumber && !/^\d{10,15}$/.test(form.personalNumber)) {
-      errors.personalNumber = "Personal number should be 10-15 digits";
+    if (form.personalNumber && !/^\d{10,17}$/.test(form.personalNumber)) {
+      errors.personalNumber = "Personal number should be 10-17 digits";
     }
 
     setValidationErrors(errors);

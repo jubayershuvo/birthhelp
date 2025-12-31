@@ -4,6 +4,9 @@ import { connectDB } from "@/lib/mongodb";
 import Post from "@/models/Post";
 import Service from "@/models/PostService";
 import { getReseller } from "@/lib/getReseller";
+import User from "@/models/User";
+import { sendWhatsAppText } from "@/lib/whatsapp";
+import Reseller from "@/models/Reseller";
 
 export async function POST(
   request: NextRequest,
@@ -75,6 +78,32 @@ export async function POST(
     post.updatedAt = new Date();
 
     await post.save();
+
+    const poster = await User.findById(post.user);
+    if (poster && poster.whatsapp) {
+      try {
+        await sendWhatsAppText(
+          poster.whatsapp,
+          `Hello ${poster.name}, your work request for "${post.service.title}" has been accepted by reseller ${user.name}. They will be in touch with you shortly.`
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    const resellers = await Reseller.find({});
+    for (const reseller of resellers) {
+      if (reseller.whatsapp) {
+        try {
+          await sendWhatsAppText(
+            reseller.whatsapp,
+            `Reseller ${user.name} has accepted the work request for "${post.service.title}".`
+          );
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,

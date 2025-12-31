@@ -6,6 +6,7 @@ import Service from "@/models/PostService";
 import { getReseller } from "@/lib/getReseller";
 import User from "@/models/User";
 import Transaction from "@/models/Transaction";
+import { sendWhatsAppText } from "@/lib/whatsapp";
 
 export async function POST(
   request: NextRequest,
@@ -78,6 +79,17 @@ export async function POST(
     });
     await poster.save();
     await post.save();
+
+    if (poster.whatsapp) {
+      try {
+        await sendWhatsAppText(
+          poster.whatsapp,
+          `Hello ${poster.name}, your work request for "${post.service.title}" has been cancelled by ${user.name} Reason: ${note}. The amount has been refunded to your account. If you have any questions, please contact support.`
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    }
 
     return NextResponse.json({
       success: true,

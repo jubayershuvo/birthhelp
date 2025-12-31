@@ -84,7 +84,7 @@ export async function POST(req: Request) {
       //sendWhatsAppText(reseller.phone, `New post created with ID: ${newPost._id}`);
       if (reseller.whatsapp) {
         try {
-          await sendWhatsAppText(reseller.whatsapp, `New order post created.`);
+          await sendWhatsAppText(reseller.whatsapp, `New order post created service "${service.title}" by ${user.name}. Please check the platform for more details.`);
         } catch (err) {
           console.log(`Failed to send WhatsApp message to ${reseller.whatsapp}`);
         }
