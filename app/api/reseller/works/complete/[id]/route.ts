@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs/promises";
 import User from "@/models/User";
 import Reseller from "@/models/Reseller";
+import { sendWhatsAppFile } from "@/lib/whatsapp";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -44,7 +45,6 @@ export async function POST(
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const deliveryNote = formData.get("deliveryNote") as string | null;
-  
 
     // Validate that at least one of file or deliveryNote is provided
     if (!file && !deliveryNote?.trim()) {
@@ -165,6 +165,19 @@ export async function POST(
       data: post._id.toString(),
       dataSchema: "CompletedWorkCommission",
     });
+
+    if (poster.whatsapp) {
+      // Send WhatsApp notification
+      try {
+        await sendWhatsAppFile(
+          poster.whatsapp,
+          uploadedFile ? uploadedFile.path : null,
+          `✅ Delivery Completed Successfully!\n\nYour order for the service "${post.service.title}" has been marked as completed.\n\nThank you for ordering from us!`
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    }
 
     return NextResponse.json({
       success: true,
