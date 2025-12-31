@@ -18,8 +18,6 @@ export async function POST(req: Request) {
     const formDataBody = await req.formData();
     const profilePdf = formDataBody.get("profile_pdf") as File | null;
 
-
-
     if (!profilePdf) {
       console.error("Error: PDF file not found in request.");
       return NextResponse.json(
@@ -80,16 +78,14 @@ export async function POST(req: Request) {
 
       const res = await fetch("https://api.applicationzone.top/extract", {
         method: "POST",
-        body: imageFormData, 
+        body: imageFormData,
       });
 
       if (!res.ok) {
-        console.log(res)
         throw new Error(`HTTP ${res.status}`);
       }
 
       imageResponse = await res.json();
-      console.log(imageResponse)
     } catch (error) {
       console.error("Failed to extract images:", error);
       return NextResponse.json(
