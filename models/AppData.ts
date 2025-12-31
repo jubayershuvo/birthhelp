@@ -4,6 +4,7 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 // TypeScript interface for type safety
 export interface IUser extends Document {
   user: Types.ObjectId;
+  appId: string;
   data: Array<{
     ubrn: string;
     personBirthDate: string;
@@ -23,6 +24,9 @@ const UserSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       required: true,
       index: true, // Adding index for faster queries if needed
+    },
+    appId:{
+      type: String,
     },
     data: [
       {

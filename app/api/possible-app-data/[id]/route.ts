@@ -73,6 +73,7 @@ export async function GET(
 
     const appdata = await AppData.create({
       user: user._id,
+      appId: id,
       data: data.data,
     });
 
