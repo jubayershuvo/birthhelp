@@ -93,9 +93,10 @@ export async function POST(req: Request) {
         { status: 502 }
       );
     }
+   
 
-    const photoBase64 = imageResponse.photos?.[0];
-    const signatureBase64 = imageResponse.signatures?.[0];
+    const photoBase64 = imageResponse.items[0].base64;
+    const signatureBase64 = imageResponse.items[1].base64;
 
     if (!photoBase64 || !signatureBase64) {
       return NextResponse.json(

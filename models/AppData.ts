@@ -1,9 +1,9 @@
 // models/user.model.ts
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 // TypeScript interface for type safety
 export interface IUser extends Document {
-  user: string;
+  user: Types.ObjectId;
   data: Array<{
     ubrn: string;
     personBirthDate: string;
@@ -20,7 +20,7 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema(
   {
     user: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
       index: true, // Adding index for faster queries if needed
     },
