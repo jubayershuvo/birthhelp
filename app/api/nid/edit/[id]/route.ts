@@ -57,7 +57,9 @@ export async function POST(
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
 
     const nid = await NidData.findById(id);
     if (!nid) {
@@ -92,7 +94,6 @@ export async function POST(
 
     if (!nid.user) {
       user.balance -= serviceCost;
-      reseller.balance += userService.fee;
 
       await Spent.create({
         user: user._id,
@@ -101,15 +102,19 @@ export async function POST(
         data: id,
         dataSchema: "NIDMake",
       });
-      await Earnings.create({
-        user: user._id,
-        reseller: reseller._id,
-        service: userService._id,
-        amount: userService.fee,
-        data: id,
-        dataSchema: "NIDMake",
-      });
-      await reseller.save();
+
+      if (reseller && !user.isSpecialUser) {
+        reseller.balance += userService.fee;
+        await Earnings.create({
+          user: user._id,
+          reseller: reseller._id,
+          service: userService._id,
+          amount: userService.fee,
+          data: id,
+          dataSchema: "NIDMake",
+        });
+        await reseller.save();
+      }
       await user.save();
     }
 

@@ -1,6 +1,6 @@
 import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
-import CorrectionApplication from "@/models/Currection";
+import BirthRegistration from "@/models/BirthRegistration";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -10,11 +10,11 @@ export async function GET(
   try {
     const { id } = await params;
     await connectDB();
-    const user = await getUser();
-    if (!user) {
+    const user = await getUser()
+    if(!user){
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const data = await CorrectionApplication.findById(id);
+    const data = await BirthRegistration.findById(id);
     if (!data || data.user !== user._id) {
       return NextResponse.json({ error: "Data not found" }, { status: 404 });
     }

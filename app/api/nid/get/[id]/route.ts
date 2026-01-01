@@ -43,7 +43,9 @@ export async function GET(
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
 
     const nid = await NidData.findById(id);
     if (!nid) {

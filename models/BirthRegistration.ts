@@ -34,7 +34,7 @@ export interface IParentInfo {
 
 export interface IBirthRegistration extends Document {
   csrf: string;
-  user:Types.ObjectId;
+  user: Types.ObjectId;
   applicationId: string;
   lastDate: string;
   printLink: string;

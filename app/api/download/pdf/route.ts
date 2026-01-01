@@ -47,7 +47,9 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const serviceCost = userService.fee + service.fee;
+  const serviceCost = user.isSpecialUser
+    ? userService.fee
+    : userService.fee + service.fee;
 
   if (user.balance < serviceCost) {
     return NextResponse.json(
@@ -106,7 +108,6 @@ export async function GET(request: NextRequest) {
       html.includes("not found") ||
       html.includes("কোনও অ্যাপ্লিকেশন পাওয়া যায় নাই")
     ) {
-     
       return NextResponse.json(
         { success: false, error: "Try again" },
         { status: 404 }
@@ -153,7 +154,6 @@ export async function GET(request: NextRequest) {
 
     // Deduct balance and create records after successful PDF generation
     user.balance -= serviceCost;
-    reseller.balance += userService.fee;
     const file = await File.create({
       user: user._id,
       path: filePath,
@@ -168,19 +168,20 @@ export async function GET(request: NextRequest) {
       data: file._id,
       dataSchema: "DownloadPDF",
     });
+    if (reseller && !user.isSpecialUser) {
+      reseller.balance += userService.fee;
+      await Earnings.create({
+        user: user._id,
+        reseller: reseller._id,
+        service: userService._id,
+        amount: userService.fee,
+        data: file._id,
+        dataSchema: "DownloadPDF",
+      });
 
-    await Earnings.create({
-      user: user._id,
-      reseller: reseller._id,
-      service: userService._id,
-      amount: userService.fee,
-      data: file._id,
-      dataSchema: "DownloadPDF",
-    });
+      await reseller.save();
+    }
 
-
-
-    await reseller.save();
     await user.save();
 
     return NextResponse.json({ file }, { status: 200 });

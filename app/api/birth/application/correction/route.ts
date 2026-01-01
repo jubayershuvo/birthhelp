@@ -20,7 +20,6 @@ if (process.env.HTTPS_PROXY) {
   setGlobalDispatcher(new ProxyAgent({ uri: process.env.HTTPS_PROXY }));
 }
 
-
 // Define types for the request body
 interface CorrectionInfo {
   id: string;
@@ -210,7 +209,9 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
 
     if (user.balance < serviceCost) {
       return NextResponse.json(
@@ -600,7 +601,6 @@ export async function POST(request: NextRequest) {
     currection.printLink = result.printLink;
     currection.cost = serviceCost;
     user.balance -= serviceCost;
-    reseller.balance += userService.fee;
 
     await Spent.create({
       user: user._id,
@@ -609,15 +609,19 @@ export async function POST(request: NextRequest) {
       data: currection._id,
       dataSchema: "CurrectionApplication",
     });
-    await Earnings.create({
-      user: user._id,
-      reseller: reseller._id,
-      service: userService._id,
-      amount: userService.fee,
-      data: currection._id,
-      dataSchema: "CurrectionApplication",
-    });
-    await reseller.save();
+    
+    if (reseller && !user.isSpecialUser) {
+      reseller.balance += userService.fee;
+      await Earnings.create({
+        user: user._id,
+        reseller: reseller._id,
+        service: userService._id,
+        amount: userService.fee,
+        data: currection._id,
+        dataSchema: "CurrectionApplication",
+      });
+      await reseller.save();
+    }
     await user.save();
     await currection.save();
 
@@ -652,7 +656,7 @@ export async function GET() {
 
     const service = await Services.findOne({ href: servicePath });
     if (!service) {
-      console.log('service missing')
+      console.log("service missing");
       return NextResponse.json(
         { success: false, error: "Service not found" },
         { status: 404 }
@@ -670,7 +674,9 @@ export async function GET() {
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
 
     // const response = await fetch("https://api.ipify.org?format=text");
 
@@ -717,8 +723,7 @@ export async function GET() {
     const captchaMatch = html.match(/<img[^>]*id="captcha"[^>]*src="([^"]*)"/);
     const captchaSrc = captchaMatch ? captchaMatch[1] : null;
 
-    if(!csrf || !captchaSrc || !cookiesArr) {
-     
+    if (!csrf || !captchaSrc || !cookiesArr) {
       return NextResponse.json(
         { success: false, error: "Captcha not found" },
         { status: 404 }
@@ -729,7 +734,7 @@ export async function GET() {
       cookies: cookiesArr,
       csrf,
       serviceCost: serviceCost,
-      note: service.note || '',
+      note: service.note || "",
       captcha: {
         src: captchaSrc,
       },

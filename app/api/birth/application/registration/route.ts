@@ -219,7 +219,9 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
 
     if (user.balance < serviceCost) {
       return NextResponse.json(
@@ -508,7 +510,10 @@ export async function POST(request: NextRequest) {
 
     // Additional applicant fields
     appendFormData("applicantDob", restData.applicantDob || "");
-    appendFormData("applicantNotParentsBrn", restData.applicantNotParentsBrn || "");
+    appendFormData(
+      "applicantNotParentsBrn",
+      restData.applicantNotParentsBrn || ""
+    );
 
     // File attachments
     if (restData.attachments && Array.isArray(restData.attachments)) {
@@ -580,7 +585,7 @@ export async function POST(request: NextRequest) {
     application.cost = serviceCost;
     application.lastDate = result?.lastDate;
     user.balance -= serviceCost;
-    reseller.balance += userService.fee;
+
     await Spent.create({
       user: user._id,
       service: userService._id,
@@ -588,15 +593,19 @@ export async function POST(request: NextRequest) {
       data: application._id,
       dataSchema: "RegistrationApplication",
     });
-    await Earnings.create({
-      user: user._id,
-      reseller: reseller._id,
-      service: userService._id,
-      amount: userService.fee,
-      data: application._id,
-      dataSchema: "RegistrationApplication",
-    });
-    await reseller.save();
+
+    if (reseller && !user.isSpecialUser) {
+      reseller.balance += userService.fee;
+      await Earnings.create({
+        user: user._id,
+        reseller: reseller._id,
+        service: userService._id,
+        amount: userService.fee,
+        data: application._id,
+        dataSchema: "RegistrationApplication",
+      });
+      await reseller.save();
+    }
     await user.save();
     await application.save();
     // Success response
@@ -652,7 +661,9 @@ export async function GET() {
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
     const url = "https://bdris.gov.bd";
     const applicationUrl = `${process.env.BDRIS_PROXY}/br/application`;
     const res = await fetch(applicationUrl, {

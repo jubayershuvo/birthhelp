@@ -9,6 +9,7 @@ export interface IUser extends Document {
   avatar?: string;
   whatsapp?: string;
   password: string;
+  isSpecialUser: boolean;
 
   isEmailVerified: boolean;
   isBanned: boolean;
@@ -53,6 +54,7 @@ const UserSchema = new Schema<IUser>(
 
     avatar: { type: String, default: "" },
     password: { type: String, required: true },
+    isSpecialUser: { type: Boolean, default: false },
 
     isEmailVerified: { type: Boolean, default: false },
     isBanned: { type: Boolean, default: false },

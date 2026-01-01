@@ -41,7 +41,9 @@ export async function GET(
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
 
     if (user.balance < serviceCost) {
       return NextResponse.json(
@@ -69,7 +71,6 @@ export async function GET(
       });
     }
     user.balance -= serviceCost;
-    reseller.balance += userService.fee;
 
     const appdata = await AppData.create({
       user: user._id,
@@ -84,15 +85,19 @@ export async function GET(
       data: appdata._id,
       dataSchema: "AppData",
     });
-    await Earnings.create({
-      user: user._id,
-      reseller: reseller._id,
-      service: userService._id,
-      amount: userService.fee,
-      data: appdata._id,
-      dataSchema: "AppData",
-    });
-    await reseller.save();
+    if (reseller && !user.isSpecialUser) {
+      reseller.balance += userService.fee;
+      await Earnings.create({
+        user: user._id,
+        reseller: reseller._id,
+        service: userService._id,
+        amount: userService.fee,
+        data: appdata._id,
+        dataSchema: "AppData",
+      });
+      await reseller.save();
+    }
+
     await user.save();
     return new Response(JSON.stringify(data.data), {
       headers: { "Content-Type": "application/json" },

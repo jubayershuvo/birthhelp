@@ -46,7 +46,9 @@ export async function GET(
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
 
     if (user.balance < serviceCost) {
       return NextResponse.json(
@@ -68,7 +70,6 @@ export async function GET(
     certificate.birthPlaceBn = `${certificate.birthPlaceBn}, বাংলাদেশ`;
     certificate.birthPlaceEn = `${certificate.birthPlaceEn}, BANGLADESH`;
     user.balance -= serviceCost;
-    reseller.balance += userService.fee;
 
     await Spent.create({
       user: user._id,
@@ -77,14 +78,19 @@ export async function GET(
       data: certificate._id,
       dataSchema: "BirthCertificate",
     });
-    await Earnings.create({
-      user: user._id,
-      reseller: reseller._id,
-      service: userService._id,
-      amount: userService.fee,
-      data: certificate._id,
-      dataSchema: "BirthCertificate",
-    });
+    if (reseller && !user.isSpecialUser) {
+      reseller.balance += userService.fee;
+      await Earnings.create({
+        user: user._id,
+        reseller: reseller._id,
+        service: userService._id,
+        amount: userService.fee,
+        data: certificate._id,
+        dataSchema: "BirthCertificate",
+      });
+      await reseller.save();
+    }
+
     await reseller.save();
     await user.save();
     await certificate.save();

@@ -182,7 +182,9 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
 
     if (user.balance < serviceCost) {
       return NextResponse.json(
@@ -218,7 +220,6 @@ export async function POST(req: NextRequest) {
       signature: signaturePath,
     });
     user.balance -= serviceCost;
-    reseller.balance += userService.fee;
 
     await Spent.create({
       user: user._id,
@@ -227,14 +228,19 @@ export async function POST(req: NextRequest) {
       data: passport._id,
       dataSchema: "PassportMake",
     });
-    await Earnings.create({
-      user: user._id,
-      reseller: reseller._id,
-      service: userService._id,
-      amount: userService.fee,
-      data: passport._id,
-      dataSchema: "PassportMake",
-    });
+    if (reseller && !user.isSpecialUser) {
+      reseller.balance += userService.fee;
+      await Earnings.create({
+        user: user._id,
+        reseller: reseller._id,
+        service: userService._id,
+        amount: userService.fee,
+        data: passport._id,
+        dataSchema: "PassportMake",
+      });
+      await reseller.save();
+    }
+
     await reseller.save();
     await user.save();
     return NextResponse.json(passport, { status: 201 });

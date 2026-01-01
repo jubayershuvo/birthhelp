@@ -82,7 +82,9 @@ export async function GET(
         { status: 403 }
       );
     }
-    const serviceCost = userService.fee + service.fee;
+    const serviceCost = user.isSpecialUser
+      ? userService.fee
+      : userService.fee + service.fee;
     if (user.balance < serviceCost) {
       return NextResponse.json(
         { error: "Insufficient balance" },
@@ -112,7 +114,6 @@ export async function GET(
       user: user._id,
     });
     user.balance -= serviceCost;
-    reseller.balance += userService.fee;
 
     await Spent.create({
       user: user._id,
@@ -121,15 +122,19 @@ export async function GET(
       data: storedPerson._id,
       dataSchema: "MinistryData",
     });
-    await Earnings.create({
-      user: user._id,
-      reseller: reseller._id,
-      service: userService._id,
-      amount: userService.fee,
-      data: storedPerson._id,
-      dataSchema: "MinistryData",
-    });
-    await reseller.save();
+    if (reseller && !user.isSpecialUser) {
+      reseller.balance += userService.fee;
+      await Earnings.create({
+        user: user._id,
+        reseller: reseller._id,
+        service: userService._id,
+        amount: userService.fee,
+        data: storedPerson._id,
+        dataSchema: "MinistryData",
+      });
+      await reseller.save();
+    }
+
     await user.save();
     // -----------------------------------
     // 4️⃣ RETURN RESPONSE
