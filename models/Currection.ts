@@ -55,6 +55,29 @@ export interface IAddressBlock {
   ward?: string;
   wardName?: string;
 }
+interface BirthRecord {
+  personNameBn: string;
+  personNameEn: string;
+  motherNameBn: string;
+  motherNameEn: string;
+  fatherNameBn: string;
+  fatherNameEn: string;
+  personDob: string;
+  ubrn: string;
+  registrationOfficeNameBn: string;
+  officeAddressBn: string;
+  officeId: string;
+  divisionId?: string;
+  divisionName?: string;
+  districtId?: string;
+  districtName?: string;
+  upazilaId?: string;
+  upazilaName?: string;
+  unionId?: string;
+  unionName?: string;
+  wardId?: string;
+  wardName?: string;
+}
 
 const addressBlockSchema = new Schema<IAddressBlock>({
   country: { type: String, default: "-1" },
@@ -97,6 +120,7 @@ const applicantInfoSchema = new Schema<IApplicantInfo>({
 /* ---------------- Main Interface ---------------- */
 export interface IBdrisApplication {
   ubrn: string;
+  birthRecord?: BirthRecord;
   dob: string;
   user?: mongoose.Types.ObjectId;
   submit_status?: string;
@@ -123,6 +147,7 @@ export interface IBdrisApplication {
 const bdrisApplicationSchema = new Schema<IBdrisApplication>(
   {
     ubrn: { type: String, required: true },
+    birthRecord: { type: Object, default: {} },
     dob: { type: String, required: true },
     user: { type: Schema.Types.ObjectId, ref: "User" },
 

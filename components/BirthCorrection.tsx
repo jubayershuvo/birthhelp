@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { countriesList, nationalityOptions } from "@/json/countries";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import SimpleUnicodeLoader from "./Loader";
 import Link from "next/link";
 
@@ -1241,6 +1241,10 @@ export default function BirthCorrectionForm() {
   const [birthRecord, setBirthRecord] = useState<BirthRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  //id from url
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
+
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<
     { file: File; fileTypeId: string }[]
@@ -1411,6 +1415,18 @@ export default function BirthCorrectionForm() {
       if (interval) clearInterval(interval);
     };
   }, [otpCountdown, isOtpSent]);
+
+  useEffect(() => {
+    if (id) {
+      // Fetch initial data for the form using the id
+      fetch(`/api/birth/application/correction/old-data/${id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setFormData(data);
+         
+        });
+    }
+  }, []);
 
   // Format time for display (MM:SS)
   const formatTime = (seconds: number): string => {
@@ -1957,6 +1973,7 @@ export default function BirthCorrectionForm() {
       ubrn: formData.ubrn,
       dob: birthRecord.personDob,
       correctionInfos,
+      birthRecord: birthRecord,
       addresses: addresses,
       applicantInfo: {
         name: birthRecord.personNameBn || birthRecord.personNameEn,

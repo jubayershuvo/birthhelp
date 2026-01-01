@@ -38,9 +38,8 @@ export async function getUser() {
 
     // 5️⃣ Fetch user
     const user = await User.findById(decoded.userId).select("+password");
-    if (user && user.isBanned) return null;
-
     if (!user) return null;
+    if (user && user.isBanned) return null;
 
     // 6️⃣ Update lastSeen (non-blocking)
     User.findByIdAndUpdate(decoded.userId, { lastSeen: new Date() }).catch(() =>
