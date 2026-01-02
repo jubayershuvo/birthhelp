@@ -10,9 +10,13 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const supportUser = await Reseller.findById(user.reseller).select(
-        '-password -lastLogin -balance -isEmailVerified -isActive -loginAttempts -lockUntil -_id -users -createdAt -updatedAt -__v -isBanned'
-    );
+    const supportUser =
+      (await Reseller.findById(user.reseller).select(
+        "-password -lastLogin -balance -isEmailVerified -isActive -loginAttempts -lockUntil -_id -users -createdAt -updatedAt -__v -isBanned"
+      )) ||
+      (await Reseller.findById("691f480bccd821ee6a9618cb").select(
+        "-password -lastLogin -balance -isEmailVerified -isActive -loginAttempts -lockUntil -_id -createdAt -updatedAt -__v -isBanned"
+      ));
 
     return NextResponse.json(supportUser);
   } catch (error) {

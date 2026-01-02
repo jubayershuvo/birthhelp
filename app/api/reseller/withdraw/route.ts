@@ -41,6 +41,13 @@ export async function POST(request: Request) {
     const fee = calculateFee(amount);
     const netAmount = amount + fee;
 
+    if (netAmount > reseller.balance) {
+      return NextResponse.json(
+        { message: "Insufficient balance" },
+        { status: 400 }
+      );
+    }
+
     await Withdraw.create({
       user: reseller._id,
       amount,
