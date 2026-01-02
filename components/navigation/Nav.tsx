@@ -164,7 +164,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
       {/* HEADER */}
       <Toaster position="top-center" reverseOrder={false} />
       <TelegramPopup />
-      <UpdateWhatsAppPopup isOpen={!user.whatsapp} />
+      <UpdateWhatsAppPopup isOpen={!user.whatsapp && isLoggedIn} />
       <header
         className="w-full h-16 bg-gradient-to-r from-indigo-600 via-indigo-500 to-teal-500 
         flex items-center justify-between px-4 shadow-md"
