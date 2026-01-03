@@ -91,7 +91,7 @@ export async function GET(
       await reseller.save();
     }
 
-    await reseller.save();
+   
     await user.save();
     await certificate.save();
     return NextResponse.json(certificate, { status: 200 });

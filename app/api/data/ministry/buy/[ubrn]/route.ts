@@ -59,9 +59,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const reseller = await Reseller.findById(user.reseller);
-    if (!reseller) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+
 
     // Validate service access
     const servicePath = "/data/ministry";
