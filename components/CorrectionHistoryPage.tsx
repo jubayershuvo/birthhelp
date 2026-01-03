@@ -31,6 +31,7 @@ import {
   FileX,
   Tag,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // ==================== Types ====================
 export interface CorrectionInfo {
@@ -217,6 +218,7 @@ const CorrectionAppHistory: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const router = useRouter();
 
   // Fetch applications from API
   useEffect(() => {
@@ -224,12 +226,15 @@ const CorrectionAppHistory: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("/api/birth/application/correction/history", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          "/api/birth/application/correction/history",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -574,28 +579,43 @@ const CorrectionAppHistory: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <div className="text-sm text-gray-400">
-                          Application ID
-                        </div>
-                        <div className="font-mono font-bold flex items-center gap-2">
-                          {app.applicationId}
+                      {app.submit_status !== "submitted" ? (
+                        <div className="flex items-center">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopyId(app.applicationId);
+                            className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            onClick={() => {
+                              router.push(
+                                `/birth/application/correction?id=${app._id}`
+                              );
                             }}
-                            className="text-gray-400 hover:text-white transition-colors"
-                            title="Copy ID"
                           >
-                            {copiedId === app.applicationId ? (
-                              <CheckCircle className="w-4 h-4 text-green-400" />
-                            ) : (
-                              <Copy className="w-4 h-4" />
-                            )}
+                            Submit
                           </button>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="text-right">
+                          <div className="text-sm text-gray-400">
+                            Application ID
+                          </div>
+                          <div className="font-mono font-bold flex items-center gap-2">
+                            {app.applicationId}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyId(app.applicationId);
+                              }}
+                              className="text-gray-400 hover:text-white transition-colors"
+                              title="Copy ID"
+                            >
+                              {copiedId === app.applicationId ? (
+                                <CheckCircle className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <Copy className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
 
                       <button className="text-gray-400 hover:text-white transition-colors">
                         {isExpanded ? (
@@ -803,8 +823,6 @@ const CorrectionAppHistory: React.FC = () => {
                             </div>
                           </div>
                         </div>
-
-
 
                         {/* Status Badge */}
                         <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">

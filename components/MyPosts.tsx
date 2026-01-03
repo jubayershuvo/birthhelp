@@ -398,6 +398,11 @@ export default function MyPostsPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       Created: {format(new Date(post.createdAt), "PPP")}
                     </p>
+                    {post.status === "completed" && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Delivered: {format(new Date(post.updatedAt), "PPP")}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-xl font-bold text-gray-900 dark:text-white">
@@ -760,7 +765,8 @@ export default function MyPostsPage() {
                   </h4>
                   <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                     <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                      {selectedPost.deliveryNote || "No additional notes provided."}
+                      {selectedPost.deliveryNote ||
+                        "No additional notes provided."}
                     </p>
                   </div>
                 </div>

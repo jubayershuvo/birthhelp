@@ -9,13 +9,18 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    if (!id) {
+      return NextResponse.json({ error: "Id not found" }, { status: 404 });
+    }
+
     await connectDB();
     const user = await getUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const data = await CorrectionApplication.findById(id);
-    if (!data || data.user !== user._id) {
+
+    if (!data || data.user?.toString() !== user._id?.toString()) {
       return NextResponse.json({ error: "Data not found" }, { status: 404 });
     }
     return NextResponse.json(data, { status: 200 });

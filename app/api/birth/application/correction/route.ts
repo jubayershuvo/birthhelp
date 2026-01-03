@@ -67,6 +67,7 @@ interface FileInfo {
 }
 
 interface CorrectionRequestBody {
+  _id?: string;
   ubrn: string;
   dob: string;
   correctionInfos: CorrectionInfo[];
@@ -222,7 +223,6 @@ export async function POST(request: NextRequest) {
 
     const reseller = await Reseller.findById(user.reseller);
 
-    const currection = await Currection.create({ ...body, user: user._id });
     // Validate required fields
     if (
       !body.ubrn ||
@@ -236,6 +236,24 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: "Missing required fields",
+          message: "অনুগ্রহ করে সকল আবশ্যক তথ্য প্রদান করুন।",
+        },
+        { status: 400 }
+      );
+    }
+
+    let currection;
+    if (body._id) {
+      currection = await Currection.findById(body._id);
+    } else {
+      currection = await Currection.create({ ...body, user: user._id });
+    }
+
+    if (!currection) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Error creating correction application",
           message: "অনুগ্রহ করে সকল আবশ্যক তথ্য প্রদান করুন।",
         },
         { status: 400 }
@@ -609,7 +627,7 @@ export async function POST(request: NextRequest) {
       data: currection._id,
       dataSchema: "CurrectionApplication",
     });
-    
+
     if (reseller && !user.isSpecialUser) {
       reseller.balance += userService.fee;
       await Earnings.create({

@@ -1226,6 +1226,7 @@ export default function BirthCorrectionForm() {
   });
 
   const [formData, setFormData] = useState({
+    _id: "",
     ubrn: "",
     dob: "",
     captcha: "",
@@ -1422,8 +1423,11 @@ export default function BirthCorrectionForm() {
       fetch(`/api/birth/application/correction/old-data/${id}`)
         .then((res) => res.json())
         .then((data) => {
-          setFormData(data);
-         
+          console.log(data);
+          setFormData({ ...data, phone: "" });
+          setAddresses(data.addresses);
+          setCorrectionInfos(data.correctionInfos);
+          setUploadedFiles(data.files);
         });
     }
   }, []);
@@ -1970,6 +1974,7 @@ export default function BirthCorrectionForm() {
 
     // Prepare data for API submission
     const submissionData = {
+      _id: formData._id,
       ubrn: formData.ubrn,
       dob: birthRecord.personDob,
       correctionInfos,
@@ -2041,7 +2046,52 @@ export default function BirthCorrectionForm() {
       setIsLoading(false);
     }
   };
+  const handleSave = async () => {
+    if (!birthRecord) {
+      toast.error("প্রথমে UBRN অনুসন্ধান করুন");
+      return;
+    }
+    toast.loading("আবেদন সংরক্ষণ হচ্ছে...", { id: "save" });
+    const submissionData = {
+      _id: formData._id,
+      ubrn: formData.ubrn,
+      dob: birthRecord.personDob,
+      correctionInfos,
+      birthRecord: birthRecord,
+      addresses: addresses,
+      applicantInfo: {
+        name: birthRecord.personNameBn || birthRecord.personNameEn,
+        officeId: birthRecord.officeId,
+        email: formData.email,
+        phone: "",
+        relationWithApplicant: formData.relationWithApplicant,
+      },
+      files: uploadedFiles,
+      otp: "",
+      isPermAddressIsSameAsBirthPlace: formData.copyBirthPlaceToPermAddr,
+      isPrsntAddressIsSameAsPermAddress: formData.copyPermAddrToPrsntAddr,
+    };
+    try {
+      const resp = await fetch("/api/birth/application/correction/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+      const data = await resp.json();
+      console.log(data);
+      if (!data._id) {
+        toast.error(data.message || data.error, { id: "save" });
+        return;
+      }
 
+      toast.success("আবেদন সফলভাবে সংরক্ষণ হয়েছে", { id: "save" });
+      router.push(`/birth/application/correction/history`);
+    } catch (error) {
+      toast.error("আবেদন সংরক্ষণ করতে সমস্যা হয়েছে", { id: "save" });
+    }
+  };
   const sendOTP = async () => {
     try {
       if (!birthRecord?.personNameBn || !formData.ubrn) {
@@ -2294,7 +2344,7 @@ export default function BirthCorrectionForm() {
                     {/* Input Field */}
                     <input
                       type="text"
-                      value={formData.captcha}
+                      value={formData.captcha || ""}
                       onChange={(e) =>
                         handleInputChange("captcha", e.target.value)
                       }
@@ -2380,7 +2430,13 @@ export default function BirthCorrectionForm() {
                       <div className="flex justify-end mt-6">
                         <button
                           type="button"
-                          onClick={() => setCurrentStep(2)}
+                          onClick={() => {
+                            if (!formData.captcha) {
+                              toast.error("ক্যাপচা প্রবেশ করুন");
+                            } else {
+                              setCurrentStep(2);
+                            }
+                          }}
                           className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
                         >
                           তথ্য সঠিক, পরবর্তী ধাপ
@@ -3149,7 +3205,7 @@ export default function BirthCorrectionForm() {
                       <div className="flex flex-col sm:flex-row w-full">
                         <input
                           type="tel"
-                          value={formData.phone}
+                          value={formData.phone || ""}
                           onChange={(e) => {
                             setOtpCountdown(0);
                             setIsOtpSent(false);
@@ -3209,22 +3265,41 @@ export default function BirthCorrectionForm() {
                 </div>
 
                 {/* ---------- Navigation ---------- */}
-                <div className="flex justify-between pt-6 border-t dark:border-gray-700">
+                <div
+                  className="flex flex-col gap-4 pt-6 border-t dark:border-gray-700 
+                sm:flex-row sm:justify-between sm:items-center"
+                >
                   <button
                     type="button"
                     onClick={() => setCurrentStep(1)}
-                    className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
+                    className="w-full sm:w-auto px-6 py-2 bg-gray-600 text-white rounded 
+               hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
                   >
                     পূর্ববর্তী
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    onClick={handleSubmit}
-                    className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 dark:bg-green-700 dark:hover:bg-green-800"
-                  >
-                    {isLoading ? "জমা হচ্ছে..." : "আবেদন জমা দিন"}
-                  </button>
+
+                  <div className="flex flex-col gap-3 sm:flex-row sm:gap-2">
+                    <button
+                      onClick={handleSave}
+                      type="button"
+                      className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded 
+                 hover:bg-blue-700 disabled:opacity-50 
+                 dark:bg-blue-700 dark:hover:bg-blue-800"
+                    >
+                      Keep Pending
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      onClick={handleSubmit}
+                      className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded 
+                 hover:bg-green-700 disabled:opacity-50 
+                 dark:bg-green-700 dark:hover:bg-green-800"
+                    >
+                      {isLoading ? "জমা হচ্ছে..." : "আবেদন জমা দিন"}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
