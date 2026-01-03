@@ -610,7 +610,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: result,
+          error: result.message || "Something went wrong",
         },
         { status: 500 }
       );
