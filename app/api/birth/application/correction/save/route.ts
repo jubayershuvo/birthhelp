@@ -14,8 +14,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Data not found" }, { status: 404 });
     }
     let data;
+    const id = body._id;
     if (body._id) {
-      const id = body._id;
       delete body._id;
       data = await CorrectionApplication.updateOne(
         { _id: id },
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         user: user._id,
       });
     }
-    data = await CorrectionApplication.findById(body._id);
+    data = await CorrectionApplication.findById(id);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.log(error);
