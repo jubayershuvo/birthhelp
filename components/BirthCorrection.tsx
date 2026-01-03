@@ -2030,13 +2030,14 @@ export default function BirthCorrectionForm() {
         });
         const data = await resp.json();
         if (!data._id) {
-          toast.error(data.message.toString() || data.error.toString(), { id: "submission" });
+          toast.error(data.message || data.error, { id: "submission" });
           return;
         }
 
         toast.success("আবেদন সফলভাবে জমা হয়েছে", { id: "submission" });
         router.push(`/birth/application/correction/view/${data._id}`);
       } catch (error) {
+        console.log(error)
         toast.error("আবেদন জমা করতে সমস্যা হয়েছে", { id: "submission" });
       }
     } catch (error) {
