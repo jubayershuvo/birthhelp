@@ -604,6 +604,7 @@ export async function POST(request: NextRequest) {
     const result = await safeParseResponse(response);
 
     if (!result.success) {
+      console.log(result)
       currection.submit_status = "failed";
       await currection.save();
       return NextResponse.json(

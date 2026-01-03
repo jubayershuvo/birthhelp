@@ -2030,7 +2030,7 @@ export default function BirthCorrectionForm() {
         });
         const data = await resp.json();
         if (!data._id) {
-          toast.error(data.message || data.error.message, { id: "submission" });
+          toast.error(data.message.toString() || data.error.toString(), { id: "submission" });
           return;
         }
 

@@ -92,7 +92,7 @@ const applicantInfoSchema = new Schema<IApplicantInfo>({
   officeId: { type: Number, required: true },
   email: { type: String, default: "" },
   phone: { type: String },
-  relationWithApplicant: { type: String, required: true },
+  relationWithApplicant: { type: String},
 });
 
 /* ---------------- Main Interface ---------------- */
