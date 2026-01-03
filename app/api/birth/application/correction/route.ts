@@ -248,6 +248,7 @@ export async function POST(request: NextRequest) {
     } else {
       currection = await Currection.create({ ...body, user: user._id });
     }
+    delete body._id;
 
     if (!currection) {
       return NextResponse.json(
@@ -604,7 +605,7 @@ export async function POST(request: NextRequest) {
     const result = await safeParseResponse(response);
 
     if (!result.success) {
-      console.log(result)
+      console.log(result);
       currection.submit_status = "failed";
       await currection.save();
       return NextResponse.json(
