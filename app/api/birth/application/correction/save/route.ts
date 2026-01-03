@@ -15,11 +15,14 @@ export async function POST(request: Request) {
     }
     let data;
     if (body._id) {
+      const id = body._id;
+      delete body._id;
       data = await CorrectionApplication.updateOne(
-        { _id: body._id },
+        { _id: id },
         { $set: { ...body } }
       );
     } else {
+      delete body._id;
       data = await CorrectionApplication.create({
         ...body,
         user: user._id,
