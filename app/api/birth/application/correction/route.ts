@@ -246,9 +246,9 @@ export async function POST(request: NextRequest) {
     if (body._id) {
       currection = await Currection.findById(body._id);
     } else {
+      delete body._id;
       currection = await Currection.create({ ...body, user: user._id });
     }
-    delete body._id;
 
     if (!currection) {
       return NextResponse.json(
