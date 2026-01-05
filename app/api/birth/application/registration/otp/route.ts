@@ -12,6 +12,8 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    const body = await req.json();
+
     // এখন body থেকে শুধু phone, cookies, csrf নেব
     const {
       phone,
@@ -22,7 +24,8 @@ export async function POST(req: NextRequest) {
       applicantName,
       officeAddressType,
       officeId,
-    } = await req.json();
+      ubrn,
+    } = body;
 
     // personUbrn, applicantName, relation আর body থেকে আশা করব না
     if (!phone || !csrf) {
@@ -37,10 +40,10 @@ export async function POST(req: NextRequest) {
       appType: "BIRTH_REGISTRATION_APPLICATION",
       phone,
       officeId: officeId || "0",
-      personUbrn: "",
+      personUbrn:"",
       relation,
       applicantName: applicantName || "",
-      ubrn: "",
+      ubrn: ubrn || "",
       nid: "",
       officeAddressType,
     });

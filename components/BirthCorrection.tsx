@@ -2054,7 +2054,7 @@ export default function BirthCorrectionForm() {
     }
     toast.loading("আবেদন সংরক্ষণ হচ্ছে...", { id: "save" });
     const submissionData = {
-      _id: formData._id,
+      _id: id,
       ubrn: formData.ubrn,
       dob: birthRecord.personDob,
       correctionInfos,

@@ -1516,7 +1516,6 @@ export default function BirthRegistrationForm() {
     field: keyof FormData,
     value: string | boolean | Address | null
   ) => {
-    
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -2119,6 +2118,10 @@ export default function BirthRegistrationForm() {
         body: JSON.stringify({
           phone: `+88${formData.applicant.phone}`,
           personName: `${formData.personInfoForBirth.personFirstNameBn} ${formData.personInfoForBirth.personLastNameBn}`,
+          ubrn:
+            formData.applicant.relation === "SELF"
+              ? ""
+              : formData.father.ubrn || "",
           relation: formData.applicant.relation,
           email: formData.applicant.email || "",
           csrf: sessionData.csrf,
