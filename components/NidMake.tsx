@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function NIDPdfUpload() {
   const [file, setFile] = useState<File | null>(null);
@@ -278,6 +279,13 @@ export default function NIDPdfUpload() {
                 "Extract NID Data"
               )}
             </button>
+            <Link href={'/nid/history'}>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 dark:bg-blue-900 dark:hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
+              >
+                History
+              </button>
+            </Link>
           </form>
         </div>
       </div>
