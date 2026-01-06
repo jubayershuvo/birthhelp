@@ -2529,7 +2529,7 @@ export default function BirthCorrectionForm() {
                           মাতার নাম (বাংলা):
                         </div>
                         <div className="text-gray-900 dark:text-gray-100">
-                          {birthRecord.fatherNameEn}
+                          {birthRecord.motherNameBn}
                         </div>
                       </div>
                     </div>
