@@ -140,9 +140,9 @@ export async function POST(req: Request) {
     const addressBuilder = (address: IAddress) => {
       return `বাসা/হোল্ডিং: ${
         address.home_holding_no !== "N/A" ? address.home_holding_no : "-"
-      } গ্রাম/রাস্তা: ${
+      }, গ্রাম/রাস্তা: ${
         address.village_road !== "N/A" ? address.village_road : ""
-      } ডাকঘর: ${address.post_office !== "N/A" ? address.post_office : ""} - ${
+      }, ডাকঘর: ${address.post_office !== "N/A" ? address.post_office : ""} - ${
         address.postal_code !== "N/A" ? address.postal_code : ""
       }, ${address.district !== "N/A" ? address.district : ""}, ${
         address.division !== "N/A" ? address.division : ""

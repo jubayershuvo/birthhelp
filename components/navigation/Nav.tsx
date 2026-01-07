@@ -94,9 +94,6 @@ export default function Nav({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (pathname.startsWith("/reseller") || pathname === "/login") return;
 
-    // if (!mounted) return;
-    // if (!isLoggedIn) return handleLogout();
-
     async function fetchData() {
       try {
         const response = await axios.get(`/api/profile`, {
@@ -163,7 +160,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col h-screen w-screen">
       {/* HEADER */}
       <Toaster position="top-center" reverseOrder={false} />
-      <TelegramPopup />
+      {isLoggedIn && <TelegramPopup />}
       <UpdateWhatsAppPopup isOpen={!user.whatsapp && isLoggedIn} />
       <header
         className="w-full h-16 bg-gradient-to-r from-indigo-600 via-indigo-500 to-teal-500 
