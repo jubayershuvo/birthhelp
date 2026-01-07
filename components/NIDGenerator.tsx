@@ -31,8 +31,8 @@ const NIDCard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const id = params.id as string;
-  const {user} = useAppSelector((state) => state.userAuth);
-const router = useRouter();
+  const { user } = useAppSelector((state) => state.userAuth);
+  const router = useRouter();
   const getIssueDate = () => {
     const date = new Date();
     const day = String(date.getDate()).padStart(2, "0");
@@ -54,7 +54,7 @@ const router = useRouter();
         throw new Error(`Failed to fetch NID data: ${response.status}`);
       }
       const resData = await response.json();
-      if(user._id !== resData.data.user) {
+      if (user._id !== resData.data.user) {
         router.push(`/nid/edit/${id}`);
       }
       const data: NIDData = {
@@ -66,7 +66,10 @@ const router = useRouter();
         nidNumber: resData.data.nid,
         bloodGroup: resData.data.blood_group,
         birthPlaceBn: resData.data.birth_place,
-        addressBn: resData.data.voter_at === "present" ? resData.data.present_address_full : resData.data.permanent_address_full,
+        addressBn:
+          resData.data.voter_at === "present"
+            ? resData.data.present_address_full
+            : resData.data.permanent_address_full,
         photo: resData.data.photo,
         signature: resData.data.signature,
         adminSignature: "/images/sign-administrator.jpg",
@@ -258,7 +261,7 @@ const router = useRouter();
                 color: "#ff0000",
                 fontWeight: "400",
                 fontFamily: "Arial",
-               marginTop:'-5px'
+                marginTop: "-5px",
               }}
             >
               National ID Card{" "}
@@ -299,11 +302,20 @@ const router = useRouter();
                 src={nidData.photo}
                 alt="profile"
               />
-              <img
-                style={{ width: "100%", marginTop: "5px" }}
-                src={nidData.signature}
-                alt="signature"
-              />
+              <div
+                style={{
+                  width: "100%",
+                  height: "30px",
+                  overflow: "hidden",
+                  marginTop: "5px",
+                }}
+              >
+                <img
+                  src={nidData.signature}
+                  alt="signature"
+                  style={{ width: "100%" }}
+                />
+              </div>
             </div>
             <div
               style={{
@@ -392,8 +404,8 @@ const router = useRouter();
                     fontWeight: "400",
                   }}
                 >
-                  <p style={{marginTop:'-3px'}}>
-                    <span style={{ fontSize: "12px",  }}>Date of Birth:</span>
+                  <p style={{ marginTop: "-3px" }}>
+                    <span style={{ fontSize: "12px" }}>Date of Birth:</span>
                     <span
                       style={{
                         color: "#ff0000",
@@ -411,7 +423,7 @@ const router = useRouter();
                     fontWeight: "400",
                   }}
                 >
-                  <p style={{marginTop:'-3px'}}>
+                  <p style={{ marginTop: "-3px" }}>
                     <span style={{ fontSize: "12px" }}>ID NO:</span>
                     <span
                       style={{
@@ -442,11 +454,9 @@ const router = useRouter();
             {" "}
             <p
               style={{
-                fontFamily: "Nikosh",
-                fontSize: "8.5px",
+                fontSize: "10px",
                 width: "93%",
                 margin: "auto",
-                paddingTop: "2px",
               }}
             >
               এই কার্ডটি গণপ্রজাতন্ত্রী বাংলাদেশ সরকারের সম্পত্তি। কার্ডটি
@@ -482,7 +492,7 @@ const router = useRouter();
               >
                 <p style={{ marginLeft: "15px" }}>ঠিকানা: </p>
                 <p> </p>
-                <p style={{paddingLeft:'2px'}}>{nidData.addressBn}</p>
+                <p style={{ paddingLeft: "2px" }}>{nidData.addressBn}</p>
               </div>
               <div
                 style={{
@@ -501,11 +511,12 @@ const router = useRouter();
                     width: "75%",
                     display: "flex",
                     paddingLeft: "15px",
-                     fontSize: "12px",
+                    fontSize: "12px",
                   }}
                 >
                   <p>
-                    রক্তের গ্রুপ <span style={{fontSize:'10px'}}>/ Blood Group:</span>
+                    রক্তের গ্রুপ{" "}
+                    <span style={{ fontSize: "10px" }}>/ Blood Group:</span>
                     <span
                       style={{
                         color: "#ff0000",
@@ -513,7 +524,7 @@ const router = useRouter();
                         paddingLeft: "5px",
                       }}
                     >
-                      {nidData.bloodGroup}
+                      {nidData.bloodGroup !== "N/A" && nidData.bloodGroup}
                     </span>
                   </p>
                   <p

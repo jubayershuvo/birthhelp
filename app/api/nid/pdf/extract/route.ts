@@ -7,6 +7,24 @@ import fs from "fs";
 import { Buffer } from "buffer";
 import { generateNidBarcode } from "@/lib/genImage";
 
+interface IAddress {
+  division: string;
+  district: string;
+  rmo: string;
+  city_corporation_or_municipality: string;
+  upozila: string;
+  union_ward: string;
+  mouza_moholla: string;
+  additional_mouza_moholla: string;
+  ward_for_union_porishod: string;
+  village_road: string;
+  additional_village_road: string;
+  home_holding_no: string;
+  post_office: string;
+  postal_code: string;
+  region: string;
+}
+
 export async function POST(req: Request) {
   try {
     await connectDB();
@@ -93,7 +111,6 @@ export async function POST(req: Request) {
         { status: 502 }
       );
     }
-   
 
     const photoBase64 = imageResponse.items[0].base64;
     const signatureBase64 = imageResponse.items[1].base64;
@@ -120,11 +137,23 @@ export async function POST(req: Request) {
     }</name><DOB>${formatDate(
       pdfResult.data.dob
     )}</DOB><FP></FP><F>Right Index</F><TYPE>A</TYPE><V>2.0</V><ds>302c02167da6b272e960dfaf8a7ccca6b031da99defe8d24c44882580f7a9b3fea93b99040f65c34e8edafe9de63</ds>`;
-
+    const addressBuilder = (address: IAddress) => {
+      return `বাসা/হোল্ডিং: ${
+        address.home_holding_no !== "N/A" ? address.home_holding_no : "-"
+      } গ্রাম/রাস্তা: ${
+        address.village_road !== "N/A" ? address.village_road : ""
+      } ডাকঘর: ${address.post_office !== "N/A" ? address.post_office : ""} - ${
+        address.postal_code !== "N/A" ? address.postal_code : ""
+      }, ${address.district !== "N/A" ? address.district : ""}, ${
+        address.division !== "N/A" ? address.division : ""
+      }`;
+    };
     // Save data to MongoDB
     const nidData = new NidData({
       ...pdfResult.data,
       dob: formatDate(pdfResult.data.dob),
+      present_address_full: addressBuilder(pdfResult.data.present_address),
+      permanent_address_full: addressBuilder(pdfResult.data.permanent_address),
     });
     const nid = await nidData.save();
 
