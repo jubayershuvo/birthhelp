@@ -19,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const data = await BirthRegistration.findById(id);
-    if (!data || data.user !== user._id) {
+    if (!data || data.user.toString() !== user._id.toString()) {
       return NextResponse.json({ error: "Data not found" }, { status: 404 });
     }
     return NextResponse.json(data, { status: 200 });

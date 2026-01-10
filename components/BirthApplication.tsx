@@ -7,7 +7,6 @@ import {
 } from "@/json/countries";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { off } from "process";
 import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -2818,11 +2817,6 @@ export default function BirthRegistrationForm() {
         personImage: "",
       };
 
-      console.log(
-        "Form submission data:",
-        JSON.stringify(submissionData, null, 2)
-      );
-
       // OTP verification
       const response = await fetch(
         "/api/birth/application/registration/otp-verify",
@@ -2901,6 +2895,262 @@ export default function BirthRegistrationForm() {
       return `${address.vilAreaTownBn}, ${country?.nameBn || "বিদেশ"}`;
     }
   };
+
+  useEffect(() => {
+    const loadRejectedApplication = async () => {
+      // Check if there's an ID in the URL query parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get("id");
+
+      if (id) {
+        try {
+          toast.loading("রিজেক্টেড আবেদন ডেটা লোড হচ্ছে...", {
+            id: "loadRejected",
+          });
+
+          const response = await fetch(
+            `/api/birth/application/registration/old-data/${id}`
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data) {
+            const oldData = data;
+
+            // Update form data with rejected application data
+            setFormData((prev) => ({
+              ...prev,
+              // Office information
+              officeAddressType: oldData.officeAddressType || "",
+              officeAddrCountry: oldData.officeAddrCountry || "",
+              officeAddrCity: oldData.officeAddrCity || "",
+              officeAddrOffice: oldData.officeAddrOffice || "",
+              officeAddrDivision: oldData.officeAddrDivision || "",
+              officeAddrDistrict: oldData.officeAddrDistrict || "",
+              officeAddrUpazila: oldData.officeAddrCityCorpCantOrUpazila || "",
+              officeAddrUnion: oldData.officeAddrPaurasavaOrUnion || "",
+              officeAddrWard: oldData.officeAddrWard || "",
+              officeId: oldData.officeId || "",
+
+              // Personal information
+              personInfoForBirth: {
+                personFirstNameBn:
+                  oldData.personInfoForBirth?.personFirstNameBn || "",
+                personLastNameBn:
+                  oldData.personInfoForBirth?.personLastNameBn || "",
+                personNameBn: oldData.personInfoForBirth?.personNameBn || "",
+                personFirstNameEn:
+                  oldData.personInfoForBirth?.personFirstNameEn || "",
+                personLastNameEn:
+                  oldData.personInfoForBirth?.personLastNameEn || "",
+                personNameEn: oldData.personInfoForBirth?.personNameEn || "",
+                personBirthDate:
+                  oldData.personInfoForBirth?.personBirthDate || "",
+                thChild: oldData.personInfoForBirth?.thChild || "",
+                gender: oldData.personInfoForBirth?.gender || "",
+                religion:
+                  oldData.personInfoForBirth?.religion || "NOT_APPLICABLE",
+                religionOther: oldData.personInfoForBirth?.religionOther || "",
+                personNid: oldData.personInfoForBirth?.personNid || "",
+              },
+
+              // Birth place address
+              birthPlaceAddress: oldData.birthPlaceAddress
+                ? {
+                    country: oldData.birthPlaceAddress.country || "1",
+                    geoId: oldData.birthPlaceAddress.geoId || "0",
+                    division: oldData.birthPlaceAddress.division || "-1",
+                    divisionName: oldData.birthPlaceAddress.divisionName || "",
+                    district: oldData.birthPlaceAddress.district || "-1",
+                    districtName: oldData.birthPlaceAddress.districtName || "",
+                    cityCorpCantOrUpazila:
+                      oldData.birthPlaceAddress.cityCorpCantOrUpazila || "-1",
+                    upazilaName: oldData.birthPlaceAddress.upazilaName || "",
+                    paurasavaOrUnion:
+                      oldData.birthPlaceAddress.paurasavaOrUnion || "-1",
+                    unionName: oldData.birthPlaceAddress.unionName || "",
+                    postOfc: oldData.birthPlaceAddress.postOfc || "",
+                    postOfcEn: oldData.birthPlaceAddress.postOfcEn || "",
+                    vilAreaTownBn:
+                      oldData.birthPlaceAddress.vilAreaTownBn || "",
+                    vilAreaTownEn:
+                      oldData.birthPlaceAddress.vilAreaTownEn || "",
+                    houseRoadBn: oldData.birthPlaceAddress.houseRoadBn || "",
+                    houseRoadEn: oldData.birthPlaceAddress.houseRoadEn || "",
+                    ward: oldData.birthPlaceAddress.ward || "-1",
+                    wardName: oldData.birthPlaceAddress.wardName || "",
+                  }
+                : null,
+
+              // Father information
+              father: {
+                id: oldData.father?.id || "",
+                ubrn: oldData.father?.ubrn || "",
+                personBirthDate: oldData.father?.personBirthDate || "",
+                personNameBn: oldData.father?.personNameBn || "",
+                personNameEn: oldData.father?.personNameEn || "",
+                personNid: oldData.father?.personNid || "",
+                passportNumber: oldData.father?.passportNumber || "",
+                personNationality: oldData.father?.personNationality || "",
+              },
+
+              // Mother information
+              mother: {
+                id: oldData.mother?.id || "",
+                ubrn: oldData.mother?.ubrn || "",
+                personBirthDate: oldData.mother?.personBirthDate || "",
+                personNameBn: oldData.mother?.personNameBn || "",
+                personNameEn: oldData.mother?.personNameEn || "",
+                personNid: oldData.mother?.personNid || "",
+                passportNumber: oldData.mother?.passportNumber || "",
+                personNationality: oldData.mother?.personNationality || "",
+              },
+
+              // Checkbox states
+              copyBirthPlaceToPermAddr:
+                oldData.copyBirthPlaceToPermAddr === "yes" ||
+                oldData.copyBirthPlaceToPermAddr === true,
+              copyPermAddrToPrsntAddr:
+                oldData.copyPermAddrToPrsntAddr === "yes" ||
+                oldData.copyPermAddrToPrsntAddr === true,
+
+              // Permanent address
+              permAddrAddress: oldData.permAddrAddress
+                ? {
+                    country: oldData.permAddrAddress.country || "1",
+                    geoId: oldData.permAddrAddress.geoId || "0",
+                    division: oldData.permAddrAddress.division || "-1",
+                    divisionName: oldData.permAddrAddress.divisionName || "",
+                    district: oldData.permAddrAddress.district || "-1",
+                    districtName: oldData.permAddrAddress.districtName || "",
+                    cityCorpCantOrUpazila:
+                      oldData.permAddrAddress.cityCorpCantOrUpazila || "-1",
+                    upazilaName: oldData.permAddrAddress.upazilaName || "",
+                    paurasavaOrUnion:
+                      oldData.permAddrAddress.paurasavaOrUnion || "-1",
+                    unionName: oldData.permAddrAddress.unionName || "",
+                    postOfc: oldData.permAddrAddress.postOfc || "",
+                    postOfcEn: oldData.permAddrAddress.postOfcEn || "",
+                    vilAreaTownBn: oldData.permAddrAddress.vilAreaTownBn || "",
+                    vilAreaTownEn: oldData.permAddrAddress.vilAreaTownEn || "",
+                    houseRoadBn: oldData.permAddrAddress.houseRoadBn || "",
+                    houseRoadEn: oldData.permAddrAddress.houseRoadEn || "",
+                    ward: oldData.permAddrAddress.ward || "-1",
+                    wardName: oldData.permAddrAddress.wardName || "",
+                  }
+                : null,
+
+              // Present address
+              prsntAddrAddress: oldData.prsntAddrAddress
+                ? {
+                    country: oldData.prsntAddrAddress.country || "1",
+                    geoId: oldData.prsntAddrAddress.geoId || "0",
+                    division: oldData.prsntAddrAddress.division || "-1",
+                    divisionName: oldData.prsntAddrAddress.divisionName || "",
+                    district: oldData.prsntAddrAddress.district || "-1",
+                    districtName: oldData.prsntAddrAddress.districtName || "",
+                    cityCorpCantOrUpazila:
+                      oldData.prsntAddrAddress.cityCorpCantOrUpazila || "-1",
+                    upazilaName: oldData.prsntAddrAddress.upazilaName || "",
+                    paurasavaOrUnion:
+                      oldData.prsntAddrAddress.paurasavaOrUnion || "-1",
+                    unionName: oldData.prsntAddrAddress.unionName || "",
+                    postOfc: oldData.prsntAddrAddress.postOfc || "",
+                    postOfcEn: oldData.prsntAddrAddress.postOfcEn || "",
+                    vilAreaTownBn: oldData.prsntAddrAddress.vilAreaTownBn || "",
+                    vilAreaTownEn: oldData.prsntAddrAddress.vilAreaTownEn || "",
+                    houseRoadBn: oldData.prsntAddrAddress.houseRoadBn || "",
+                    houseRoadEn: oldData.prsntAddrAddress.houseRoadEn || "",
+                    ward: oldData.prsntAddrAddress.ward || "-1",
+                    wardName: oldData.prsntAddrAddress.wardName || "",
+                  }
+                : null,
+
+              // Applicant information
+              applicant: {
+                name: oldData.applicant?.name || "",
+                nid: oldData.applicant?.nid || "",
+                phone: oldData.applicant?.phone || "",
+                email: oldData.applicant?.email || "",
+                relation: oldData.applicant?.relation || "",
+                otp: "",
+              },
+            }));
+
+            // Set BD mission checkbox if officeAddressType is MISSION
+            if (oldData.officeAddressType === "MISSION") {
+              setBdMissionChecked(true);
+            }
+
+            // Calculate age from birth date
+            if (oldData.personInfoForBirth?.personBirthDate) {
+              const newAge = calculateAgeFromDDMMYYYY(
+                oldData.personInfoForBirth.personBirthDate
+              );
+              setAge(newAge);
+            }
+
+            // Load uploaded files if any
+            if (oldData.attachments && Array.isArray(oldData.attachments)) {
+              const uploadedFilesData: UploadedFile[] = oldData.attachments.map(
+                (file: {
+                  id: string;
+                  name: string;
+                  url: string;
+                  typeId: string;
+                  fileType: string;
+                  size: number;
+                  deleteUrl: string;
+                  attachmentTypeId: string;
+                }) => ({
+                  id: file.id || `file-${Date.now()}`,
+                  name: file.name || "",
+                  url: file.url || "",
+                  attachmentTypeId: file.typeId || file.attachmentTypeId || "",
+                  fileType: file.fileType || "",
+                  size: file.size || 0,
+                  uploadedId: file.id || "",
+                  deleteUrl: file.deleteUrl || "",
+                })
+              );
+              setUploadedFiles(uploadedFilesData);
+            }
+
+            toast.success(
+              "রিজেক্টেড আবেদন ডেটা লোড করা হয়েছে! আপনি এখন তথ্য সংশোধন করতে পারেন।",
+              {
+                id: "loadRejected",
+                duration: 5000,
+              }
+            );
+
+            // Show info message to user
+            toast.success(
+              "আপনার রিজেক্টেড আবেদন ডেটা লোড করা হয়েছে। অনুগ্রহ করে প্রয়োজনীয় সংশোধন করুন এবং পুনরায় আবেদন করুন।",
+              {
+                duration: 8000,
+              }
+            );
+          } else {
+            toast.error("রিজেক্টেড আবেদন ডেটা পাওয়া যায়নি", {
+              id: "loadRejected",
+            });
+          }
+        } catch (error) {
+          console.error("Error loading rejected application:", error);
+          toast.error("রিজেক্টেড আবেদন ডেটা লোড করতে সমস্যা হয়েছে", {
+            id: "loadRejected",
+          });
+        }
+      }
+    };
+
+    loadRejectedApplication();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-4 sm:py-8">

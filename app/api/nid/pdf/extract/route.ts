@@ -138,12 +138,17 @@ export async function POST(req: Request) {
       pdfResult.data.dob
     )}</DOB><FP></FP><F>Right Index</F><TYPE>A</TYPE><V>2.0</V><ds>302c02167da6b272e960dfaf8a7ccca6b031da99defe8d24c44882580f7a9b3fea93b99040f65c34e8edafe9de63</ds>`;
     const addressBuilder = (address: IAddress) => {
+      const toBanglaNumber = (value: string) => {
+        const bnDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+        return value.replace(/\d/g, (d) => bnDigits[Number(d)]);
+      };
+
       return `বাসা/হোল্ডিং: ${
         address.home_holding_no !== "N/A" ? address.home_holding_no : "-"
       }, গ্রাম/রাস্তা: ${
         address.village_road !== "N/A" ? address.village_road : ""
       }, ডাকঘর: ${address.post_office !== "N/A" ? address.post_office : ""} - ${
-        address.postal_code !== "N/A" ? address.postal_code : ""
+        address.postal_code !== "N/A" ? toBanglaNumber(address.postal_code) : ""
       }, ${address.district !== "N/A" ? address.district : ""}, ${
         address.division !== "N/A" ? address.division : ""
       }`;
