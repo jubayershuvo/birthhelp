@@ -376,7 +376,7 @@ export default function CreatePostPage() {
                           <label className="block">
                             <input
                               type="file"
-                              accept="image/*"
+                              accept="application/pdf, image/*"
                               className="hidden"
                               onChange={(e) => {
                                 if (e.target.files?.[0]) {
@@ -399,7 +399,7 @@ export default function CreatePostPage() {
                                   : "Click to upload or drag and drop"}
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                Images (Max: 10MB)
+                                Images, PDF (Max: 10MB)
                               </p>
                             </div>
                           </label>
