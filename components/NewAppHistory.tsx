@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   CalendarDays,
   Download,
@@ -26,8 +26,10 @@ import {
   Shield,
   Users,
   Baby,
-  FileCheck
-} from 'lucide-react';
+  FileCheck,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import ReSubmitPopup from "./NewAppReSubmitPopUp";
 
 // ==================== Types ====================
 export interface Attachment {
@@ -47,7 +49,7 @@ export interface PersonInfoForBirth {
   personNameEn: string;
   personBirthDate: string;
   thChild: string;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  gender: "MALE" | "FEMALE" | "OTHER";
   religion: string;
   religionOther: string;
   personNid: string;
@@ -70,13 +72,13 @@ export interface Application {
   csrf: string;
   otp: string;
   user: string;
-  status: 'submitted' | 'pending' | 'approved' | 'rejected' | 'processing';
+  status: "submitted" | "pending" | "approved" | "rejected" | "processing";
   applicationId: string;
   printLink: string;
   cost: number;
   lastDate: string;
   cookies: string[];
-  officeAddressType: 'PERMANENT' | 'BIRTHPLACE' | 'PRESENT';
+  officeAddressType: "PERMANENT" | "BIRTHPLACE" | "PRESENT";
   officeAddrCountry: string;
   officeAddrCity: string;
   officeAddrDivision: string;
@@ -100,14 +102,14 @@ export interface Application {
   birthPlacePostOfcEn: string;
   birthPlaceHouseRoadBn: string;
   birthPlaceHouseRoadEn: string;
-  copyBirthPlaceToPermAddr: 'yes' | 'no';
+  copyBirthPlaceToPermAddr: "yes" | "no";
   permAddrCountry: string;
   permAddrDiv: string;
   permAddrDist: string;
   permAddrCityCorpCantOrUpazila: string;
   permAddrPaurasavaOrUnion: string;
   permAddrWardInPaurasavaOrUnion: string;
-  copyPermAddrToPrsntAddr: 'yes' | 'no';
+  copyPermAddrToPrsntAddr: "yes" | "no";
   prsntAddrCountry: string;
   prsntAddrDiv: string;
   prsntAddrDist: string;
@@ -117,9 +119,9 @@ export interface Application {
   applicantName: string;
   phone: string;
   email: string;
-  relationWithApplicant: 'SELF' | 'FATHER' | 'MOTHER' | 'GUARDIAN';
+  relationWithApplicant: "SELF" | "FATHER" | "MOTHER" | "GUARDIAN";
   attachments: Attachment[];
-  declaration: 'on' | 'off';
+  declaration: "on" | "off";
   personImage: string;
   createdAt: string;
   updatedAt: string;
@@ -127,34 +129,34 @@ export interface Application {
 }
 
 // ==================== Helper Functions ====================
-const getStatusBadgeColor = (status: Application['status']) => {
+const getStatusBadgeColor = (status: Application["status"]) => {
   switch (status) {
-    case 'approved':
-      return 'bg-green-900/30 text-green-300 border-green-700';
-    case 'rejected':
-      return 'bg-red-900/30 text-red-300 border-red-700';
-    case 'processing':
-      return 'bg-yellow-900/30 text-yellow-300 border-yellow-700';
-    case 'submitted':
-      return 'bg-blue-900/30 text-blue-300 border-blue-700';
-    case 'pending':
-      return 'bg-purple-900/30 text-purple-300 border-purple-700';
+    case "approved":
+      return "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700";
+    case "rejected":
+      return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700";
+    case "processing":
+      return "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700";
+    case "submitted":
+      return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700";
+    case "pending":
+      return "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700";
     default:
-      return 'bg-gray-900/30 text-gray-300 border-gray-700';
+      return "bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 border-gray-300 dark:border-gray-700";
   }
 };
 
-const getStatusIcon = (status: Application['status']) => {
+const getStatusIcon = (status: Application["status"]) => {
   switch (status) {
-    case 'approved':
+    case "approved":
       return <CheckCircle className="w-4 h-4" />;
-    case 'rejected':
+    case "rejected":
       return <XCircle className="w-4 h-4" />;
-    case 'processing':
+    case "processing":
       return <Loader2 className="w-4 h-4 animate-spin" />;
-    case 'submitted':
+    case "submitted":
       return <FileCheck className="w-4 h-4" />;
-    case 'pending':
+    case "pending":
       return <Clock className="w-4 h-4" />;
     default:
       return <AlertCircle className="w-4 h-4" />;
@@ -162,26 +164,26 @@ const getStatusIcon = (status: Application['status']) => {
 };
 
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('en-BD', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  return new Date(dateString).toLocaleDateString("en-BD", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
 const getDaysRemaining = (lastDate: string): number => {
   const today = new Date();
-  const lastDay = new Date(lastDate.split('/').reverse().join('-'));
+  const lastDay = new Date(lastDate.split("/").reverse().join("-"));
   const diffTime = lastDay.getTime() - today.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
@@ -190,12 +192,21 @@ const getDaysRemaining = (lastDate: string): number => {
 const BirthApplications: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [expandedAppId, setExpandedAppId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'name' | 'status'>('date');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"date" | "name" | "status">("date");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sessionData, setSessionData] = useState({
+    cookies: [],
+    csrf: "",
+    serviceCost: 0,
+    note: "",
+  });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
   // Fetch applications from API
   useEffect(() => {
@@ -203,16 +214,18 @@ const BirthApplications: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Simulating API call with your provided data structure
-        const response = await fetch('/api/birth/application/registration/history');
-        
+        const response = await fetch(
+          "/api/birth/application/registration/history"
+        );
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Assuming the API returns an object with a 'history' array
         if (data && data.history && Array.isArray(data.history)) {
           setApplications(data.history);
@@ -220,10 +233,8 @@ const BirthApplications: React.FC = () => {
           setApplications([]);
         }
       } catch (err) {
-        console.error('Error fetching applications:', err);
-        setError('Failed to load applications. Please try again.');
-
-        
+        console.error("Error fetching applications:", err);
+        setError("Failed to load applications. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -233,26 +244,32 @@ const BirthApplications: React.FC = () => {
   }, []);
 
   // Filter applications
-  const filteredApplications = applications.filter(app => {
-    const matchesSearch = 
-      app.personInfoForBirth.personNameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredApplications = applications.filter((app) => {
+    const matchesSearch =
+      app.personInfoForBirth.personNameEn
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
       app.applicationId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.personInfoForBirth.personNameBn.includes(searchTerm) ||
       app.applicantName.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
-    
+
+    const matchesStatus = statusFilter === "all" || app.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
   // Sort applications
   const sortedApplications = [...filteredApplications].sort((a, b) => {
     switch (sortBy) {
-      case 'date':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case 'name':
-        return a.personInfoForBirth.personNameEn.localeCompare(b.personInfoForBirth.personNameEn);
-      case 'status':
+      case "date":
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      case "name":
+        return a.personInfoForBirth.personNameEn.localeCompare(
+          b.personInfoForBirth.personNameEn
+        );
+      case "status":
         return a.status.localeCompare(b.status);
       default:
         return 0;
@@ -274,36 +291,55 @@ const BirthApplications: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handlePrint = (printLink: string) => {
-    window.open(printLink, '_blank');
-  };
-
-  const handleViewDetails = (appId: string) => {
-    // Navigate to detailed view or show modal
-    console.log('View details for:', appId);
-  };
-
   const handleDownloadAttachment = (attachment: Attachment) => {
     // Implement download logic
-    console.log('Downloading:', attachment.name);
+    console.log("Downloading:", attachment.name);
   };
+  const openPopup = async (id: string) => {
+    const application = applications.find((app) => app._id === id);
+    if (!application) {
+      console.log("Application not found");
+      return;
+    }
+
+    setSelectedApp(application);
+    
+  
+    toast.loading("Loading session data...", { id: "sessionReload" });
+    try {
+      const response = await fetch("/api/birth/application/registration");
+      const data = await response.json();
+      setSessionData(data);
+      toast.success("Session data loaded successfully", {
+        id: "sessionReload",
+      });
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching session data:", error);
+      toast.error("Failed to load session data", { id: "sessionReload" });
+    }
+  };
+  const reSubmit = async () => {};
 
   // Calculate statistics
   const stats = {
     total: applications.length,
-    submitted: applications.filter(app => app.status === 'submitted').length,
-    processing: applications.filter(app => app.status === 'processing').length,
-    approved: applications.filter(app => app.status === 'approved').length,
-    rejected: applications.filter(app => app.status === 'rejected').length,
+    submitted: applications.filter((app) => app.status === "submitted").length,
+    processing: applications.filter((app) => app.status === "processing")
+      .length,
+    approved: applications.filter((app) => app.status === "approved").length,
+    rejected: applications.filter((app) => app.status === "rejected").length,
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 text-gray-900 dark:text-gray-100 p-4 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
-          <p className="text-lg">Loading applications...</p>
-          <p className="text-sm text-gray-400 mt-2">Fetching your birth registration history</p>
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 dark:text-blue-400 mx-auto mb-4" />
+          <p className="text-lg dark:text-gray-300">Loading applications...</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            Fetching your birth registration history
+          </p>
         </div>
       </div>
     );
@@ -311,14 +347,16 @@ const BirthApplications: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 text-gray-900 dark:text-gray-100 p-4 flex items-center justify-center">
         <div className="text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Error Loading Applications</h3>
-          <p className="text-gray-400 mb-4">{error}</p>
+          <AlertCircle className="w-16 h-16 text-red-500 dark:text-red-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold mb-2 dark:text-gray-300">
+            Error Loading Applications
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <button
             onClick={handleRefresh}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center gap-2 mx-auto"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg flex items-center gap-2 mx-auto transition-colors duration-200"
           >
             <RefreshCw className="w-4 h-4" />
             Try Again
@@ -329,107 +367,134 @@ const BirthApplications: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 text-gray-900 dark:text-gray-100 p-4 md:p-6 transition-colors duration-200">
       {/* Header */}
+      {selectedApp && <ReSubmitPopup onSuccess={(submissionId) => setIsModalOpen(false)} isOpen={isModalOpen} application={selectedApp} sessionData={sessionData} onClose={() => setIsModalOpen(false)} />}
       <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Baby className="w-8 h-8 text-blue-400" />
+            <h1 className="text-3xl font-bold flex items-center gap-3 dark:text-white">
+              <Baby className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               Birth Registration Applications
             </h1>
-            <p className="text-gray-400 mt-2">View and manage your birth registration application history</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              View and manage your birth registration application history
+            </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <button
               onClick={handleRefresh}
-              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg flex items-center gap-2 transition-all duration-200 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow"
               title="Refresh data"
             >
               <RefreshCw className="w-4 h-4" />
               <span className="hidden sm:inline">Refresh</span>
             </button>
-            <div className="text-sm text-gray-400">
-              Total: <span className="font-semibold text-white">{applications.length}</span> applications
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Total:{" "}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {applications.length}
+              </span>{" "}
+              applications
             </div>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400">Total Applications</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Applications
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.total}
+                </p>
               </div>
-              <FileText className="w-8 h-8 text-blue-400" />
+              <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-blue-700/30">
+
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200 dark:border-blue-700/30 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-400">Submitted</p>
-                <p className="text-2xl font-bold">{stats.submitted}</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">
+                  Submitted
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.submitted}
+                </p>
               </div>
-              <FileCheck className="w-8 h-8 text-blue-400" />
+              <FileCheck className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-yellow-700/30">
+
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-amber-200 dark:border-amber-700/30 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-yellow-400">Processing</p>
-                <p className="text-2xl font-bold">{stats.processing}</p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">
+                  Processing
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.processing}
+                </p>
               </div>
-              <Loader2 className="w-8 h-8 text-yellow-400" />
+              <Loader2 className="w-8 h-8 text-amber-600 dark:text-amber-400" />
             </div>
           </div>
-          
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-green-700/30">
+
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-emerald-200 dark:border-emerald-700/30 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-400">Approved</p>
-                <p className="text-2xl font-bold">{stats.approved}</p>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                  Approved
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.approved}
+                </p>
               </div>
-              <CheckCircle className="w-8 h-8 text-green-400" />
+              <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
-          
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-red-700/30">
+
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-red-200 dark:border-red-700/30 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-400">Rejected</p>
-                <p className="text-2xl font-bold">{stats.rejected}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  Rejected
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stats.rejected}
+                </p>
               </div>
-              <XCircle className="w-8 h-8 text-red-400" />
+              <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 mb-6 border border-gray-700">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 mb-6 border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   placeholder="Search by name, application ID..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-400" />
+                <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 <select
-                  className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-all duration-200"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -440,13 +505,15 @@ const BirthApplications: React.FC = () => {
                   <option value="rejected">Rejected</option>
                 </select>
               </div>
-              
+
               <div className="flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-gray-400" />
+                <CalendarDays className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 <select
-                  className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-gray-900 dark:text-gray-100 transition-all duration-200"
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'date' | 'name' | 'status')}
+                  onChange={(e) =>
+                    setSortBy(e.target.value as "date" | "name" | "status")
+                  }
                 >
                   <option value="date">Sort by Date</option>
                   <option value="name">Sort by Name</option>
@@ -461,90 +528,119 @@ const BirthApplications: React.FC = () => {
       {/* Applications List */}
       <div className="space-y-4">
         {sortedApplications.length === 0 ? (
-          <div className="text-center py-12 bg-gray-800/50 rounded-xl border border-gray-700">
-            <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No applications found</h3>
-            <p className="text-gray-400">
-              {searchTerm || statusFilter !== 'all' 
-                ? 'Try adjusting your filters or search terms' 
-                : 'You have no birth registration applications yet'}
+          <div className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+            <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2 dark:text-gray-300">
+              No applications found
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              {searchTerm || statusFilter !== "all"
+                ? "Try adjusting your filters or search terms"
+                : "You have no birth registration applications yet"}
             </p>
           </div>
         ) : (
           sortedApplications.map((app) => {
             const isExpanded = expandedAppId === app._id;
             const daysRemaining = getDaysRemaining(app.lastDate);
-            
+
             return (
               <div
                 key={app._id}
-                className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden transition-all duration-300 hover:border-gray-600"
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600"
               >
                 {/* Application Header */}
-                <div 
-                  className="p-4 cursor-pointer hover:bg-gray-800/30 transition-colors"
+                <div
+                  className="p-4 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors duration-200"
                   onClick={() => toggleExpand(app._id)}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className={`px-3 py-1 rounded-full border flex items-center gap-2 ${getStatusBadgeColor(app.status)}`}>
+                        <div
+                          className={`px-3 py-1 rounded-full border flex items-center gap-2 text-sm font-medium ${getStatusBadgeColor(
+                            app.status
+                          )}`}
+                        >
                           {getStatusIcon(app.status)}
                           <span className="capitalize">{app.status}</span>
                         </div>
-                        
-                        <div className="text-sm text-gray-400 flex items-center gap-1">
+
+                        <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                           <CalendarDays className="w-3 h-3" />
                           {formatDate(app.createdAt)}
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                         <div>
-                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <h3 className="text-lg font-semibold flex items-center gap-2 dark:text-white">
                             <User className="w-4 h-4" />
                             {app.personInfoForBirth.personNameEn}
                           </h3>
-                          <p className="text-gray-400 text-sm mt-1">{app.personInfoForBirth.personNameBn}</p>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                            {app.personInfoForBirth.personNameBn}
+                          </p>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                             <Baby className="w-3 h-3" />
-                            <span>DOB: {app.personInfoForBirth.personBirthDate}</span>
+                            <span>
+                              DOB: {app.personInfoForBirth.personBirthDate}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
                             <Users className="w-3 h-3" />
-                            <span>{app.relationWithApplicant}</span>
+                            <span className="capitalize">
+                              {app.relationWithApplicant.toLowerCase()}
+                            </span>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <div className="text-sm text-gray-400">Application ID</div>
-                        <div className="font-mono font-bold flex items-center gap-2">
-                          {app.applicationId}
+                      {app.status === "submitted" ? (
+                        <div className="text-right">
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            Application ID
+                          </div>
+                          <div className="font-mono font-bold flex items-center gap-2 dark:text-white">
+                            {app.applicationId}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyId(app.applicationId);
+                              }}
+                              className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors duration-200"
+                              title="Copy ID"
+                            >
+                              {copiedId === app.applicationId ? (
+                                <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                              ) : (
+                                <Copy className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopyId(app.applicationId);
-                            }}
-                            className="text-gray-400 hover:text-white transition-colors"
-                            title="Copy ID"
+                            onClick={() => openPopup(app._id)}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg hover:shadow-md transition-all duration-200"
                           >
-                            {copiedId === app.applicationId ? (
-                              <CheckCircle className="w-4 h-4 text-green-400" />
-                            ) : (
-                              <Copy className="w-4 h-4" />
-                            )}
+                            Submit
                           </button>
                         </div>
-                      </div>
-                      
-                      <button className="text-gray-400 hover:text-white transition-colors">
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                      )}
+
+                      <button className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors duration-200">
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -552,69 +648,112 @@ const BirthApplications: React.FC = () => {
 
                 {/* Expanded Details */}
                 {isExpanded && (
-                  <div className="border-t border-gray-700 p-4 bg-gray-900/50">
+                  <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-900/30">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Left Column - Personal Info */}
                       <div className="space-y-6">
                         {/* Personal Information */}
                         <div>
-                          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2 dark:text-white">
                             <User className="w-5 h-5" />
                             Personal Information
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Full Name (EN)</p>
-                              <p className="font-medium">{app.personInfoForBirth.personNameEn}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Full Name (EN)
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.personInfoForBirth.personNameEn}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Full Name (BN)</p>
-                              <p className="font-medium">{app.personInfoForBirth.personNameBn}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Full Name (BN)
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.personInfoForBirth.personNameBn}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Date of Birth</p>
-                              <p className="font-medium">{app.personInfoForBirth.personBirthDate}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Date of Birth
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.personInfoForBirth.personBirthDate}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Gender</p>
-                              <p className="font-medium capitalize">{app.personInfoForBirth.gender.toLowerCase()}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Gender
+                              </p>
+                              <p className="font-medium dark:text-gray-300 capitalize">
+                                {app.personInfoForBirth.gender.toLowerCase()}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Child Number</p>
-                              <p className="font-medium">{app.personInfoForBirth.thChild}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Child Number
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.personInfoForBirth.thChild}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Religion</p>
-                              <p className="font-medium">{app.personInfoForBirth.religion.replace('_', ' ')}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Religion
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.personInfoForBirth.religion.replace(
+                                  "_",
+                                  " "
+                                )}
+                              </p>
                             </div>
                           </div>
                         </div>
 
                         {/* Parents Information */}
                         <div>
-                          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2 dark:text-white">
                             <Users className="w-5 h-5" />
                             Parents Information
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="bg-gray-800/50 p-3 rounded-lg">
-                              <p className="text-sm text-gray-400 mb-1">Father</p>
-                              <p className="font-medium">{app.father.personNameEn}</p>
+                            <div className="bg-white dark:bg-gray-800/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                Father
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.father.personNameEn}
+                              </p>
                               {app.father.personNameBn && (
-                                <p className="text-sm text-gray-400">{app.father.personNameBn}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {app.father.personNameBn}
+                                </p>
                               )}
                               {app.father.ubrn && (
-                                <p className="text-xs text-blue-400 mt-1">UBRN: {app.father.ubrn}</p>
+                                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                  UBRN: {app.father.ubrn}
+                                </p>
                               )}
                             </div>
-                            <div className="bg-gray-800/50 p-3 rounded-lg">
-                              <p className="text-sm text-gray-400 mb-1">Mother</p>
-                              <p className="font-medium">{app.mother.personNameEn}</p>
+                            <div className="bg-white dark:bg-gray-800/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                Mother
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.mother.personNameEn}
+                              </p>
                               {app.mother.personNameBn && (
-                                <p className="text-sm text-gray-400">{app.mother.personNameBn}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {app.mother.personNameBn}
+                                </p>
                               )}
                               {app.mother.ubrn && (
-                                <p className="text-xs text-blue-400 mt-1">UBRN: {app.mother.ubrn}</p>
+                                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                  UBRN: {app.mother.ubrn}
+                                </p>
                               )}
                             </div>
                           </div>
@@ -625,50 +764,80 @@ const BirthApplications: React.FC = () => {
                       <div className="space-y-6">
                         {/* Application Details */}
                         <div>
-                          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2 dark:text-white">
                             <FileText className="w-5 h-5" />
                             Application Details
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Applicant</p>
-                              <p className="font-medium">{app.applicantName}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Applicant
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.applicantName}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Relation</p>
-                              <p className="font-medium">{app.relationWithApplicant}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Relation
+                              </p>
+                              <p className="font-medium dark:text-gray-300 capitalize">
+                                {app.relationWithApplicant.toLowerCase()}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Phone</p>
-                              <p className="font-medium flex items-center gap-1">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Phone
+                              </p>
+                              <p className="font-medium dark:text-gray-300 flex items-center gap-1">
                                 <Phone className="w-3 h-3" />
                                 {app.phone}
                               </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Cost</p>
-                              <p className="font-medium">৳{app.cost}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Cost
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                ৳{app.cost}
+                              </p>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Last Date</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Last Date
+                              </p>
                               <div className="flex items-center gap-2">
-                                <CalendarDays className="w-3 h-3" />
-                                <span className="font-medium">{app.lastDate}</span>
-                                <span className={`text-xs px-2 py-1 rounded-full ${daysRemaining < 0 ? 'bg-red-900/30 text-red-300' : 'bg-yellow-900/30 text-yellow-300'}`}>
-                                  {daysRemaining < 0 ? 'Expired' : `${daysRemaining} days left`}
+                                <CalendarDays className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                                <span className="font-medium dark:text-gray-300">
+                                  {app.lastDate}
+                                </span>
+                                <span
+                                  className={`text-xs px-2 py-1 rounded-full ${
+                                    daysRemaining < 0
+                                      ? "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+                                      : "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300"
+                                  }`}
+                                >
+                                  {daysRemaining < 0
+                                    ? "Expired"
+                                    : `${daysRemaining} days left`}
                                 </span>
                               </div>
                             </div>
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-400">Office Type</p>
-                              <p className="font-medium">{app.officeAddressType}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Office Type
+                              </p>
+                              <p className="font-medium dark:text-gray-300">
+                                {app.officeAddressType}
+                              </p>
                             </div>
                           </div>
                         </div>
 
                         {/* Attachments */}
                         <div>
-                          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                          <h4 className="font-semibold text-lg mb-3 flex items-center gap-2 dark:text-white">
                             <FileText className="w-5 h-5" />
                             Attachments ({app.attachments.length})
                           </h4>
@@ -676,20 +845,25 @@ const BirthApplications: React.FC = () => {
                             {app.attachments.map((attachment) => (
                               <div
                                 key={attachment._id}
-                                className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors"
+                                className="flex items-center justify-between p-3 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/70 transition-all duration-200"
                               >
                                 <div className="flex items-center gap-3">
-                                  <FileText className="w-4 h-4 text-blue-400" />
+                                  <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                                   <div>
-                                    <p className="font-medium text-sm">{attachment.name}</p>
-                                    <p className="text-xs text-gray-400">
-                                      {formatFileSize(attachment.size)} • {attachment.type}
+                                    <p className="font-medium text-sm dark:text-gray-300">
+                                      {attachment.name}
+                                    </p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                                      {formatFileSize(attachment.size)} •{" "}
+                                      {attachment.type}
                                     </p>
                                   </div>
                                 </div>
                                 <button
-                                  onClick={() => handleDownloadAttachment(attachment)}
-                                  className="text-gray-400 hover:text-white transition-colors"
+                                  onClick={() =>
+                                    handleDownloadAttachment(attachment)
+                                  }
+                                  className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors duration-200"
                                   title="Download"
                                 >
                                   <Download className="w-4 h-4" />
@@ -698,8 +872,6 @@ const BirthApplications: React.FC = () => {
                             ))}
                           </div>
                         </div>
-
-
                       </div>
                     </div>
                   </div>
@@ -711,15 +883,25 @@ const BirthApplications: React.FC = () => {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 pt-6 border-t border-gray-800">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
-            <span>All data is securely fetched from the Birth Registration System API</span>
+            <span>
+              All data is securely fetched from the Birth Registration System
+              API
+            </span>
           </div>
           <div>
-            Showing <span className="font-semibold text-white">{sortedApplications.length}</span> of{' '}
-            <span className="font-semibold text-white">{applications.length}</span> applications
+            Showing{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">
+              {sortedApplications.length}
+            </span>{" "}
+            of{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">
+              {applications.length}
+            </span>{" "}
+            applications
           </div>
         </div>
       </div>

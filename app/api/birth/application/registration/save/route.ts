@@ -14,9 +14,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Data not found" }, { status: 404 });
     }
     let data;
-    const id = body._id;
+    let id = body._id;
     delete body._id;
-    console.log("ID", id)
     if (id) {
       data = await BirthRegistration.updateOne(
         { _id: id },
@@ -27,6 +26,7 @@ export async function POST(request: Request) {
         ...body,
         user: user._id,
       });
+      id = data._id;
     }
     data = await BirthRegistration.findById(id);
     return NextResponse.json(data, { status: 200 });

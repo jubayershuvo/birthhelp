@@ -8,7 +8,6 @@ import { NextRequest, NextResponse } from "next/server";
 import Spent from "@/models/Use";
 import path from "path";
 import fs from "fs";
-import puppeteer from "puppeteer-extra";
 
 // Helper function to check if response is HTML
 function isHTML(str: string): boolean {
@@ -191,6 +190,9 @@ async function parseServerResponse(
 
 export async function POST(request: NextRequest) {
   const submissionData = await request.json();
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id");
+
   try {
     await connectDB();
     const user = await getUser();
@@ -231,13 +233,20 @@ export async function POST(request: NextRequest) {
     }
 
     const reseller = await Reseller.findById(user.reseller);
-    const application = await BirthRegistration.create({
-      ...submissionData,
-      user: user._id,
-      cost: serviceCost,
-    });
+    let application;
+
+    if (id) {
+      application = await BirthRegistration.findById(id);
+    } else {
+      application = await BirthRegistration.create({
+        ...submissionData,
+        user: user._id,
+        cost: serviceCost,
+      });
+    }
     // Extract cookies and CSRF from the request if they exist in the body
-    const { cookies, csrf, ...restData } = submissionData;
+    const { _cookies, _csrf, ...restData } = application.toObject();
+    const { cookies, csrf } = submissionData;
 
     // Create FormData for multipart/form-data
     const formData = new FormData();
@@ -561,7 +570,6 @@ export async function POST(request: NextRequest) {
     });
     // Parse the response
     const result = await parseServerResponse(response);
-    console.log(result);
 
     // Handle the result
     if (!result.success) {

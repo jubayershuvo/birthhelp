@@ -2867,11 +2867,282 @@ export default function BirthRegistrationForm() {
         }
       } catch (error) {
         console.error("Submission error:", error);
-        toast.error("আবেদন জমা দিতে সমস্যা হয়েছে");
+        toast.error("আবেদন জমা দিতে সমস্যা হয়েছে", { id: "submission" });
       }
     } catch (error) {
       console.error("Submission error:", error);
-      toast.error("আবেদন জমা দিতে সমস্যা হয়েছে");
+      toast.error("আবেদন জমা দিতে সমস্যা হয়েছে", { id: "submission" });
+    }
+  };
+  const handleSave = async () => {
+    const isValid = await validateStep(4);
+    if (!isValid) {
+      return;
+    }
+
+    try {
+      // Determine office address based on officeAddressType
+      let officeAddressSource: Address | null = null;
+
+      if (formData.officeAddressType === "BIRTHPLACE") {
+        officeAddressSource = formData.birthPlaceAddress;
+      } else if (formData.officeAddressType === "PERMANENT") {
+        officeAddressSource = formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress
+          : formData.permAddrAddress;
+      } else if (formData.officeAddressType === "MISSION") {
+        // For MISSION, use the BD Mission address (officeAddrCountry, officeAddrCity, officeAddrOffice)
+        // No need for division/district/etc as it's handled by mission office selection
+      }
+
+      // Prepare final data according to your API structure
+      const submissionData = {
+        csrf: sessionData.csrf,
+        otp: formData.applicant.otp,
+        cookies: sessionData.cookies,
+        officeAddressType: formData.officeAddressType,
+
+        // Office address fields - different based on office type
+        ...(formData.officeAddressType === "MISSION"
+          ? {
+              officeAddrCountry: formData.officeAddrCountry,
+              officeAddrCity: formData.officeAddrCity,
+              officeAddrOffice: formData.officeAddrOffice,
+              officeAddrDivision: "-1", // Not used for mission
+              officeAddrDistrict: "-1", // Not used for mission
+              officeAddrCityCorpCantOrUpazila: "-1", // Not used for mission
+              officeAddrPaurasavaOrUnion: "-1", // Not used for mission
+              officeAddrWard: "-1", // Not used for mission
+            }
+          : {
+              officeAddrCountry: officeAddressSource?.country || "1",
+              officeAddrDivision: officeAddressSource?.division || "-1",
+              officeAddrDistrict: officeAddressSource?.district || "-1",
+              officeAddrCityCorpCantOrUpazila:
+                officeAddressSource?.cityCorpCantOrUpazila || "-1",
+              officeAddrPaurasavaOrUnion:
+                officeAddressSource?.paurasavaOrUnion || "-1",
+              officeAddrWard: officeAddressSource?.ward || "-1",
+              officeAddrCity: "", // Not used for birthplace/permanent
+              officeAddrOffice: "", // Not used for birthplace/permanent
+            }),
+
+        // Personal Information
+        personInfoForBirth: {
+          personFirstNameBn: formData.personInfoForBirth.personFirstNameBn,
+          personLastNameBn: formData.personInfoForBirth.personLastNameBn,
+          personNameBn:
+            `${formData.personInfoForBirth.personFirstNameBn} ${formData.personInfoForBirth.personLastNameBn}`.trim(),
+          personFirstNameEn: formData.personInfoForBirth.personFirstNameEn,
+          personLastNameEn: formData.personInfoForBirth.personLastNameEn,
+          personNameEn:
+            `${formData.personInfoForBirth.personFirstNameEn} ${formData.personInfoForBirth.personLastNameEn}`.trim(),
+          personBirthDate: formData.personInfoForBirth.personBirthDate,
+          thChild: formData.personInfoForBirth.thChild,
+          gender: formData.personInfoForBirth.gender,
+          religion: formData.personInfoForBirth.religion,
+          religionOther: formData.personInfoForBirth.religionOther,
+          personNid: formData.personInfoForBirth.personNid,
+        },
+
+        // Father's information (separate from personInfoForBirth)
+        father: {
+          personNameBn: formData.father.personNameBn,
+          personNameEn: formData.father.personNameEn,
+          personNationality: formData.father.personNationality,
+          personNid: formData.father.personNid,
+          passportNumber: formData.father.passportNumber,
+          ubrn: formData.father.ubrn,
+          personBirthDate: formData.father.personBirthDate,
+        },
+
+        // Mother's information (separate from personInfoForBirth)
+        mother: {
+          personNameBn: formData.mother.personNameBn,
+          personNameEn: formData.mother.personNameEn,
+          personNationality: formData.mother.personNationality,
+          personNid: formData.mother.personNid,
+          passportNumber: formData.mother.passportNumber,
+          ubrn: formData.mother.ubrn,
+          personBirthDate: formData.mother.personBirthDate,
+        },
+
+        // Birth Place Address
+        birthPlaceCountry: formData.birthPlaceAddress?.country || "1",
+        birthPlaceDiv: formData.birthPlaceAddress?.division || "-1",
+        birthPlaceDist: formData.birthPlaceAddress?.district || "-1",
+        birthPlaceCityCorpCantOrUpazila:
+          formData.birthPlaceAddress?.cityCorpCantOrUpazila || "-1",
+        birthPlacePaurasavaOrUnion:
+          formData.birthPlaceAddress?.paurasavaOrUnion || "-1",
+        birthPlaceWardInPaurasavaOrUnion:
+          formData.birthPlaceAddress?.ward || "-1",
+        birthPlaceVilAreaTownBn:
+          formData.birthPlaceAddress?.vilAreaTownBn || "",
+        birthPlaceVilAreaTownEn:
+          formData.birthPlaceAddress?.vilAreaTownEn || "",
+        birthPlacePostOfc: formData.birthPlaceAddress?.postOfc || "",
+        birthPlacePostOfcEn: formData.birthPlaceAddress?.postOfcEn || "",
+        birthPlaceHouseRoadBn: formData.birthPlaceAddress?.houseRoadBn || "",
+        birthPlaceHouseRoadEn: formData.birthPlaceAddress?.houseRoadEn || "",
+
+        // Permanent Address
+        copyBirthPlaceToPermAddr: formData.copyBirthPlaceToPermAddr
+          ? "yes"
+          : "no",
+        permAddrCountry: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.country
+          : formData.permAddrAddress?.country || "1",
+        permAddrDiv: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.division
+          : formData.permAddrAddress?.division || "-1",
+        permAddrDist: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.district
+          : formData.permAddrAddress?.district || "-1",
+        permAddrCityCorpCantOrUpazila: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.cityCorpCantOrUpazila
+          : formData.permAddrAddress?.cityCorpCantOrUpazila || "-1",
+        permAddrPaurasavaOrUnion: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.paurasavaOrUnion
+          : formData.permAddrAddress?.paurasavaOrUnion || "-1",
+        permAddrWardInPaurasavaOrUnion: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.ward
+          : formData.permAddrAddress?.ward || "-1",
+        permAddrVilAreaTownBn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.vilAreaTownBn || ""
+          : formData.permAddrAddress?.vilAreaTownBn || "",
+        permAddrVilAreaTownEn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.vilAreaTownEn || ""
+          : formData.permAddrAddress?.vilAreaTownEn || "",
+        permAddrPostOfc: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.postOfc || ""
+          : formData.permAddrAddress?.postOfc || "",
+        permAddrPostOfcEn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.postOfcEn || ""
+          : formData.permAddrAddress?.postOfcEn || "",
+        permAddrHouseRoadBn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.houseRoadBn || ""
+          : formData.permAddrAddress?.houseRoadBn || "",
+        permAddrHouseRoadEn: formData.copyBirthPlaceToPermAddr
+          ? formData.birthPlaceAddress?.houseRoadEn || ""
+          : formData.permAddrAddress?.houseRoadEn || "",
+
+        // Present Address
+        copyPermAddrToPrsntAddr: formData.copyPermAddrToPrsntAddr
+          ? "yes"
+          : "no",
+        prsntAddrCountry: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+              ? formData.birthPlaceAddress?.country
+              : formData.permAddrAddress?.country) || "1"
+          : formData.prsntAddrAddress?.country || "1",
+        prsntAddrDiv: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+              ? formData.birthPlaceAddress?.division
+              : formData.permAddrAddress?.division) || "-1"
+          : formData.prsntAddrAddress?.division || "-1",
+        prsntAddrDist: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+              ? formData.birthPlaceAddress?.district
+              : formData.permAddrAddress?.district) || "-1"
+          : formData.prsntAddrAddress?.district || "-1",
+        prsntAddrCityCorpCantOrUpazila: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+              ? formData.birthPlaceAddress?.cityCorpCantOrUpazila
+              : formData.permAddrAddress?.cityCorpCantOrUpazila) || "-1"
+          : formData.prsntAddrAddress?.cityCorpCantOrUpazila || "-1",
+        prsntAddrPaurasavaOrUnion: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+              ? formData.birthPlaceAddress?.paurasavaOrUnion
+              : formData.permAddrAddress?.paurasavaOrUnion) || "-1"
+          : formData.prsntAddrAddress?.paurasavaOrUnion || "-1",
+        prsntAddrWardInPaurasavaOrUnion: formData.copyPermAddrToPrsntAddr
+          ? (formData.copyBirthPlaceToPermAddr
+              ? formData.birthPlaceAddress?.ward
+              : formData.permAddrAddress?.ward) || "-1"
+          : formData.prsntAddrAddress?.ward || "-1",
+        prsntAddrVilAreaTownBn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.vilAreaTownBn || ""
+            : formData.permAddrAddress?.vilAreaTownBn || ""
+          : formData.prsntAddrAddress?.vilAreaTownBn || "",
+        prsntAddrVilAreaTownEn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.vilAreaTownEn || ""
+            : formData.permAddrAddress?.vilAreaTownEn || ""
+          : formData.prsntAddrAddress?.vilAreaTownEn || "",
+        prsntAddrPostOfc: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.postOfc || ""
+            : formData.permAddrAddress?.postOfc || ""
+          : formData.prsntAddrAddress?.postOfc || "",
+        prsntAddrPostOfcEn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.postOfcEn || ""
+            : formData.permAddrAddress?.postOfcEn || ""
+          : formData.prsntAddrAddress?.postOfcEn || "",
+        prsntAddrHouseRoadBn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.houseRoadBn || ""
+            : formData.permAddrAddress?.houseRoadBn || ""
+          : formData.prsntAddrAddress?.houseRoadBn || "",
+        prsntAddrHouseRoadEn: formData.copyPermAddrToPrsntAddr
+          ? formData.copyBirthPlaceToPermAddr
+            ? formData.birthPlaceAddress?.houseRoadEn || ""
+            : formData.permAddrAddress?.houseRoadEn || ""
+          : formData.prsntAddrAddress?.houseRoadEn || "",
+
+        // Applicant Information
+        applicantName: formData.applicant.name,
+        phone: formData.applicant.phone ? `+88${formData.applicant.phone}` : "",
+        email: formData.applicant.email,
+        relationWithApplicant: formData.applicant.relation,
+
+        // File attachments
+        attachments: uploadedFiles.map((file) => ({
+          id: file.uploadedId,
+          name: file.name,
+          type: file.fileType,
+          category: file.fileCategory,
+          size: file.size,
+        })),
+
+        // Other required fields
+        declaration: "on",
+        personImage: "",
+      };
+
+      // Send data to API
+      try {
+        toast.loading("আবেদন জমা দেওয়া হচ্ছে...", { id: "save" });
+        const response = await fetch("/api/birth/application/registration/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submissionData),
+        });
+
+        const resData = await response.json();
+
+        if (resData._id) {
+          router.push(`/birth/application/registration/view/${resData.id}`);
+          toast.success("আবেদন সফলভাবে জমা দেওয়া হয়েছে!", {
+            id: "save",
+          });
+          router.push(`/birth/application/registration/history`);
+        } else {
+          toast.error("আবেদন জমা দিতে সমস্যা হয়েছে", {
+            id: "save",
+          });
+        }
+      } catch (error) {
+        console.error("Submission error:", error);
+        toast.error("আবেদন জমা দিতে সমস্যা হয়েছে", { id: "save" });
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error("আবেদন জমা দিতে সমস্যা হয়েছে", { id: "save" });
     }
   };
 
@@ -2895,262 +3166,6 @@ export default function BirthRegistrationForm() {
       return `${address.vilAreaTownBn}, ${country?.nameBn || "বিদেশ"}`;
     }
   };
-
-  useEffect(() => {
-    const loadRejectedApplication = async () => {
-      // Check if there's an ID in the URL query parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const id = urlParams.get("id");
-
-      if (id) {
-        try {
-          toast.loading("রিজেক্টেড আবেদন ডেটা লোড হচ্ছে...", {
-            id: "loadRejected",
-          });
-
-          const response = await fetch(
-            `/api/birth/application/registration/old-data/${id}`
-          );
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-
-          if (data) {
-            const oldData = data;
-
-            // Update form data with rejected application data
-            setFormData((prev) => ({
-              ...prev,
-              // Office information
-              officeAddressType: oldData.officeAddressType || "",
-              officeAddrCountry: oldData.officeAddrCountry || "",
-              officeAddrCity: oldData.officeAddrCity || "",
-              officeAddrOffice: oldData.officeAddrOffice || "",
-              officeAddrDivision: oldData.officeAddrDivision || "",
-              officeAddrDistrict: oldData.officeAddrDistrict || "",
-              officeAddrUpazila: oldData.officeAddrCityCorpCantOrUpazila || "",
-              officeAddrUnion: oldData.officeAddrPaurasavaOrUnion || "",
-              officeAddrWard: oldData.officeAddrWard || "",
-              officeId: oldData.officeId || "",
-
-              // Personal information
-              personInfoForBirth: {
-                personFirstNameBn:
-                  oldData.personInfoForBirth?.personFirstNameBn || "",
-                personLastNameBn:
-                  oldData.personInfoForBirth?.personLastNameBn || "",
-                personNameBn: oldData.personInfoForBirth?.personNameBn || "",
-                personFirstNameEn:
-                  oldData.personInfoForBirth?.personFirstNameEn || "",
-                personLastNameEn:
-                  oldData.personInfoForBirth?.personLastNameEn || "",
-                personNameEn: oldData.personInfoForBirth?.personNameEn || "",
-                personBirthDate:
-                  oldData.personInfoForBirth?.personBirthDate || "",
-                thChild: oldData.personInfoForBirth?.thChild || "",
-                gender: oldData.personInfoForBirth?.gender || "",
-                religion:
-                  oldData.personInfoForBirth?.religion || "NOT_APPLICABLE",
-                religionOther: oldData.personInfoForBirth?.religionOther || "",
-                personNid: oldData.personInfoForBirth?.personNid || "",
-              },
-
-              // Birth place address
-              birthPlaceAddress: oldData.birthPlaceAddress
-                ? {
-                    country: oldData.birthPlaceAddress.country || "1",
-                    geoId: oldData.birthPlaceAddress.geoId || "0",
-                    division: oldData.birthPlaceAddress.division || "-1",
-                    divisionName: oldData.birthPlaceAddress.divisionName || "",
-                    district: oldData.birthPlaceAddress.district || "-1",
-                    districtName: oldData.birthPlaceAddress.districtName || "",
-                    cityCorpCantOrUpazila:
-                      oldData.birthPlaceAddress.cityCorpCantOrUpazila || "-1",
-                    upazilaName: oldData.birthPlaceAddress.upazilaName || "",
-                    paurasavaOrUnion:
-                      oldData.birthPlaceAddress.paurasavaOrUnion || "-1",
-                    unionName: oldData.birthPlaceAddress.unionName || "",
-                    postOfc: oldData.birthPlaceAddress.postOfc || "",
-                    postOfcEn: oldData.birthPlaceAddress.postOfcEn || "",
-                    vilAreaTownBn:
-                      oldData.birthPlaceAddress.vilAreaTownBn || "",
-                    vilAreaTownEn:
-                      oldData.birthPlaceAddress.vilAreaTownEn || "",
-                    houseRoadBn: oldData.birthPlaceAddress.houseRoadBn || "",
-                    houseRoadEn: oldData.birthPlaceAddress.houseRoadEn || "",
-                    ward: oldData.birthPlaceAddress.ward || "-1",
-                    wardName: oldData.birthPlaceAddress.wardName || "",
-                  }
-                : null,
-
-              // Father information
-              father: {
-                id: oldData.father?.id || "",
-                ubrn: oldData.father?.ubrn || "",
-                personBirthDate: oldData.father?.personBirthDate || "",
-                personNameBn: oldData.father?.personNameBn || "",
-                personNameEn: oldData.father?.personNameEn || "",
-                personNid: oldData.father?.personNid || "",
-                passportNumber: oldData.father?.passportNumber || "",
-                personNationality: oldData.father?.personNationality || "",
-              },
-
-              // Mother information
-              mother: {
-                id: oldData.mother?.id || "",
-                ubrn: oldData.mother?.ubrn || "",
-                personBirthDate: oldData.mother?.personBirthDate || "",
-                personNameBn: oldData.mother?.personNameBn || "",
-                personNameEn: oldData.mother?.personNameEn || "",
-                personNid: oldData.mother?.personNid || "",
-                passportNumber: oldData.mother?.passportNumber || "",
-                personNationality: oldData.mother?.personNationality || "",
-              },
-
-              // Checkbox states
-              copyBirthPlaceToPermAddr:
-                oldData.copyBirthPlaceToPermAddr === "yes" ||
-                oldData.copyBirthPlaceToPermAddr === true,
-              copyPermAddrToPrsntAddr:
-                oldData.copyPermAddrToPrsntAddr === "yes" ||
-                oldData.copyPermAddrToPrsntAddr === true,
-
-              // Permanent address
-              permAddrAddress: oldData.permAddrAddress
-                ? {
-                    country: oldData.permAddrAddress.country || "1",
-                    geoId: oldData.permAddrAddress.geoId || "0",
-                    division: oldData.permAddrAddress.division || "-1",
-                    divisionName: oldData.permAddrAddress.divisionName || "",
-                    district: oldData.permAddrAddress.district || "-1",
-                    districtName: oldData.permAddrAddress.districtName || "",
-                    cityCorpCantOrUpazila:
-                      oldData.permAddrAddress.cityCorpCantOrUpazila || "-1",
-                    upazilaName: oldData.permAddrAddress.upazilaName || "",
-                    paurasavaOrUnion:
-                      oldData.permAddrAddress.paurasavaOrUnion || "-1",
-                    unionName: oldData.permAddrAddress.unionName || "",
-                    postOfc: oldData.permAddrAddress.postOfc || "",
-                    postOfcEn: oldData.permAddrAddress.postOfcEn || "",
-                    vilAreaTownBn: oldData.permAddrAddress.vilAreaTownBn || "",
-                    vilAreaTownEn: oldData.permAddrAddress.vilAreaTownEn || "",
-                    houseRoadBn: oldData.permAddrAddress.houseRoadBn || "",
-                    houseRoadEn: oldData.permAddrAddress.houseRoadEn || "",
-                    ward: oldData.permAddrAddress.ward || "-1",
-                    wardName: oldData.permAddrAddress.wardName || "",
-                  }
-                : null,
-
-              // Present address
-              prsntAddrAddress: oldData.prsntAddrAddress
-                ? {
-                    country: oldData.prsntAddrAddress.country || "1",
-                    geoId: oldData.prsntAddrAddress.geoId || "0",
-                    division: oldData.prsntAddrAddress.division || "-1",
-                    divisionName: oldData.prsntAddrAddress.divisionName || "",
-                    district: oldData.prsntAddrAddress.district || "-1",
-                    districtName: oldData.prsntAddrAddress.districtName || "",
-                    cityCorpCantOrUpazila:
-                      oldData.prsntAddrAddress.cityCorpCantOrUpazila || "-1",
-                    upazilaName: oldData.prsntAddrAddress.upazilaName || "",
-                    paurasavaOrUnion:
-                      oldData.prsntAddrAddress.paurasavaOrUnion || "-1",
-                    unionName: oldData.prsntAddrAddress.unionName || "",
-                    postOfc: oldData.prsntAddrAddress.postOfc || "",
-                    postOfcEn: oldData.prsntAddrAddress.postOfcEn || "",
-                    vilAreaTownBn: oldData.prsntAddrAddress.vilAreaTownBn || "",
-                    vilAreaTownEn: oldData.prsntAddrAddress.vilAreaTownEn || "",
-                    houseRoadBn: oldData.prsntAddrAddress.houseRoadBn || "",
-                    houseRoadEn: oldData.prsntAddrAddress.houseRoadEn || "",
-                    ward: oldData.prsntAddrAddress.ward || "-1",
-                    wardName: oldData.prsntAddrAddress.wardName || "",
-                  }
-                : null,
-
-              // Applicant information
-              applicant: {
-                name: oldData.applicant?.name || "",
-                nid: oldData.applicant?.nid || "",
-                phone: oldData.applicant?.phone || "",
-                email: oldData.applicant?.email || "",
-                relation: oldData.applicant?.relation || "",
-                otp: "",
-              },
-            }));
-
-            // Set BD mission checkbox if officeAddressType is MISSION
-            if (oldData.officeAddressType === "MISSION") {
-              setBdMissionChecked(true);
-            }
-
-            // Calculate age from birth date
-            if (oldData.personInfoForBirth?.personBirthDate) {
-              const newAge = calculateAgeFromDDMMYYYY(
-                oldData.personInfoForBirth.personBirthDate
-              );
-              setAge(newAge);
-            }
-
-            // Load uploaded files if any
-            if (oldData.attachments && Array.isArray(oldData.attachments)) {
-              const uploadedFilesData: UploadedFile[] = oldData.attachments.map(
-                (file: {
-                  id: string;
-                  name: string;
-                  url: string;
-                  typeId: string;
-                  fileType: string;
-                  size: number;
-                  deleteUrl: string;
-                  attachmentTypeId: string;
-                }) => ({
-                  id: file.id || `file-${Date.now()}`,
-                  name: file.name || "",
-                  url: file.url || "",
-                  attachmentTypeId: file.typeId || file.attachmentTypeId || "",
-                  fileType: file.fileType || "",
-                  size: file.size || 0,
-                  uploadedId: file.id || "",
-                  deleteUrl: file.deleteUrl || "",
-                })
-              );
-              setUploadedFiles(uploadedFilesData);
-            }
-
-            toast.success(
-              "রিজেক্টেড আবেদন ডেটা লোড করা হয়েছে! আপনি এখন তথ্য সংশোধন করতে পারেন।",
-              {
-                id: "loadRejected",
-                duration: 5000,
-              }
-            );
-
-            // Show info message to user
-            toast.success(
-              "আপনার রিজেক্টেড আবেদন ডেটা লোড করা হয়েছে। অনুগ্রহ করে প্রয়োজনীয় সংশোধন করুন এবং পুনরায় আবেদন করুন।",
-              {
-                duration: 8000,
-              }
-            );
-          } else {
-            toast.error("রিজেক্টেড আবেদন ডেটা পাওয়া যায়নি", {
-              id: "loadRejected",
-            });
-          }
-        } catch (error) {
-          console.error("Error loading rejected application:", error);
-          toast.error("রিজেক্টেড আবেদন ডেটা লোড করতে সমস্যা হয়েছে", {
-            id: "loadRejected",
-          });
-        }
-      }
-    };
-
-    loadRejectedApplication();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-4 sm:py-8">
@@ -4923,6 +4938,13 @@ export default function BirthRegistrationForm() {
                   className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                 >
                   পূর্ববর্তী
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                >
+                  সংরক্ষণ
                 </button>
                 <button
                   type="submit"
