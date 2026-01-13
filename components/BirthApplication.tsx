@@ -3126,7 +3126,6 @@ export default function BirthRegistrationForm() {
         const resData = await response.json();
 
         if (resData._id) {
-          router.push(`/birth/application/registration/view/${resData.id}`);
           toast.success("আবেদন সফলভাবে জমা দেওয়া হয়েছে!", {
             id: "save",
           });
