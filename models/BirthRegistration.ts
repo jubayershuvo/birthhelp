@@ -78,6 +78,13 @@ export interface IBirthRegistration extends Document {
   permAddrCityCorpCantOrUpazila: string;
   permAddrPaurasavaOrUnion: string;
   permAddrWardInPaurasavaOrUnion: string;
+  permAddrVilAreaTownBn: string;
+  permAddrVilAreaTownEn: string;
+  permAddrPostOfc: string;
+  permAddrPostOfcEn: string;
+  permAddrHouseRoadBn: string;
+  permAddrHouseRoadEn: string;
+
 
   copyPermAddrToPrsntAddr: string;
 
@@ -87,6 +94,12 @@ export interface IBirthRegistration extends Document {
   prsntAddrCityCorpCantOrUpazila: string;
   prsntAddrPaurasavaOrUnion: string;
   prsntAddrWardInPaurasavaOrUnion: string;
+  prsntAddrVilAreaTownBn: string;
+  prsntAddrVilAreaTownEn: string;
+  prsntAddrPostOfc: string;
+  prsntAddrPostOfcEn: string;
+  prsntAddrHouseRoadBn: string;
+  prsntAddrHouseRoadEn: string;
 
   applicantName: string;
   phone: string;
@@ -180,6 +193,12 @@ const BirthRegistrationSchema = new Schema<IBirthRegistration>(
     permAddrCityCorpCantOrUpazila: String,
     permAddrPaurasavaOrUnion: String,
     permAddrWardInPaurasavaOrUnion: String,
+    permAddrVilAreaTownBn: String,
+    permAddrVilAreaTownEn: String,
+    permAddrPostOfc: String,
+    permAddrPostOfcEn: String,
+    permAddrHouseRoadBn: String,
+    permAddrHouseRoadEn: String,
 
     copyPermAddrToPrsntAddr: String,
 
@@ -189,6 +208,12 @@ const BirthRegistrationSchema = new Schema<IBirthRegistration>(
     prsntAddrCityCorpCantOrUpazila: String,
     prsntAddrPaurasavaOrUnion: String,
     prsntAddrWardInPaurasavaOrUnion: String,
+    prsntAddrVilAreaTownBn: String,
+    prsntAddrVilAreaTownEn: String,
+    prsntAddrPostOfc: String,
+    prsntAddrPostOfcEn: String,
+    prsntAddrHouseRoadBn: String,
+    prsntAddrHouseRoadEn: String,
 
     applicantName: String,
     phone: String,
