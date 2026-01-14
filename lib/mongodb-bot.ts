@@ -1,10 +1,10 @@
 // lib/mongodb.ts
 import mongoose, { Connection } from "mongoose";
 
-const MONGO_URI = process.env.MONGO_DB_URL as string;
+const MONGO_URI = process.env.MONGO_WA_BOT_DB as string;
 
 if (!MONGO_URI) {
-  throw new Error("❌ Please define MONGO_DB_URL in .env");
+  throw new Error("❌ Please define MONGO_WA_BOT_DB in .env");
 }
 
 interface MongooseCache {

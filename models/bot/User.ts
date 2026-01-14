@@ -7,6 +7,8 @@ export interface IUser extends Document {
   isBanned: boolean;
 
   balance: number;
+  whatsappMessageCount: number;
+  whatsappLastActive: Date;
 
   createdAt: Date;
   updatedAt: Date;
@@ -14,8 +16,10 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
-    name: { type: String, required: true },
-    whatsapp: { type: String, default: "" },
+    name: { type: String, default: "User" },
+    whatsapp: { type: String, required: true, unique: true },
+    whatsappMessageCount: { type: Number, default: 0 },
+    whatsappLastActive: { type: Date },
     isBanned: { type: Boolean, default: false },
     balance: { type: Number, default: 0 },
   },
