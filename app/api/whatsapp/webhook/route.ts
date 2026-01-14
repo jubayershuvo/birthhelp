@@ -161,6 +161,7 @@ function parseRechargeStateData(
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
+
   const mode = searchParams.get("hub.mode");
   const token = searchParams.get("hub.verify_token");
   const challenge = searchParams.get("hub.challenge");
@@ -215,7 +216,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       await sendMessage(from, "❌ Operation cancelled.");
       await sendMainMenuButtons(from);
       return NextResponse.json({ status: "cancelled" });
-    } else if (userInput.toLowerCase() === "menu" || userInput.toLowerCase() === "start") {
+    } else if (
+      userInput.toLowerCase() === "menu" ||
+      userInput.toLowerCase() === "start"
+    ) {
       await stateManager.clearUserState(from);
       await sendMainMenuButtons(from);
       return NextResponse.json({ status: "menu_sent" });
@@ -228,13 +232,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const response = await handleAwaitingTrxId(from, userInput, user);
       if (response) await sendMessage(from, response);
     } else if (currentState === STATES.AWAITING_SERVICE_CHOICE) {
-      const response = await handleAwaitingServiceChoice(from, userInput, user, userState);
+      const response = await handleAwaitingServiceChoice(
+        from,
+        userInput,
+        user,
+        userState
+      );
       if (response) await sendMessage(from, response);
     } else if (currentState === STATES.AWAITING_SERVICE_DATA) {
-      const response = await handleAwaitingServiceData(from, userInput, user, userState);
+      const response = await handleAwaitingServiceData(
+        from,
+        userInput,
+        user,
+        userState
+      );
       if (response) await sendMessage(from, response);
     } else if (currentState === STATES.AWAITING_ORDER_CONFIRM) {
-      const response = await handleAwaitingOrderConfirm(from, userInput, user, userState);
+      const response = await handleAwaitingOrderConfirm(
+        from,
+        userInput,
+        user,
+        userState
+      );
       if (response) await sendMessage(from, response);
     } else if (currentState === STATES.VIEWING_SERVICES) {
       await handleViewingServices(from, userInput, user, userState);
@@ -364,22 +383,28 @@ async function handleIdleState(
 
     case "🛒 order now":
       const userState = await stateManager.getUserState(phone);
-      const userStateData = userState?.data as { 
+      const userStateData = userState?.data as {
         selectedServiceId?: string;
         selectedServiceName?: string;
         selectedServicePrice?: number;
       };
-      
+
       if (userStateData?.selectedServiceId) {
         const service = await Service.findById(userStateData.selectedServiceId);
         if (service) {
           await startOrderProcess(phone, user, service);
         } else {
-          await sendMessage(phone, "❌ Service not found. Please select a service again.");
+          await sendMessage(
+            phone,
+            "❌ Service not found. Please select a service again."
+          );
           await showServicesCategories(phone, user);
         }
       } else {
-        await sendMessage(phone, "❌ No service selected. Please select a service first.");
+        await sendMessage(
+          phone,
+          "❌ No service selected. Please select a service first."
+        );
         await showServicesCategories(phone, user);
       }
       break;
@@ -405,18 +430,24 @@ async function handleIdleState(
   }
 }
 
-async function sendAccountInfo(phone: string, user: IUser & Document): Promise<void> {
-  const accountInfo = `👤 *ACCOUNT INFORMATION*\n\n📛 Name: ${user.name || "Not set"}\n📱 WhatsApp: ${
-    user.whatsapp
-  }\n💰 Balance: ${user.balance} BDT\n📅 Joined: ${new Date(
-    user.createdAt
-  ).toLocaleDateString()}`;
+async function sendAccountInfo(
+  phone: string,
+  user: IUser & Document
+): Promise<void> {
+  const accountInfo = `👤 *ACCOUNT INFORMATION*\n\n📛 Name: ${
+    user.name || "Not set"
+  }\n📱 WhatsApp: ${user.whatsapp}\n💰 Balance: ${
+    user.balance
+  } BDT\n📅 Joined: ${new Date(user.createdAt).toLocaleDateString()}`;
 
   await sendMessage(phone, accountInfo);
   await sendMainMenuButtons(phone);
 }
 
-async function sendBalanceInfo(phone: string, user: IUser & Document): Promise<void> {
+async function sendBalanceInfo(
+  phone: string,
+  user: IUser & Document
+): Promise<void> {
   const recentTx = await Transaction.find({
     userId: user._id,
     type: "recharge",
@@ -439,7 +470,7 @@ async function sendBalanceInfo(phone: string, user: IUser & Document): Promise<v
   const balanceInfo = `💰 *BALANCE*\n\nCurrent Balance: *${user.balance} BDT*${recentText}`;
 
   await sendMessage(phone, balanceInfo);
-  
+
   if (user.balance < 100) {
     const lowBalanceButtons = [
       {
@@ -590,7 +621,10 @@ async function handleAwaitingTrxId(
 ): Promise<string> {
   let trxId = "";
 
-  if (text.toLowerCase() === "✅ i've paid" || text.toLowerCase() === "i've paid") {
+  if (
+    text.toLowerCase() === "✅ i've paid" ||
+    text.toLowerCase() === "i've paid"
+  ) {
     return "📝 *TRANSACTION ID*\n\nPlease enter your Bkash transaction ID:\n\nFormat: *trxid A1B2C3D4*\n\nOr type *cancel* to exit.";
   }
 
@@ -615,7 +649,7 @@ async function handleAwaitingTrxId(
 
   const result = await processRecharge(user, trxId, amount);
   await stateManager.clearUserState(phone);
-  
+
   // After recharge, show main menu
   await sendMainMenuButtons(phone);
 
@@ -653,7 +687,11 @@ async function processRecharge(
     if (adminPhone) {
       await sendMessage(
         adminPhone,
-        `🔄 New Recharge Request\nUser: ${user.name || user.whatsapp}\nAmount: ${amount} BDT\nTrxID: ${trxId}\nWhatsApp: ${user.whatsapp}\n\nTo approve: /approve ${transaction._id}`
+        `🔄 New Recharge Request\nUser: ${
+          user.name || user.whatsapp
+        }\nAmount: ${amount} BDT\nTrxID: ${trxId}\nWhatsApp: ${
+          user.whatsapp
+        }\n\nTo approve: /approve ${transaction._id}`
       );
     }
 
@@ -664,10 +702,12 @@ async function processRecharge(
   }
 }
 
-async function showServicesCategories(phone: string, user: IUser & Document): Promise<void> {
-  const categories = await Service.distinct("category", {
+async function showServicesCategories(
+  phone: string,
+  user: IUser & Document
+): Promise<void> {
+  const categories = await Service.find({
     isActive: true,
-    isAvailable: true,
   });
 
   if (categories.length === 0) {
@@ -786,10 +826,10 @@ async function handleViewingServices(
 
     await stateManager.setUserState(phone, {
       currentState: STATES.VIEWING_SERVICE_DETAILS,
-      data: { 
-        category: text, 
-        services: services.map(s => s._id.toString()),
-        serviceNames: services.map(s => s.name)
+      data: {
+        category: text,
+        services: services.map((s) => s._id.toString()),
+        serviceNames: services.map((s) => s.name),
       },
     });
   } catch (error) {
@@ -806,7 +846,7 @@ async function sendServiceListAsButtons(
   user: IUser & Document
 ): Promise<void> {
   let message = `📋 *${category.toUpperCase()} SERVICES*\n\n`;
-  
+
   services.slice(0, 10).forEach((service, index) => {
     message += `${index + 1}. ${service.name}\n`;
     message += `   💰 ${service.price} BDT\n`;
@@ -817,16 +857,19 @@ async function sendServiceListAsButtons(
     message += `... and ${services.length - 10} more services\n\n`;
   }
 
-  message += `Reply with service number (1-${Math.min(services.length, 10)}) to select.`;
+  message += `Reply with service number (1-${Math.min(
+    services.length,
+    10
+  )}) to select.`;
 
   await sendMessage(phone, message);
-  
+
   await stateManager.setUserState(phone, {
     currentState: STATES.VIEWING_SERVICE_DETAILS,
-    data: { 
-      category, 
-      services: services.map(s => s._id.toString()),
-      serviceNames: services.map(s => s.name)
+    data: {
+      category,
+      services: services.map((s) => s._id.toString()),
+      serviceNames: services.map((s) => s.name),
     },
   });
 }
@@ -842,18 +885,18 @@ async function handleViewingServiceDetails(
     return;
   }
 
-  const userStateData = userState?.data as { 
-    services?: string[]; 
-    serviceNames?: string[]; 
-    category?: string 
+  const userStateData = userState?.data as {
+    services?: string[];
+    serviceNames?: string[];
+    category?: string;
   };
 
   let service: IService | null = null;
-  
+
   // Try to match the service from the list selection
   // Format: "Service Name - 100 BDT"
   const match = text.match(/^(.*?) - (\d+) BDT$/);
-  
+
   if (match) {
     const [, serviceName] = match;
     service = await Service.findOne({
@@ -864,7 +907,11 @@ async function handleViewingServiceDetails(
   } else if (userStateData?.serviceNames) {
     // Try to match by index (for fallback text mode)
     const index = parseInt(text);
-    if (!isNaN(index) && index > 0 && index <= userStateData.serviceNames.length) {
+    if (
+      !isNaN(index) &&
+      index > 0 &&
+      index <= userStateData.serviceNames.length
+    ) {
       const serviceName = userStateData.serviceNames[index - 1];
       service = await Service.findOne({
         name: serviceName,
@@ -875,7 +922,10 @@ async function handleViewingServiceDetails(
   }
 
   if (!service) {
-    await sendMessage(phone, "❌ Service not found. Please select from the list.");
+    await sendMessage(
+      phone,
+      "❌ Service not found. Please select from the list."
+    );
     await showServicesCategories(phone, user);
     return;
   }
@@ -916,7 +966,6 @@ async function showServiceDetails(
   serviceDetails += `💰 *Price:* ${service.price} BDT\n`;
   serviceDetails += `📝 *Description:* ${service.description}\n`;
 
-
   if (service.instructions) {
     serviceDetails += `📋 *Instructions:* ${service.instructions}\n`;
   }
@@ -927,10 +976,10 @@ async function showServiceDetails(
 
   await stateManager.setUserState(phone, {
     currentState: STATES.IDLE,
-    data: { 
+    data: {
       selectedServiceId: service._id.toString(),
       selectedServiceName: service.name,
-      selectedServicePrice: service.price 
+      selectedServicePrice: service.price,
     },
   });
 }
@@ -1007,8 +1056,6 @@ async function startOrderProcess(
     collectedData: {},
   };
 
-
-
   await stateManager.setUserState(phone, {
     currentState: STATES.AWAITING_SERVICE_DATA,
     flowType: "order",
@@ -1023,7 +1070,6 @@ async function startOrderProcess(
     await confirmOrder(phone, user, orderData);
   }
 }
-
 
 async function handleAwaitingServiceChoice(
   phone: string,
@@ -1068,7 +1114,13 @@ async function handleAwaitingServiceChoice(
   if (fields.length > 0) {
     const firstField = fields[0];
     const serviceName = data.serviceName || "Service";
-    await askForField(phone, { name: serviceName } as IService, firstField, 1, fields.length);
+    await askForField(
+      phone,
+      { name: serviceName } as IService,
+      firstField,
+      1,
+      fields.length
+    );
     return `🛒 *ORDER DETAILS*\n\nService: ${serviceName}\nQuantity: ${quantity}\nTotal: ${totalPrice} BDT`;
   } else {
     await confirmOrder(phone, user, updatedData);
@@ -1137,7 +1189,9 @@ async function handleAwaitingServiceData(
   } else if (currentField.type === "select" && currentField.options) {
     if (!currentField.options.includes(text)) {
       isValid = false;
-      validationError = `Please choose from: ${currentField.options.join(", ")}`;
+      validationError = `Please choose from: ${currentField.options.join(
+        ", "
+      )}`;
     }
   }
 
@@ -1222,7 +1276,10 @@ async function handleAwaitingOrderConfirm(
   user: IUser & Document,
   userState: StateManagerUserState | null
 ): Promise<string> {
-  if (text.toLowerCase() !== "✅ confirm order" && text.toLowerCase() !== "yes") {
+  if (
+    text.toLowerCase() !== "✅ confirm order" &&
+    text.toLowerCase() !== "yes"
+  ) {
     await stateManager.clearUserState(phone);
     await sendMessage(phone, "❌ Order cancelled.");
     await sendMainMenuButtons(phone);
@@ -1280,7 +1337,11 @@ async function handleAwaitingOrderConfirm(
     if (adminPhone) {
       await sendMessage(
         adminPhone,
-        `🛒 New Order\nUser: ${user.name || user.whatsapp}\nService: ${data.serviceName}\nAmount: ${data.totalPrice} BDT\nOrder ID: ${order.orderId}\nWhatsApp: ${user.whatsapp}`
+        `🛒 New Order\nUser: ${user.name || user.whatsapp}\nService: ${
+          data.serviceName
+        }\nAmount: ${data.totalPrice} BDT\nOrder ID: ${
+          order.orderId
+        }\nWhatsApp: ${user.whatsapp}`
       );
     }
 
@@ -1298,7 +1359,10 @@ async function handleAwaitingOrderConfirm(
   }
 }
 
-async function sendMyOrders(phone: string, userId: Types.ObjectId): Promise<void> {
+async function sendMyOrders(
+  phone: string,
+  userId: Types.ObjectId
+): Promise<void> {
   const orders = await Order.find({ userId })
     .populate("serviceId", "name")
     .sort({ createdAt: -1 })
@@ -1306,7 +1370,10 @@ async function sendMyOrders(phone: string, userId: Types.ObjectId): Promise<void
     .lean<PopulatedOrder[]>();
 
   if (orders.length === 0) {
-    await sendMessage(phone, "📭 No orders found. Use *Services* to place an order.");
+    await sendMessage(
+      phone,
+      "📭 No orders found. Use *Services* to place an order."
+    );
     await sendMainMenuButtons(phone);
     return;
   }
