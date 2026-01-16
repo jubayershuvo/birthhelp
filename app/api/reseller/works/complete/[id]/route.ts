@@ -9,6 +9,7 @@ import fs from "fs/promises";
 import User from "@/models/User";
 import Reseller from "@/models/Reseller";
 import { sendWhatsAppFile, sendWhatsAppText } from "@/lib/whatsapp";
+import { sendOrderDeliveryTemplate } from "@/lib/whatsAppCloude";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -170,10 +171,15 @@ export async function POST(
       // Send WhatsApp notification
       try {
         if (uploadedFile) {
-          await sendWhatsAppFile(
+          await sendOrderDeliveryTemplate(
             poster.whatsapp,
-            uploadedFile.path,
-            `✅ Delivery Completed Successfully!\n\nYour order for the service "${post.service.title}" has been marked as completed.\n\nThank you for ordering from us!`
+            post.service.title,
+            poster_reseller.name,
+            post.id.toString(),
+            `${
+              process.env.NEXT_PUBLIC_APP_URL
+            }/api/files/${uploadedFile._id.toString()}`,
+            uploadedFile.name
           );
         } else if (deliveryNote) {
           await sendWhatsAppText(

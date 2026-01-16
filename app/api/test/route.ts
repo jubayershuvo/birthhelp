@@ -1,12 +1,24 @@
-
-import { sendNewOrderToReseller, sendOtpTemplate } from "@/lib/whatsAppCloude";
+import {
+  sendNewOrderToReseller,
+  sendOrderAcceptedTemplate,
+  sendOrderDeliveryTemplate,
+  sendOtpTemplate,
+  sendUserOrderAcceptedTemplate,
+} from "@/lib/whatsAppCloude";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    // await sendOtpTemplate("8801964753086", "123456");
-    await sendNewOrderToReseller("8801964753086", "service", "user");
-    return NextResponse.json({ message: "OTP sent successfully" }, { status: 200 });
+    const res = await sendOrderAcceptedTemplate(
+      "8801964753086",
+      "reseller",
+      "service_1",
+    );
+
+    return NextResponse.json(
+      { message: "Message sent successfully", data: res },
+      { status: 200 }
+    );
   } catch (error) {
     console.log(error);
     return NextResponse.json(

@@ -7,6 +7,10 @@ import { getReseller } from "@/lib/getReseller";
 import User from "@/models/User";
 import { sendWhatsAppText } from "@/lib/whatsapp";
 import Reseller from "@/models/Reseller";
+import {
+  sendOrderAcceptedTemplate,
+  sendUserOrderAcceptedTemplate,
+} from "@/lib/whatsAppCloude";
 
 export async function POST(
   request: NextRequest,
@@ -82,9 +86,11 @@ export async function POST(
     const poster = await User.findById(post.user);
     if (poster && poster.whatsapp) {
       try {
-        await sendWhatsAppText(
+        await sendUserOrderAcceptedTemplate(
           poster.whatsapp,
-          `Hello ${poster.name}, your work request for "${post.service.title}" has been accepted by reseller ${user.name}. They will be in touch with you shortly.`
+          poster.name,
+          post.service.title,
+          user.name
         );
       } catch (error) {
         console.log(error);
@@ -95,9 +101,10 @@ export async function POST(
     for (const reseller of resellers) {
       if (reseller.whatsapp) {
         try {
-          await sendWhatsAppText(
+          await sendOrderAcceptedTemplate(
             reseller.whatsapp,
-            `Reseller ${user.name} has accepted the work request for "${post.service.title}".`
+            user.name,
+            post.service.title
           );
         } catch (error) {
           console.log(error);

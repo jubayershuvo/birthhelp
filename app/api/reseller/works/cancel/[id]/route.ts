@@ -7,6 +7,7 @@ import { getReseller } from "@/lib/getReseller";
 import User from "@/models/User";
 import Transaction from "@/models/Transaction";
 import { sendWhatsAppText } from "@/lib/whatsapp";
+import { sendUserOrderCancelledTemplate } from "@/lib/whatsAppCloude";
 
 export async function POST(
   request: NextRequest,
@@ -82,9 +83,12 @@ export async function POST(
 
     if (poster.whatsapp) {
       try {
-        await sendWhatsAppText(
+        await sendUserOrderCancelledTemplate(
           poster.whatsapp,
-          `Hello ${poster.name}, your work request for "${post.service.title}" has been cancelled by ${user.name} Reason: ${note}. The amount has been refunded to your account. If you have any questions, please contact support.`
+          poster.name,
+          post.service.title,
+          user.name,
+          note || "No reason provided",
         );
       } catch (error) {
         console.log(error);

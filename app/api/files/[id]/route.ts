@@ -1,4 +1,4 @@
-import { getUser } from "@/lib/getUser";
+
 import { connectDB } from "@/lib/mongodb";
 import PostFile from "@/models/PostFile";
 import { NextResponse } from "next/server";
@@ -16,15 +16,10 @@ export async function GET(
       return NextResponse.json({ error: "Id not found" }, { status: 404 });
     }
 
-    const user = await getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     // 1. Fetch record
     const record = await PostFile.findById(id);
     if (!record) {
-        console.log("File record not found")
+      console.log("File record not found");
       return NextResponse.json(
         { error: "File record not found" },
         { status: 404 }
@@ -35,11 +30,10 @@ export async function GET(
 
     const fileName = `${record.name}_${record._id}` || "download";
 
-    const safeFileName  = fileName.replace(/[^a-zA-Z0-9]/g, "_");
-
+    const safeFileName = fileName.replace(/[^a-zA-Z0-9]/g, "_");
 
     if (!fs.existsSync(filePath)) {
-        console.log("File not found on server", filePath)
+      console.log("File not found on server", filePath);
       return NextResponse.json(
         { error: "File not found on server" },
         { status: 404 }
@@ -56,7 +50,6 @@ export async function GET(
     });
 
     return new Response(fileBuffer, { headers });
-
   } catch (error) {
     console.error("File download error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
