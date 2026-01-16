@@ -175,7 +175,7 @@ export async function POST(
             poster.whatsapp,
             post.service.title,
             poster_reseller.name,
-            post.id.toString(),
+            post._id.toString(),
             `${
               process.env.NEXT_PUBLIC_URL
             }/api/files/${uploadedFile._id.toString()}`,
