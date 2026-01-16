@@ -57,7 +57,7 @@ export default function HistoryPage() {
             key={item._id}
             className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 sm:p-6 space-y-4"
           >
-            {/* Header */}
+            
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
               <Info label="App ID" value={item.appId} />
               <Info label="Created At" value={new Date(item.createdAt).toLocaleString()} />
