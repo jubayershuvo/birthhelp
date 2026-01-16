@@ -55,7 +55,7 @@ export async function sendOtpTemplate(
 export async function sendNewOrderToReseller(
   to: string,
   serviceName: string,
-  resellerName: string,
+  userName: string,
   language = "en"
 ) {
   const res = await fetch(WHATSAPP_API_URL, {
@@ -76,7 +76,7 @@ export async function sendNewOrderToReseller(
             type: "body",
             parameters: [
               { type: "text", text: serviceName },
-              { type: "text", text: resellerName },
+              { type: "text", text: userName },
             ],
           },
         ],

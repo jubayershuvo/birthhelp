@@ -177,7 +177,7 @@ export async function POST(
             poster_reseller.name,
             post.id.toString(),
             `${
-              process.env.NEXT_PUBLIC_APP_URL
+              process.env.NEXT_PUBLIC_URL
             }/api/files/${uploadedFile._id.toString()}`,
             uploadedFile.name
           );
