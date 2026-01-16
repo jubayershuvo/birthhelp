@@ -1,7 +1,7 @@
 import { getReseller } from "@/lib/getReseller";
 import { connectDB } from "@/lib/mongodb";
 import { generateOtp } from "@/lib/otp";
-import { sendWhatsAppText } from "@/lib/whatsapp";
+import { sendOtpTemplate } from "@/lib/whatsAppCloude";
 import Reseller from "@/models/Reseller";
 import { NextResponse } from "next/server";
 
@@ -60,10 +60,7 @@ export async function POST(req: Request) {
       }
       try {
         const otp = generateOtp(whatsapp);
-        await sendWhatsAppText(
-          whatsapp,
-          `Your OTP to verify your new WhatsApp number is: ${otp}. It is valid for 10 minutes.`
-        );
+        await sendOtpTemplate(whatsapp, otp);
       } catch (error) {
         console.log(error);
       }
