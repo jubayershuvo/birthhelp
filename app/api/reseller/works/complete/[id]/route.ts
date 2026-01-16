@@ -9,7 +9,7 @@ import fs from "fs/promises";
 import User from "@/models/User";
 import Reseller from "@/models/Reseller";
 import { sendWhatsAppFile, sendWhatsAppText } from "@/lib/whatsapp";
-import { sendOrderDeliveryTemplate } from "@/lib/whatsAppCloude";
+import { sendOrderDeliveryTemplate, sendOrderTextDeliveryTemplate } from "@/lib/whatsAppCloude";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -182,9 +182,12 @@ export async function POST(
             uploadedFile.name
           );
         } else if (deliveryNote) {
-          await sendWhatsAppText(
+          await sendOrderTextDeliveryTemplate(
             poster.whatsapp,
-            `✅ Delivery Completed Successfully!\n\nYour order for the service "${post.service.title}" has been marked as completed.\n\nDelivery Note:\n${deliveryNote}\n\nThank you for ordering from us!`
+            poster_reseller.name,
+            post.service.title,
+            deliveryNote,
+            "Birth Help"
           );
         }
       } catch (error) {

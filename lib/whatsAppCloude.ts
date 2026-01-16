@@ -1,5 +1,52 @@
 const WHATSAPP_API_URL = `https://graph.facebook.com/v22.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
+export async function sendOrderTextDeliveryTemplate(
+  to: string,
+  userName: string,
+  productName: string,
+  contentText: string,
+  brandName: string,
+  language = "en"
+) {
+  const res = await fetch(WHATSAPP_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to,
+      type: "template",
+      template: {
+        name: "order_delivered_text",
+        language: { code: language },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: userName },
+              { type: "text", text: productName },
+              { type: "text", text: contentText },
+              { type: "text", text: brandName },
+            ],
+          },
+        ],
+      },
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(
+      `WhatsApp Order Text Delivery Error: ${JSON.stringify(data)}`
+    );
+  }
+
+  return data;
+}
+
 export async function sendOtpTemplate(
   to: string,
   otp: string,
