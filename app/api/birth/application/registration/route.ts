@@ -449,8 +449,8 @@ export async function POST(request: NextRequest) {
     );
     appendFormData(
       "permAddrEn",
-      ` ${restData.permAddrVilAreaTownBn || ""} ${
-        restData.permAddrPostOfc || ""
+      ` ${restData.permAddrVilAreaTownEn || ""} ${
+        restData.permAddrPostOfcEn || ""
       }`
     );
     appendFormData("permAddrHouseRoadBn", restData.permAddrHouseRoadBn);
