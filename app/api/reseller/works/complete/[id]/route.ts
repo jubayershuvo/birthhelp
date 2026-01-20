@@ -152,9 +152,10 @@ export async function POST(
     await user.save();
     await post.save();
     await poster_reseller.save();
+
     // Create earnings record for worker
     await Earnings.create({
-      user: post.user.toString(),
+      user: poster._id,
       reseller: user._id,
       service: post.service._id,
       amount: post.worker_fee,
@@ -164,7 +165,7 @@ export async function POST(
 
     // Create earnings record for poster's reseller commission
     await Earnings.create({
-      user: post.user.toString(),
+      user: poster._id,
       reseller: poster_reseller._id,
       service: post.service._id,
       amount: post.reseller_fee,
