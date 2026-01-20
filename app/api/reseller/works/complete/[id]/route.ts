@@ -8,8 +8,10 @@ import path from "path";
 import fs from "fs/promises";
 import User from "@/models/User";
 import Reseller from "@/models/Reseller";
-import { sendWhatsAppFile, sendWhatsAppText } from "@/lib/whatsapp";
-import { sendOrderDeliveryTemplate, sendOrderTextDeliveryTemplate } from "@/lib/whatsAppCloude";
+import {
+  sendOrderDeliveryTemplate,
+  sendOrderTextDeliveryTemplate,
+} from "@/lib/whatsAppCloude";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -26,7 +28,7 @@ async function ensureUploadDir() {
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await connectDB();
@@ -36,7 +38,7 @@ export async function POST(
     if (!user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -54,7 +56,7 @@ export async function POST(
           success: false,
           message: "Please provide either a delivery file or a delivery note",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -68,7 +70,7 @@ export async function POST(
     if (!post || !poster || !poster_reseller) {
       return NextResponse.json(
         { success: false, message: "Post not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -79,7 +81,7 @@ export async function POST(
           success: false,
           message: "You are not assigned to this work",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -90,7 +92,7 @@ export async function POST(
           success: false,
           message: "This work is not in processing status",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -144,9 +146,12 @@ export async function POST(
     // Update user balance
     user.balance += Number(post.worker_fee);
 
+    // Update reseller balance
+    poster_reseller.balance += Number(post.reseller_fee);
+
     await user.save();
     await post.save();
-
+    await poster_reseller.save();
     // Create earnings record for worker
     await Earnings.create({
       user: post.user.toString(),
@@ -179,7 +184,7 @@ export async function POST(
             `${
               process.env.NEXT_PUBLIC_URL
             }/api/files/${uploadedFile._id.toString()}`,
-            uploadedFile.name
+            uploadedFile.name,
           );
         } else if (deliveryNote) {
           await sendOrderTextDeliveryTemplate(
@@ -187,7 +192,7 @@ export async function POST(
             poster_reseller.name,
             post.service.title,
             deliveryNote,
-            "Birth Help"
+            "Birth Help",
           );
         }
       } catch (error) {
@@ -214,7 +219,7 @@ export async function POST(
         message:
           error instanceof Error ? error.message : "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
