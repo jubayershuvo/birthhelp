@@ -80,14 +80,6 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    page.on("requestfailed", (req) => {
-      console.log("❌ Request failed:", req.url(), req.failure());
-    });
-
-    page.on("console", (msg) => {
-      console.log("PAGE LOG:", msg.text());
-    });
-
     // Wait for network to be idle and content to load
     await page.goto(url, {
       waitUntil: "networkidle0",
