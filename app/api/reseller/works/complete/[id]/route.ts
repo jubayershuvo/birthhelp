@@ -67,13 +67,18 @@ export async function POST(
 
     const poster_reseller = await Reseller.findById(poster?.reseller);
 
-    if (!post || !poster || !poster_reseller) {
+    if (!post || !poster) {
       return NextResponse.json(
         { success: false, message: "Post not found" },
         { status: 404 },
       );
     }
-
+    if (!poster.isSpecialUser && !poster_reseller) {
+      return NextResponse.json(
+        { success: false, message: "Poster reseller not found" },
+        { status: 404 },
+      );
+    }
     // Check if worker is assigned to this post
     if (post.worker?.toString() !== user._id.toString()) {
       return NextResponse.json(
@@ -143,36 +148,70 @@ export async function POST(
     post.updatedAt = new Date();
     post.completedAt = new Date();
 
-    // Update user balance
-    user.balance += Number(post.worker_fee);
+    // ================= BALANCE & EARNINGS LOGIC =================
+    const isSameUser =
+      poster_reseller && user._id.toString() === poster_reseller._id.toString();
 
-    // Update reseller balance
-    poster_reseller.balance += Number(post.reseller_fee);
+    if (!poster.isSpecialUser && poster_reseller) {
+      if (isSameUser) {
+        // Worker and reseller are SAME → add combined amount once
+        const totalAmount = Number(post.worker_fee) + Number(post.reseller_fee);
 
-    await user.save();
+        user.balance += totalAmount;
+        await user.save();
+
+        await Earnings.create({
+          user: poster._id,
+          reseller: user._id,
+          service: post.service._id,
+          amount: totalAmount,
+          data: post._id.toString(),
+          dataSchema: "CompletedWorkCombined",
+        });
+      } else {
+        // Different accounts → normal split
+
+        // Reseller commission
+        poster_reseller.balance += Number(post.reseller_fee);
+        await poster_reseller.save();
+
+        await Earnings.create({
+          user: poster._id,
+          reseller: poster_reseller._id,
+          service: post.service._id,
+          amount: post.reseller_fee,
+          data: post._id.toString(),
+          dataSchema: "CompletedWorkCommission",
+        });
+
+        // Worker payment
+        user.balance += Number(post.worker_fee);
+        await user.save();
+
+        await Earnings.create({
+          user: poster._id,
+          reseller: user._id,
+          service: post.service._id,
+          amount: post.worker_fee,
+          data: post._id.toString(),
+          dataSchema: "CompletedWork",
+        });
+      }
+    } else {
+      // Special user → only worker gets paid
+      user.balance += Number(post.worker_fee);
+      await user.save();
+
+      await Earnings.create({
+        user: poster._id,
+        reseller: user._id,
+        service: post.service._id,
+        amount: post.worker_fee,
+        data: post._id.toString(),
+        dataSchema: "CompletedWork",
+      });
+    }
     await post.save();
-    await poster_reseller.save();
-
-    // Create earnings record for worker
-    await Earnings.create({
-      user: poster._id,
-      reseller: user._id,
-      service: post.service._id,
-      amount: post.worker_fee,
-      data: post._id.toString(),
-      dataSchema: "CompletedWork",
-    });
-
-    // Create earnings record for poster's reseller commission
-    await Earnings.create({
-      user: poster._id,
-      reseller: poster_reseller._id,
-      service: post.service._id,
-      amount: post.reseller_fee,
-      data: post._id.toString(),
-      dataSchema: "CompletedWorkCommission",
-    });
-
     if (poster.whatsapp) {
       // Send WhatsApp notification
       try {
