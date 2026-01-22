@@ -443,8 +443,8 @@ export async function POST(request: NextRequest) {
     appendFormData("permAddrArea", restData.permAddrArea);
     appendFormData(
       "permAddrBn",
-      ` ${restData.birthPlaceVilAreaTownBn || ""} ${
-        restData.birthPlacePostOfc || ""
+      ` ${restData.permAddrVilAreaTownBn || ""} ${
+        restData.permAddrPostOfc || ""
       }`
     );
     appendFormData(
