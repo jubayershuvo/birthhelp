@@ -28,35 +28,49 @@ export default function ViewCorrectionPage({
 }: ViewCorrectionPageProps) {
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleDownload = async () => {
-    setIsDownloading(true);
-
+  const downloadPDFWithFetch = async (appId: string) => {
+    toast.loading("Downloading PDF...", { id: "pdf" });
     try {
+      setIsDownloading(true);
       const response = await fetch(
-        `/api/birth/application/correction/download-pdf/${application._id}`
+        `/api/download/application?appId=${appId}&appType=br_correction`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Include cookies if needed
+        },
       );
 
+      // Check if response is OK
       if (!response.ok) {
-        throw new Error("Failed to download PDF");
+        setIsDownloading(false);
+        // Try to parse error message
+        return toast.error("Faild to download", { id: "pdf" });
       }
 
+      // Get blob from response
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = `correction-${application.applicationId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
 
-      toast.success("PDF downloaded successfully!");
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Failed to download PDF. Please try again.");
-    } finally {
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${appId}.pdf`;
+      document.body.appendChild(link);
+
+      // Trigger download
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
       setIsDownloading(false);
+      toast.success("PDF downloaded successfully!", { id: "pdf" });
+    } catch (error) {
+      setIsDownloading(false);
+      return toast.error("Faild to download", { id: "pdf" });
     }
   };
 
@@ -192,9 +206,9 @@ export default function ViewCorrectionPage({
           >
             Back
           </button>
-          {/* <button
+          <button
             type="button"
-            onClick={handleDownload}
+            onClick={() => downloadPDFWithFetch(application.applicationId)}
             disabled={isDownloading}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
@@ -223,12 +237,12 @@ export default function ViewCorrectionPage({
                 Downloading...
               </>
             ) : (
-              "Download PDF"
+              "Download PDF (10tk)"
             )}
-          </button> */}
+          </button>
         </div>
       </div>
     </div>
   );
 }
-// 
+//

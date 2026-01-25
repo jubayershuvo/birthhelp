@@ -323,7 +323,7 @@ const BirthApplications: React.FC = () => {
     toast.loading("Downloading PDF...", { id: "pdf" });
     try {
       const response = await fetch(
-        `/api/download/application?appId=${appId}&appType=br_correction`,
+        `/api/download/application?appId=${appId}&appType=br`,
         {
           method: "GET",
           headers: {
