@@ -7,7 +7,7 @@ const userAgentString =
 
 export async function POST(req: NextRequest) {
   try {
-    const { cookies, csrf, phone, email, otp } = await req.json();
+    const { cookies, csrf, phone, email, otp, relation, applicantName, officeAddressType, officeId } = await req.json();
 
     if (!cookies  || !phone || !csrf) {
       return NextResponse.json(
@@ -27,12 +27,14 @@ export async function POST(req: NextRequest) {
       appType: "BIRTH_REGISTRATION_APPLICATION",
       otp,
       phone,
-      officeId: "0",
+      relation,
+      applicantName,
+      officeId: officeId || "0",
       personUbrn:'',
       geoLocationId: "0",
       ubrn: "",
       nid: "",
-      officeAddressType: "",
+      officeAddressType
     });
 
     if (email) params.append("email", email);

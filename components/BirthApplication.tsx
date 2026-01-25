@@ -2832,6 +2832,10 @@ export default function BirthRegistrationForm() {
             otp: submissionData.otp,
             email: submissionData.email,
             phone: submissionData.phone,
+            relation: submissionData.relationWithApplicant,
+            applicantName: submissionData.applicantName,
+            officeAddressType: submissionData.officeAddressType,
+            officeId: '0',
           }),
         }
       );
