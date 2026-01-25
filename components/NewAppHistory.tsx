@@ -319,7 +319,48 @@ const BirthApplications: React.FC = () => {
       toast.error("Failed to load session data", { id: "sessionReload" });
     }
   };
-  const reSubmit = async () => {};
+  const downloadPDFWithFetch = async (appId: string) => {
+    toast.loading("Downloading PDF...", { id: "pdf" });
+    try {
+      const response = await fetch(
+        `/api/download/application?appId=${appId}&appType=br_correction`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Include cookies if needed
+        },
+      );
+
+      // Check if response is OK
+      if (!response.ok) {
+        // Try to parse error message
+        return toast.error("Faild to download", { id: "pdf" });
+      }
+
+      // Get blob from response
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${appId}.pdf`;
+      document.body.appendChild(link);
+
+      // Trigger download
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("PDF downloaded successfully!", { id: "pdf" });
+    } catch (error) {
+      return toast.error("Faild to download", { id: "pdf" });
+    }
+  };
 
   // Calculate statistics
   const stats = {
@@ -871,6 +912,20 @@ const BirthApplications: React.FC = () => {
                               </div>
                             ))}
                           </div>
+                        </div>
+
+
+                           <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                          {app.status === "submitted" && (
+                            <button
+                              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                              onClick={() =>
+                                downloadPDFWithFetch(app.applicationId)
+                              }
+                            >
+                              Download Pdf (10tk)
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

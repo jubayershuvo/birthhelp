@@ -32,6 +32,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 // ==================== Types ====================
 export interface CorrectionInfo {
@@ -118,7 +119,7 @@ export interface CorrectionApplication {
 
 // ==================== Helper Functions ====================
 const getStatusBadgeColor = (
-  status: CorrectionApplication["submit_status"]
+  status: CorrectionApplication["submit_status"],
 ) => {
   switch (status) {
     case "approved":
@@ -233,7 +234,7 @@ const CorrectionAppHistory: React.FC = () => {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -303,8 +304,47 @@ const CorrectionAppHistory: React.FC = () => {
     // In real implementation, you would use the file.url to download
   };
 
-  const handleViewDetails = (appId: string) => {
-    console.log("View details for:", appId);
+  const downloadPDFWithFetch = async (appId: string) => {
+    toast.loading("Downloading PDF...", { id: "pdf" });
+    try {
+      const response = await fetch(
+        `/api/download/application?appId=${appId}&appType=br_correction`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Include cookies if needed
+        },
+      );
+
+      // Check if response is OK
+      if (!response.ok) {
+        // Try to parse error message
+        return toast.error("Faild to download", { id: "pdf" });
+      }
+
+      // Get blob from response
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${appId}.pdf`;
+      document.body.appendChild(link);
+
+      // Trigger download
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("PDF downloaded successfully!", { id: "pdf" });
+    } catch (error) {
+      return toast.error("Faild to download", { id: "pdf" });
+    }
   };
 
   // Calculate statistics
@@ -320,14 +360,14 @@ const CorrectionAppHistory: React.FC = () => {
       .length,
     corrections: applications.reduce(
       (total, app) => total + app.correctionInfos.length,
-      0
+      0,
     ),
     avgCorrections:
       applications.length > 0
         ? (
             applications.reduce(
               (total, app) => total + app.correctionInfos.length,
-              0
+              0,
             ) / applications.length
           ).toFixed(1)
         : "0",
@@ -533,7 +573,7 @@ const CorrectionAppHistory: React.FC = () => {
                       <div className="flex items-center gap-3 mb-2">
                         <div
                           className={`px-3 py-1 rounded-full border flex items-center gap-2 ${getStatusBadgeColor(
-                            app.submit_status
+                            app.submit_status,
                           )}`}
                         >
                           {getStatusIcon(app.submit_status)}
@@ -585,7 +625,7 @@ const CorrectionAppHistory: React.FC = () => {
                             className="bg-blue-500 cursor-pointer hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                             onClick={() => {
                               router.push(
-                                `/birth/application/correction?id=${app._id}`
+                                `/birth/application/correction?id=${app._id}`,
                               );
                             }}
                           >
@@ -826,23 +866,16 @@ const CorrectionAppHistory: React.FC = () => {
 
                         {/* Status Badge */}
                         <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm text-gray-400">
-                                Application Status
-                              </p>
-                              <p className="text-lg font-semibold capitalize">
-                                {app.submit_status}
-                              </p>
-                            </div>
-                            <div
-                              className={`px-3 py-2 rounded-lg ${getStatusBadgeColor(
-                                app.submit_status
-                              )}`}
+                          {app.submit_status === "submitted" && (
+                            <button
+                              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                              onClick={() =>
+                                downloadPDFWithFetch(app.applicationId)
+                              }
                             >
-                              {getStatusIcon(app.submit_status)}
-                            </div>
-                          </div>
+                              Download Pdf (10tk)
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
