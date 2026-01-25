@@ -2121,12 +2121,13 @@ export default function BirthRegistrationForm() {
             formData.applicant.relation === "SELF"
               ? ""
               : formData.father.ubrn || "",
-          relation: formData.applicant.relation,
+          relation: "SELF",
           email: formData.applicant.email || "",
           csrf: sessionData.csrf,
           cookies: sessionData.cookies,
           officeAddressType: formData.officeAddressType,
           officeId: formData.officeAddrOffice,
+          geoLocationId: formData.officeAddressType === "BIRTHPLACE" ? formData.birthPlaceAddress?.paurasavaOrUnion : formData.officeAddressType === "PERMANENT" ? formData.permAddrAddress?.paurasavaOrUnion : formData.officeAddrOffice,
         }),
       });
 
@@ -2836,7 +2837,7 @@ export default function BirthRegistrationForm() {
             applicantName: submissionData.applicantName,
             officeAddressType: submissionData.officeAddressType,
             officeId: '0',
-            geoLocationId: submissionData.officeAddrPaurasavaOrUnion
+            geoLocationId: submissionData.officeAddrPaurasavaOrUnion ||submissionData.officeAddrOffice
           }),
         }
       );
