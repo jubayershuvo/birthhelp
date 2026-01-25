@@ -2801,7 +2801,7 @@ export default function BirthRegistrationForm() {
         applicantName: formData.applicant.name,
         phone: `+88${formData.applicant.phone}`,
         email: formData.applicant.email,
-        relationWithApplicant: "SELF",
+        relationWithApplicant: formData.applicant.relation,
         // relationWithApplicant: formData.applicant.relation,
 
         // File attachments
@@ -2827,7 +2827,6 @@ export default function BirthRegistrationForm() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            personUbrn: submissionData.father.ubrn,
             cookies: sessionData.cookies,
             csrf: sessionData.csrf,
             otp: submissionData.otp,
@@ -2837,6 +2836,7 @@ export default function BirthRegistrationForm() {
             applicantName: submissionData.applicantName,
             officeAddressType: submissionData.officeAddressType,
             officeId: '0',
+            geoLocationId: submissionData.officeAddrPaurasavaOrUnion
           }),
         }
       );

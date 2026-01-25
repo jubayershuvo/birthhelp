@@ -7,7 +7,7 @@ const userAgentString =
 
 export async function POST(req: NextRequest) {
   try {
-    const { cookies, csrf, phone, email, otp, relation, applicantName, officeAddressType, officeId } = await req.json();
+    const { cookies, csrf, phone, email, otp, relation, applicantName, officeAddressType, officeId,geoLocationId } = await req.json();
 
     if (!cookies  || !phone || !csrf) {
       return NextResponse.json(
@@ -30,10 +30,7 @@ export async function POST(req: NextRequest) {
       relation,
       applicantName,
       officeId: officeId || "0",
-      personUbrn:'',
-      geoLocationId: "0",
-      ubrn: "",
-      nid: "",
+      geoLocationId,
       officeAddressType
     });
 
