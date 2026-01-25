@@ -2801,7 +2801,8 @@ export default function BirthRegistrationForm() {
         applicantName: formData.applicant.name,
         phone: `+88${formData.applicant.phone}`,
         email: formData.applicant.email,
-        relationWithApplicant: formData.applicant.relation,
+        relationWithApplicant: "SELF",
+        // relationWithApplicant: formData.applicant.relation,
 
         // File attachments
         attachments: uploadedFiles.map((file) => ({
