@@ -2121,7 +2121,7 @@ export default function BirthRegistrationForm() {
             formData.applicant.relation === "SELF"
               ? ""
               : formData.father.ubrn || "",
-          relation: formData.applicant.relation,
+          relation: "SELF",
           email: formData.applicant.email || "",
           csrf: sessionData.csrf,
           cookies: sessionData.cookies,
@@ -2832,7 +2832,7 @@ export default function BirthRegistrationForm() {
             otp: submissionData.otp,
             email: submissionData.email,
             phone: submissionData.phone,
-            relation: submissionData.relationWithApplicant,
+            relation:'SELF',
             applicantName: submissionData.applicantName,
             officeAddressType: submissionData.officeAddressType,
             officeId: '0',
