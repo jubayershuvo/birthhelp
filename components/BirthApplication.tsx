@@ -900,7 +900,7 @@ const AddressSelectorModal: React.FC<{
 
   if (!isOpen) return null;
 
-  const countries = isBdMission ? countriesList : countriesListb;
+  const countries = countriesList;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50">
