@@ -2,7 +2,17 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, Phone, Mail, Key, RefreshCw, Loader2, Check, AlertCircle, Clock } from "lucide-react";
+import {
+  X,
+  Phone,
+  Mail,
+  Key,
+  RefreshCw,
+  Loader2,
+  Check,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 export interface Attachment {
@@ -116,7 +126,9 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [phone, setPhone] = useState(application.phone.replace("+88", "") || "");
+  const [phone, setPhone] = useState(
+    application.phone.replace("+88", "") || "",
+  );
   const [email, setEmail] = useState(application.email || "");
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -152,7 +164,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
   // Handle OTP countdown
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (otpCountdown > 0) {
       interval = setInterval(() => {
         setOtpCountdown((prev) => {
@@ -172,7 +184,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
         });
       }, 1000);
     }
-    
+
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -256,7 +268,9 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
     }
 
     if (!validatePhone(phone)) {
-      toast.error("মোবাইল নম্বর সঠিকভাবে পূরণ করুন (01 দিয়ে শুরু করে 11 সংখ্যা)");
+      toast.error(
+        "মোবাইল নম্বর সঠিকভাবে পূরণ করুন (01 দিয়ে শুরু করে 11 সংখ্যা)",
+      );
       setPhoneValid(false);
       return;
     }
@@ -301,12 +315,14 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
         setLastSentPhone(phone);
         setOtp(""); // Clear previous OTP
         otpExpiredRef.current = false;
-        
+
         toast.success("OTP সফলভাবে পাঠানো হয়েছে", { id: "otp-send" });
-        
+
         // Auto-focus OTP input
         setTimeout(() => {
-          const otpInput = document.querySelector('input[placeholder*="OTP"]') as HTMLInputElement;
+          const otpInput = document.querySelector(
+            'input[placeholder*="OTP"]',
+          ) as HTMLInputElement;
           if (otpInput) otpInput.focus();
         }, 100);
       } else {
@@ -323,7 +339,6 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
   };
 
   const handleResendOTP = async () => {
-
     await handleSendOTP();
   };
 
@@ -369,7 +384,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
             email: email,
             phone: `+88${phone}`,
           }),
-        }
+        },
       );
 
       const otpData = await otpResponse.json();
@@ -390,7 +405,8 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
         officeAddrCountry: application.officeAddrCountry,
         officeAddrDivision: application.officeAddrDivision,
         officeAddrDistrict: application.officeAddrDistrict,
-        officeAddrCityCorpCantOrUpazila: application.officeAddrCityCorpCantOrUpazila,
+        officeAddrCityCorpCantOrUpazila:
+          application.officeAddrCityCorpCantOrUpazila,
         officeAddrPaurasavaOrUnion: application.officeAddrPaurasavaOrUnion,
         officeAddrWard: application.officeAddrWard,
         officeAddrCity: application.officeAddrCity,
@@ -401,9 +417,11 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
         birthPlaceCountry: application.birthPlaceCountry,
         birthPlaceDiv: application.birthPlaceDiv,
         birthPlaceDist: application.birthPlaceDist,
-        birthPlaceCityCorpCantOrUpazila: application.birthPlaceCityCorpCantOrUpazila,
+        birthPlaceCityCorpCantOrUpazila:
+          application.birthPlaceCityCorpCantOrUpazila,
         birthPlacePaurasavaOrUnion: application.birthPlacePaurasavaOrUnion,
-        birthPlaceWardInPaurasavaOrUnion: application.birthPlaceWardInPaurasavaOrUnion,
+        birthPlaceWardInPaurasavaOrUnion:
+          application.birthPlaceWardInPaurasavaOrUnion,
         birthPlaceVilAreaTownBn: application.birthPlaceVilAreaTownBn,
         birthPlaceVilAreaTownEn: application.birthPlaceVilAreaTownEn,
         birthPlacePostOfc: application.birthPlacePostOfc,
@@ -414,16 +432,20 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
         permAddrCountry: application.permAddrCountry,
         permAddrDiv: application.permAddrDiv,
         permAddrDist: application.permAddrDist,
-        permAddrCityCorpCantOrUpazila: application.permAddrCityCorpCantOrUpazila,
+        permAddrCityCorpCantOrUpazila:
+          application.permAddrCityCorpCantOrUpazila,
         permAddrPaurasavaOrUnion: application.permAddrPaurasavaOrUnion,
-        permAddrWardInPaurasavaOrUnion: application.permAddrWardInPaurasavaOrUnion,
+        permAddrWardInPaurasavaOrUnion:
+          application.permAddrWardInPaurasavaOrUnion,
         copyPermAddrToPrsntAddr: application.copyPermAddrToPrsntAddr,
         prsntAddrCountry: application.prsntAddrCountry,
         prsntAddrDiv: application.prsntAddrDiv,
         prsntAddrDist: application.prsntAddrDist,
-        prsntAddrCityCorpCantOrUpazila: application.prsntAddrCityCorpCantOrUpazila,
+        prsntAddrCityCorpCantOrUpazila:
+          application.prsntAddrCityCorpCantOrUpazila,
         prsntAddrPaurasavaOrUnion: application.prsntAddrPaurasavaOrUnion,
-        prsntAddrWardInPaurasavaOrUnion: application.prsntAddrWardInPaurasavaOrUnion,
+        prsntAddrWardInPaurasavaOrUnion:
+          application.prsntAddrWardInPaurasavaOrUnion,
         applicantName: application.applicantName,
         phone: `+88${phone}`,
         email: email,
@@ -434,19 +456,22 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
         isResubmit: true,
         originalApplicationId: application._id,
         cost: application.cost,
-        lastDate: application.lastDate
+        lastDate: application.lastDate,
       };
 
       // Step 3: Submit the application
       toast.loading("আবেদন জমা দেওয়া হচ্ছে...", { id: "resubmit" });
 
-      const submitResponse = await fetch(`/api/birth/application/registration?id=${application._id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const submitResponse = await fetch(
+        `/api/birth/application/registration?id=${application._id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submissionData),
         },
-        body: JSON.stringify(submissionData),
-      });
+      );
 
       const submitData = await submitResponse.json();
 
@@ -455,7 +480,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
           id: "resubmit",
           duration: 5000,
         });
-        
+
         onSuccess(submitData.id || submitData.applicationId);
         onClose();
       } else {
@@ -472,11 +497,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
   };
 
   const canSendOTP = phone && phoneValid && !resendLoading;
-  const canSubmit = otp.length === 6 && 
-                    phone === lastSentPhone && 
-                    isOtpSent && 
-                    otpCountdown > 0 && 
-                    !loading;
+  const canSubmit = otp.length === 6 && !loading;
 
   if (!isOpen) return null;
 
@@ -501,7 +522,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
               <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
-          
+
           {/* Application Info */}
           <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div className="flex items-center gap-3">
@@ -519,22 +540,28 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
                 </p>
               </div>
               <div className="text-right">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  application.status === "rejected" 
-                    ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-                }`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    application.status === "rejected"
+                      ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                      : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                  }`}
+                >
                   {application.status}
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
               <div>
-                <span className="text-gray-600 dark:text-gray-400">পূর্বের নম্বর:</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  পূর্বের নম্বর:
+                </span>
                 <p className="font-medium">{application.phone}</p>
               </div>
               <div>
-                <span className="text-gray-600 dark:text-gray-400">আবেদনকারী:</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  আবেদনকারী:
+                </span>
                 <p className="font-medium">{application.applicantName}</p>
               </div>
             </div>
@@ -571,7 +598,9 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
                   onChange={(e) => handleEmailChange(e.target.value)}
                   placeholder="you@example.com"
                   className={`w-full pl-10 pr-4 py-3 border ${
-                    emailValid ? "border-gray-300 dark:border-gray-700" : "border-red-300 dark:border-red-700"
+                    emailValid
+                      ? "border-gray-300 dark:border-gray-700"
+                      : "border-red-300 dark:border-red-700"
                   } rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                 />
               </div>
@@ -594,7 +623,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
                   </button>
                 )}
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
@@ -604,7 +633,9 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
                     onChange={(e) => handlePhoneChange(e.target.value)}
                     placeholder="01XXXXXXXXX"
                     className={`w-full pl-10 pr-4 py-3 border ${
-                      phoneValid ? "border-gray-300 dark:border-gray-700" : "border-red-300 dark:border-red-700"
+                      phoneValid
+                        ? "border-gray-300 dark:border-gray-700"
+                        : "border-red-300 dark:border-red-700"
                     } rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all`}
                   />
                 </div>
@@ -621,7 +652,9 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      {isOtpSent && phone === lastSentPhone ? "নতুন OTP" : "OTP পাঠান"}
+                      {isOtpSent && phone === lastSentPhone
+                        ? "নতুন OTP"
+                        : "OTP পাঠান"}
                     </>
                   )}
                 </button>
@@ -637,8 +670,6 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
                 )}
               </div>
             </div>
-
-            
 
             {/* OTP Section - ALWAYS VISIBLE */}
             <div className="border-t border-gray-200 dark:border-gray-800 pt-6">
@@ -661,31 +692,37 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
                   )}
                   <button
                     onClick={handleResendOTP}
-                    disabled={!canSendOTP || (isOtpSent && phone === lastSentPhone && otpCountdown > 0)}
+                    disabled={
+                      !canSendOTP ||
+                      (isOtpSent && phone === lastSentPhone && otpCountdown > 0)
+                    }
                     className={`text-sm px-3 py-1 rounded-lg transition-colors flex items-center gap-1 ${
-                      !canSendOTP || (isOtpSent && phone === lastSentPhone && otpCountdown > 0)
+                      !canSendOTP ||
+                      (isOtpSent && phone === lastSentPhone && otpCountdown > 0)
                         ? "text-gray-400 cursor-not-allowed"
                         : "text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                     }`}
                   >
-                    <RefreshCw className={`w-3 h-3 ${resendLoading ? "animate-spin" : ""}`} />
+                    <RefreshCw
+                      className={`w-3 h-3 ${resendLoading ? "animate-spin" : ""}`}
+                    />
                     {resendLoading ? "পাঠানো হচ্ছে..." : "পুনঃপ্রেরণ"}
                   </button>
                 </div>
               </div>
-              
+
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(e) =>
+                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
                   placeholder="6 সংখ্যার OTP লিখুন"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-center text-xl tracking-widest focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
-              
-           
             </div>
 
             {/* Info Box */}
@@ -703,11 +740,17 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="mt-1">•</span>
-                      <span>OTP ১০ মিনিটের জন্য বৈধ (সর্বোচ্চ ২ বার পুনঃপ্রেরণ করা যাবে)</span>
+                      <span>
+                        OTP ১০ মিনিটের জন্য বৈধ (সর্বোচ্চ ২ বার পুনঃপ্রেরণ করা
+                        যাবে)
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="mt-1">•</span>
-                      <span>পূর্বের নম্বর ব্যবহার করতে &quot;পূর্বের নম্বর ব্যবহার করুন&quot; বাটনে ক্লিক করুন</span>
+                      <span>
+                        পূর্বের নম্বর ব্যবহার করতে &quot;পূর্বের নম্বর ব্যবহার
+                        করুন&quot; বাটনে ক্লিক করুন
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="mt-1">•</span>
@@ -729,7 +772,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
             >
               বাতিল করুন
             </button>
-            
+
             <button
               onClick={handleVerifyAndSubmit}
               disabled={!canSubmit}
@@ -752,20 +795,24 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
               )}
             </button>
           </div>
-          
+
           {/* Status Bar */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {!isOtpSent ? "OTP পাঠান" : 
-               phone !== lastSentPhone ? "নতুন নম্বরে OTP পাঠান" :
-               otpCountdown <= 0 ? "OTP মেয়াদোত্তীর্ণ" :
-               `OTP সক্রিয়: ${formatTime(otpCountdown)}`}
+              {!isOtpSent
+                ? "OTP পাঠান"
+                : phone !== lastSentPhone
+                  ? "নতুন নম্বরে OTP পাঠান"
+                  : otpCountdown <= 0
+                    ? "OTP মেয়াদোত্তীর্ণ"
+                    : `OTP সক্রিয়: ${formatTime(otpCountdown)}`}
             </div>
             <div className="flex items-center gap-1">
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 {isOtpSent && phone === lastSentPhone && otpCountdown > 0 && (
                   <>
-                    {Math.floor(otpCountdown / 60)} মিনিট {otpCountdown % 60} সেকেন্ড
+                    {Math.floor(otpCountdown / 60)} মিনিট {otpCountdown % 60}{" "}
+                    সেকেন্ড
                   </>
                 )}
               </div>
