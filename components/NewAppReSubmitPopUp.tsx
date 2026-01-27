@@ -497,7 +497,7 @@ const ReSubmitPopup: React.FC<ReSubmitPopupProps> = ({
   };
 
   const canSendOTP = phone && phoneValid && !resendLoading;
-  const canSubmit = otp.length === 6 && !loading;
+  const canSubmit = otp.length === 6 && !loading && phoneValid;
 
   if (!isOpen) return null;
 
