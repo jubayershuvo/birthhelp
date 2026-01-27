@@ -103,7 +103,7 @@ export async function sendNewOrderToReseller(
   to: string,
   serviceName: string,
   userName: string,
-  language = "en"
+  language = "en_US"
 ) {
   const res = await fetch(WHATSAPP_API_URL, {
     method: "POST",

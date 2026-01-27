@@ -5,7 +5,6 @@ import PostService from "@/models/PostService";
 import { getUser } from "@/lib/getUser";
 import Spent from "@/models/Use";
 import Reseller from "@/models/Reseller";
-import { sendWhatsAppText } from "@/lib/whatsapp";
 import { sendNewOrderToReseller } from "@/lib/whatsAppCloude";
 
 export async function POST(req: Request) {
