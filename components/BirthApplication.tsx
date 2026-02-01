@@ -1643,6 +1643,11 @@ export default function BirthRegistrationForm() {
     try {
       const response = await fetch("/api/birth/application/registration");
       const data = await response.json();
+
+      if(!data.success){
+        toast.error(data.error, { id: "sessionReload" });
+        return
+      }
       setSessionData(data);
       toast.success("Session data loaded successfully", {
         id: "sessionReload",

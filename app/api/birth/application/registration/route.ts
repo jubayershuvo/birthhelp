@@ -93,7 +93,7 @@ function checkForErrorsInHTML(html: string): HTMLParseResult | null {
 
 // Main response parser
 async function parseServerResponse(
-  response: Response
+  response: Response,
 ): Promise<HTMLParseResult> {
   const responseText = await response.text();
 
@@ -206,19 +206,19 @@ export async function POST(request: NextRequest) {
     if (!service) {
       return NextResponse.json(
         { success: false, error: "Service not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const userService = user.services.find(
       (s: { service: string }) =>
-        s.service.toString() === service._id.toString()
+        s.service.toString() === service._id.toString(),
     );
 
     if (!userService) {
       return NextResponse.json(
         { success: false, error: "User does not have access to this service" },
-        { status: 403 }
+        { status: 403 },
       );
     }
     const serviceCost = user.isSpecialUser
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
     if (user.balance < serviceCost) {
       return NextResponse.json(
         { success: false, error: "User does not have enough balance" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -270,11 +270,11 @@ export async function POST(request: NextRequest) {
     appendFormData("officeAddrDistrict", restData.officeAddrDistrict);
     appendFormData(
       "officeAddrCityCorpCantOrUpazila",
-      restData.officeAddrCityCorpCantOrUpazila
+      restData.officeAddrCityCorpCantOrUpazila,
     );
     appendFormData(
       "officeAddrPaurasavaOrUnion",
-      restData.officeAddrPaurasavaOrUnion
+      restData.officeAddrPaurasavaOrUnion,
     );
     appendFormData("officeAddrWard", restData.officeAddrWard);
     appendFormData("officeAddrOffice", restData.officeAddrOffice);
@@ -284,32 +284,32 @@ export async function POST(request: NextRequest) {
       const person = restData.personInfoForBirth;
       appendFormData(
         "personInfoForBirth.personFirstNameBn",
-        person.personFirstNameBn
+        person.personFirstNameBn,
       );
       appendFormData(
         "personInfoForBirth.personLastNameBn",
-        person.personLastNameBn
+        person.personLastNameBn,
       );
       appendFormData("personInfoForBirth.personNameBn", person.personNameBn);
       appendFormData(
         "personInfoForBirth.personFirstNameEn",
-        person.personFirstNameEn
+        person.personFirstNameEn,
       );
       appendFormData(
         "personInfoForBirth.personLastNameEn",
-        person.personLastNameEn
+        person.personLastNameEn,
       );
       appendFormData("personInfoForBirth.personNameEn", person.personNameEn);
       appendFormData(
         "personInfoForBirth.personBirthDate",
-        person.personBirthDate
+        person.personBirthDate,
       );
       appendFormData("personInfoForBirth.thChild", person.thChild);
       appendFormData("personInfoForBirth.gender", person.gender);
       appendFormData("personInfoForBirth.religion", person.religion);
       appendFormData(
         "personInfoForBirth.religionOther",
-        person.religionOther || ""
+        person.religionOther || "",
       );
       appendFormData("personInfoForBirth.personNid", person.personNid || "");
     }
@@ -319,28 +319,28 @@ export async function POST(request: NextRequest) {
       const father = restData.father;
       appendFormData(
         "personInfoForBirth.father.personNameBn",
-        father.personNameBn
+        father.personNameBn,
       );
       appendFormData(
         "personInfoForBirth.father.personNameEn",
-        father.personNameEn
+        father.personNameEn,
       );
       appendFormData(
         "personInfoForBirth.father.personNationality",
-        father.personNationality
+        father.personNationality,
       );
       appendFormData(
         "personInfoForBirth.father.personNid",
-        father.personNid || ""
+        father.personNid || "",
       );
       appendFormData(
         "personInfoForBirth.father.passportNumber",
-        father.passportNumber || ""
+        father.passportNumber || "",
       );
       appendFormData("personInfoForBirth.father.ubrn", father.ubrn || "");
       appendFormData(
         "personInfoForBirth.father.personBirthDate",
-        father.personBirthDate
+        father.personBirthDate,
       );
     }
 
@@ -349,28 +349,28 @@ export async function POST(request: NextRequest) {
       const mother = restData.mother;
       appendFormData(
         "personInfoForBirth.mother.personNameBn",
-        mother.personNameBn
+        mother.personNameBn,
       );
       appendFormData(
         "personInfoForBirth.mother.personNameEn",
-        mother.personNameEn
+        mother.personNameEn,
       );
       appendFormData(
         "personInfoForBirth.mother.personNationality",
-        mother.personNationality
+        mother.personNationality,
       );
       appendFormData(
         "personInfoForBirth.mother.personNid",
-        mother.personNid || ""
+        mother.personNid || "",
       );
       appendFormData(
         "personInfoForBirth.mother.passportNumber",
-        mother.passportNumber || ""
+        mother.passportNumber || "",
       );
       appendFormData("personInfoForBirth.mother.ubrn", mother.ubrn || "");
       appendFormData(
         "personInfoForBirth.mother.personBirthDate",
-        mother.personBirthDate
+        mother.personBirthDate,
       );
     }
 
@@ -380,15 +380,15 @@ export async function POST(request: NextRequest) {
     appendFormData("birthPlaceDist", restData.birthPlaceDist);
     appendFormData(
       "birthPlaceCityCorpCantOrUpazila",
-      restData.birthPlaceCityCorpCantOrUpazila
+      restData.birthPlaceCityCorpCantOrUpazila,
     );
     appendFormData(
       "birthPlacePaurasavaOrUnion",
-      restData.birthPlacePaurasavaOrUnion
+      restData.birthPlacePaurasavaOrUnion,
     );
     appendFormData(
       "birthPlaceWardInPaurasavaOrUnion",
-      restData.birthPlaceWardInPaurasavaOrUnion
+      restData.birthPlaceWardInPaurasavaOrUnion,
     );
     appendFormData("birthPlaceVilAreaTownBn", restData.birthPlaceVilAreaTownBn);
     appendFormData("birthPlaceVilAreaTownEn", restData.birthPlaceVilAreaTownEn);
@@ -403,17 +403,17 @@ export async function POST(request: NextRequest) {
       "birthPlaceBn",
       ` ${restData.birthPlaceVilAreaTownBn || ""} ${
         restData.birthPlacePostOfc || ""
-      }`
+      }`,
     );
     appendFormData(
       "birthPlaceEn",
       ` ${restData.birthPlaceVilAreaTownEn || ""} ${
         restData.birthPlacePostOfcEn || ""
-      }`
+      }`,
     );
     appendFormData(
       "birthPlaceLocationId",
-      restData.birthPlacePaurasavaOrUnion || "-1"
+      restData.birthPlacePaurasavaOrUnion || "-1",
     );
     appendFormData("birthPlacePostCode", "");
     appendFormData("birthPlaceWardInCityCorp", "-1");
@@ -421,22 +421,22 @@ export async function POST(request: NextRequest) {
     // Permanent Address
     appendFormData(
       "copyBirthPlaceToPermAddr",
-      restData.copyBirthPlaceToPermAddr
+      restData.copyBirthPlaceToPermAddr,
     );
     appendFormData("permAddrCountry", restData.permAddrCountry);
     appendFormData("permAddrDiv", restData.permAddrDiv);
     appendFormData("permAddrDist", restData.permAddrDist);
     appendFormData(
       "permAddrCityCorpCantOrUpazila",
-      restData.permAddrCityCorpCantOrUpazila
+      restData.permAddrCityCorpCantOrUpazila,
     );
     appendFormData(
       "permAddrPaurasavaOrUnion",
-      restData.permAddrPaurasavaOrUnion
+      restData.permAddrPaurasavaOrUnion,
     );
     appendFormData(
       "permAddrWardInPaurasavaOrUnion",
-      restData.permAddrWardInPaurasavaOrUnion
+      restData.permAddrWardInPaurasavaOrUnion,
     );
 
     // Additional permanent address fields
@@ -445,19 +445,19 @@ export async function POST(request: NextRequest) {
       "permAddrBn",
       ` ${restData.permAddrVilAreaTownBn || ""} ${
         restData.permAddrPostOfc || ""
-      }`
+      }`,
     );
     appendFormData(
       "permAddrEn",
       ` ${restData.permAddrVilAreaTownEn || ""} ${
         restData.permAddrPostOfcEn || ""
-      }`
+      }`,
     );
     appendFormData("permAddrHouseRoadBn", restData.permAddrHouseRoadBn);
     appendFormData("permAddrHouseRoadEn", restData.permAddrHouseRoadEn);
     appendFormData(
       "permAddrLocationId",
-      restData.permAddrPaurasavaOrUnion || "-1"
+      restData.permAddrPaurasavaOrUnion || "-1",
     );
     appendFormData("permAddrPostCode", "");
     appendFormData("permAddrPostOfc", restData.permAddrPostOfc);
@@ -473,15 +473,15 @@ export async function POST(request: NextRequest) {
     appendFormData("prsntAddrDist", restData.prsntAddrDist);
     appendFormData(
       "prsntAddrCityCorpCantOrUpazila",
-      restData.prsntAddrCityCorpCantOrUpazila
+      restData.prsntAddrCityCorpCantOrUpazila,
     );
     appendFormData(
       "prsntAddrPaurasavaOrUnion",
-      restData.prsntAddrPaurasavaOrUnion
+      restData.prsntAddrPaurasavaOrUnion,
     );
     appendFormData(
       "prsntAddrWardInPaurasavaOrUnion",
-      restData.prsntAddrWardInPaurasavaOrUnion
+      restData.prsntAddrWardInPaurasavaOrUnion,
     );
 
     // Additional present address fields
@@ -490,19 +490,19 @@ export async function POST(request: NextRequest) {
       "prsntAddrBn",
       ` ${restData.prsntAddrVilAreaTownBn || ""} ${
         restData.prsntAddrPostOfc || ""
-      }`
+      }`,
     );
     appendFormData(
       "prsntAddrEn",
       ` ${restData.prsntAddrVilAreaTownEn || ""} ${
         restData.prsntAddrPostOfcEn || ""
-      }`
+      }`,
     );
     appendFormData("prsntAddrHouseRoadBn", restData.prsntAddrHouseRoadBn);
     appendFormData("prsntAddrHouseRoadEn", restData.prsntAddrHouseRoadEn);
     appendFormData(
       "prsntAddrLocationId",
-      restData.prsntAddrPaurasavaOrUnion || "-1"
+      restData.prsntAddrPaurasavaOrUnion || "-1",
     );
     appendFormData("prsntAddrPostCode", restData.prsntAddrPostCode);
     appendFormData("prsntAddrPostOfc", restData.prsntAddrPostOfc);
@@ -521,7 +521,7 @@ export async function POST(request: NextRequest) {
     appendFormData("applicantDob", restData.applicantDob || "");
     appendFormData(
       "applicantNotParentsBrn",
-      restData.applicantNotParentsBrn || ""
+      restData.applicantNotParentsBrn || "",
     );
 
     // File attachments
@@ -583,7 +583,7 @@ export async function POST(request: NextRequest) {
           message: result.message,
           details: result,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -635,7 +635,7 @@ export async function POST(request: NextRequest) {
         message: "Failed to process request",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -654,19 +654,19 @@ export async function GET() {
     if (!service) {
       return NextResponse.json(
         { success: false, error: "Service not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const userService = user.services.find(
       (s: { service: string }) =>
-        s.service.toString() === service._id.toString()
+        s.service.toString() === service._id.toString(),
     );
 
     if (!userService) {
       return NextResponse.json(
         { success: false, error: "User does not have access to this service" },
-        { status: 403 }
+        { status: 403 },
       );
     }
     const serviceCost = user.isSpecialUser
@@ -708,6 +708,20 @@ export async function GET() {
     const html = await res.text();
     const csrf = html.match(/<meta name="_csrf" content="([^"]+)"/)?.[1] || "";
 
+    if (!cookiesArr) {
+      return NextResponse.json(
+        { success: false, error: "Cookies not found" },
+        { status: 404 },
+      );
+    }
+
+    if (!csrf) {
+      return NextResponse.json(
+        { success: false, error: "CSRF not found" },
+        { status: 404 },
+      );
+    }
+
     return NextResponse.json({
       cookies: cookiesArr,
       csrf,
@@ -717,7 +731,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       { message: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
