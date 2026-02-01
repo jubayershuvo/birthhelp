@@ -6,12 +6,11 @@ import Service from "@/models/PostService";
 import { getReseller } from "@/lib/getReseller";
 import User from "@/models/User";
 import Transaction from "@/models/Transaction";
-import { sendWhatsAppText } from "@/lib/whatsapp";
-import { sendUserOrderCancelledTemplate } from "@/lib/whatsAppCloude";
+import { sendWhatsAppText } from "@/lib/whatsappApi";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Connect to database
@@ -26,7 +25,7 @@ export async function POST(
     if (!user) {
       return NextResponse.json(
         { success: false, message: "User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -40,7 +39,7 @@ export async function POST(
     if (!post) {
       return NextResponse.json(
         { success: false, message: "Work not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -51,7 +50,7 @@ export async function POST(
           success: false,
           message: `Can't cancel work with status ${post.status}`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,7 +61,7 @@ export async function POST(
           success: false,
           message: "Unathorized: Work already has a worker assigned",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -83,12 +82,9 @@ export async function POST(
 
     if (poster.whatsapp) {
       try {
-        await sendUserOrderCancelledTemplate(
+        await sendWhatsAppText(
           poster.whatsapp,
-          poster.name,
-          post.service.title,
-          user.name,
-          note || "No reason provided",
+          `Work ${post.service.title} cancelled by ${user.name}. Note: ${note}`,
         );
       } catch (error) {
         console.log(error);
@@ -119,7 +115,7 @@ export async function POST(
         message: "Failed to cancel work",
         error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

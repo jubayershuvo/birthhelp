@@ -5,7 +5,7 @@ import PostService from "@/models/PostService";
 import { getUser } from "@/lib/getUser";
 import Spent from "@/models/Use";
 import Reseller from "@/models/Reseller";
-import { sendNewOrderToReseller } from "@/lib/whatsAppCloude";
+import { sendWhatsAppText } from "@/lib/whatsappApi";
 
 export async function POST(req: Request) {
   try {
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     for (const reseller of allResellers) {
       if (reseller.whatsapp) {
         try {
-          await sendNewOrderToReseller(reseller.whatsapp, service.title, user.name);
+          await sendWhatsAppText(reseller.whatsapp, `New Order: ${service.title} post by ${user.name}`);
         } catch (err) {
           console.log(`Failed to send WhatsApp message to ${reseller.whatsapp}`);
         }
