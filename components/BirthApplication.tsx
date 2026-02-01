@@ -1644,7 +1644,7 @@ export default function BirthRegistrationForm() {
       const response = await fetch("/api/birth/application/registration");
       const data = await response.json();
 
-      if(!data.success){
+      if(data.error){
         toast.error(data.error, { id: "sessionReload" });
         return
       }
