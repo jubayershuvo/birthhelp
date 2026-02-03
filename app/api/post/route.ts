@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     for (const reseller of allResellers) {
       if (reseller.whatsapp) {
         try {
-          // await sendWhatsAppText(reseller.whatsapp, `New Order: ${service.title} post by ${user.name}`);
+          await sendWhatsAppText(reseller.whatsapp, `New Order: ${service.title} post by ${user.name}`);
         } catch (err) {
           console.log(`Failed to send WhatsApp message to ${reseller.whatsapp}`);
         }

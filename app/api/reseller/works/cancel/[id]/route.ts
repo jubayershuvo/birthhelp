@@ -82,10 +82,10 @@ export async function POST(
 
     if (poster.whatsapp) {
       try {
-        // await sendWhatsAppText(
-        //   poster.whatsapp,
-        //   `Work ${post.service.title} cancelled by ${user.name}. Note: ${note}`,
-        // );
+        await sendWhatsAppText(
+          poster.whatsapp,
+          `Work ${post.service.title} cancelled by ${user.name}. Note: ${note}`,
+        );
       } catch (error) {
         console.log(error);
       }

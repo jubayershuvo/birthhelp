@@ -218,14 +218,20 @@ export async function POST(
       // Send WhatsApp notification
       try {
         if (uploadedFile) {
-          // const file = nodeFileToWebFile(uploadedFile.path);
-          // await sendWhatsAppFile({
-          //   files: [file],
-          //   number: poster.whatsapp,
-          //   caption: `File: ${post.service.title}`,
-          // })
+          const waFormData = new FormData();
+
+          waFormData.append("number", poster.whatsapp);
+          waFormData.append("caption", `File: ${post.service.title}`);
+          if (file) {
+            waFormData.append("files", file);
+          }
+
+          await sendWhatsAppFile(waFormData);
         } else if (deliveryNote) {
-          // await sendWhatsAppText(poster.whatsapp, `Delivery note: ${deliveryNote} for ${post.service.title}`);
+          await sendWhatsAppText(
+            poster.whatsapp,
+            `Delivery note: ${deliveryNote} for ${post.service.title}`,
+          );
         }
       } catch (error) {
         console.log(error);

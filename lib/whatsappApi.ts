@@ -1,4 +1,3 @@
-
 const api = process.env.WHATSAPP_API;
 const api_key = process.env.WHATSAPP_API_KEY;
 
@@ -20,34 +19,8 @@ export async function sendWhatsAppText(number: string, message: string) {
   return res.json();
 }
 
-export async function sendWhatsAppFile({
-  files,
-  number,
-  group,
-  caption,
-}: {
-  files: File[]; // max 5
-  number?: string;
-  group?: string;
-  caption?: string;
-}) {
-  if (!number && !group) {
-    throw new Error("Either number or group is required");
-  }
-
+export async function sendWhatsAppFile(formData: FormData) {
   const url = `${api}/api/whatsapp/send/file`;
-
-  const formData = new FormData();
-
-  // append files
-  files.forEach((file) => {
-    formData.append("files", file);
-  });
-
-  if (number) formData.append("number", number);
-  if (group) formData.append("group", group);
-  if (caption) formData.append("caption", caption);
-
   const res = await fetch(url, {
     method: "POST",
     headers: {
