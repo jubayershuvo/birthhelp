@@ -1,4 +1,4 @@
-import { File } from "formdata-node";
+
 const api = process.env.WHATSAPP_API;
 const api_key = process.env.WHATSAPP_API_KEY;
 
@@ -41,7 +41,7 @@ export async function sendWhatsAppFile({
 
   // append files
   files.forEach((file) => {
-    formData.append("files", file as any);
+    formData.append("files", file);
   });
 
   if (number) formData.append("number", number);
