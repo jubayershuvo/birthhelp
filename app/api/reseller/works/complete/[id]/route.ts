@@ -12,6 +12,8 @@ import {
   sendOrderDeliveryTemplate,
   sendOrderTextDeliveryTemplate,
 } from "@/lib/whatsAppCloude";
+import { sendWhatsAppFile, sendWhatsAppText } from "@/lib/whatsappApi";
+import { nodeFileToWebFile } from "@/lib/makeFile";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -216,24 +218,14 @@ export async function POST(
       // Send WhatsApp notification
       try {
         if (uploadedFile) {
-          await sendOrderDeliveryTemplate(
-            poster.whatsapp,
-            post.service.title,
-            poster_reseller.name,
-            uploadedFile.name,
-            `${
-              process.env.NEXT_PUBLIC_URL
-            }/api/files/${uploadedFile._id.toString()}`,
-            uploadedFile.name,
-          );
+          // const file = nodeFileToWebFile(uploadedFile.path);
+          // await sendWhatsAppFile({
+          //   files: [file],
+          //   number: poster.whatsapp,
+          //   caption: `File: ${post.service.title}`,
+          // })
         } else if (deliveryNote) {
-          await sendOrderTextDeliveryTemplate(
-            poster.whatsapp,
-            poster_reseller.name,
-            post.service.title,
-            deliveryNote,
-            "Birth Help",
-          );
+          // await sendWhatsAppText(poster.whatsapp, `Delivery note: ${deliveryNote} for ${post.service.title}`);
         }
       } catch (error) {
         console.log(error);
