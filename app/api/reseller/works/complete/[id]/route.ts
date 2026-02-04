@@ -8,12 +8,7 @@ import path from "path";
 import fs from "fs/promises";
 import User from "@/models/User";
 import Reseller from "@/models/Reseller";
-import {
-  sendOrderDeliveryTemplate,
-  sendOrderTextDeliveryTemplate,
-} from "@/lib/whatsAppCloude";
 import { sendWhatsAppFile, sendWhatsAppText } from "@/lib/whatsappApi";
-import { nodeFileToWebFile } from "@/lib/makeFile";
 
 // Helper function to ensure upload directory exists
 async function ensureUploadDir() {
@@ -228,10 +223,10 @@ export async function POST(
 
           // await sendWhatsAppFile(waFormData);
         } else if (deliveryNote) {
-          // await sendWhatsAppText(
-          //   poster.whatsapp,
-          //   `Delivery note: ${deliveryNote} for ${post.service.title}`,
-          // );
+          await sendWhatsAppText(
+            poster.whatsapp,
+            `Delivery note: ${deliveryNote} for ${post.service.title}`,
+          );
         }
       } catch (error) {
         console.log(error);

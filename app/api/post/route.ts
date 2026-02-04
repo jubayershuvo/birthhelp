@@ -6,6 +6,30 @@ import { getUser } from "@/lib/getUser";
 import Spent from "@/models/Use";
 import Reseller from "@/models/Reseller";
 import { sendWhatsAppText } from "@/lib/whatsappApi";
+async function notifyResellers(title: string, name: string) {
+  const allResellers = await Reseller.find();
+
+  for (const reseller of allResellers) {
+    if (!reseller.whatsapp) continue;
+
+    console.log(`➡️ Sending to ${reseller.whatsapp}...`);
+
+    try {
+      const response = await sendWhatsAppText(
+        reseller.whatsapp,
+        `New Order: ${title} post by ${name}`
+      );
+
+      console.log(`✅ Sent to ${reseller.whatsapp}`, response);
+    } catch (err) {
+      console.error(`❌ Failed for ${reseller.whatsapp}`, err);
+    }
+
+    // rate-limit safety
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+}
+
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +42,7 @@ export async function POST(req: Request) {
     if (!service_id || !description) {
       return NextResponse.json(
         { success: false, message: "Missing required fields." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -26,13 +50,13 @@ export async function POST(req: Request) {
     const service = await PostService.findById(service_id);
     const userService = user.postServices.find(
       (s: { service: string }) =>
-        s.service.toString() === service._id.toString()
+        s.service.toString() === service._id.toString(),
     );
     if (!service || !userService || !service.isAvailable) {
       console.log(userService);
       return NextResponse.json(
         { success: false, message: "Invalid service selected." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -43,7 +67,7 @@ export async function POST(req: Request) {
           success: false,
           message: "All required files must be uploaded.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const total =
@@ -51,7 +75,7 @@ export async function POST(req: Request) {
     if (user.balance < total) {
       return NextResponse.json(
         { success: false, message: "Insufficient balance." },
-        { status: 400 }
+        { status: 400 },
       );
     }
     user.balance -= total;
@@ -77,24 +101,22 @@ export async function POST(req: Request) {
       dataSchema: "WorkPost",
     });
 
-    const allResellers = await Reseller.find();
+   // send response immediately
+const response = NextResponse.json(
+  { success: true, post: newPost },
+  { status: 201 }
+);
 
-    //send notification to all resellers
-    for (const reseller of allResellers) {
-      if (reseller.whatsapp) {
-        try {
-          // await sendWhatsAppText(reseller.whatsapp, `New Order: ${service.title} post by ${user.name}`);
-        } catch (err) {
-          console.log(`Failed to send WhatsApp message to ${reseller.whatsapp}`);
-        }
-      }
-    }
+// run background task (DON'T await)
+notifyResellers(service.title, user.name)
+  .catch(err => console.error("WhatsApp notify error:", err));
 
-    return NextResponse.json({ success: true, post: newPost }, { status: 201 });
+return response;
+
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err || "Server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

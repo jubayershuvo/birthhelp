@@ -8,6 +8,30 @@ import User from "@/models/User";
 import { sendWhatsAppText } from "@/lib/whatsappApi";
 import Reseller from "@/models/Reseller";
 
+async function notifyResellers(title: string, name: string) {
+  const allResellers = await Reseller.find();
+
+  for (const reseller of allResellers) {
+    if (!reseller.whatsapp) continue;
+
+    console.log(`➡️ Sending to ${reseller.whatsapp}...`);
+
+    try {
+      const response = await sendWhatsAppText(
+        reseller.whatsapp,
+        `Work ${title} has been accepted by ${name}`,
+      );
+
+      console.log(`✅ Sent to ${reseller.whatsapp}`, response);
+    } catch (err) {
+      console.error(`❌ Failed for ${reseller.whatsapp}`, err);
+    }
+
+    // rate-limit safety
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -82,28 +106,18 @@ export async function POST(
     const poster = await User.findById(post.user);
     if (poster && poster.whatsapp) {
       try {
-        // await sendWhatsAppText(
-        //   poster.whatsapp,
-        //   `Your work ${post.service.title} has been accepted by ${user.name}`,
-        // );
+        await sendWhatsAppText(
+          poster.whatsapp,
+          `Your work ${post.service.title} has been accepted by ${user.name}`,
+        );
       } catch (error) {
         console.log(error);
       }
     }
 
-    const resellers = await Reseller.find({});
-    for (const reseller of resellers) {
-      if (reseller.whatsapp) {
-        try {
-          // await sendWhatsAppText(
-          //   reseller.whatsapp,
-          //   `Work ${post.service.title} has been accepted by ${user.name}`,
-          // );
-        } catch (error) {
-          console.log(error);
-        }
-      }
-    }
+    notifyResellers(post.service.title, user.name).catch((err) =>
+      console.error("WhatsApp notify error:", err),
+    );
 
     return NextResponse.json({
       success: true,
