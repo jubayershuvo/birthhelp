@@ -221,7 +221,7 @@ export async function POST(
             waFormData.append("files", file);
           }
 
-          // await sendWhatsAppFile(waFormData);
+          await sendWhatsAppFile(waFormData);
         } else if (deliveryNote) {
           await sendWhatsAppText(
             poster.whatsapp,

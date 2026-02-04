@@ -1,5 +1,5 @@
 import { generateOtp } from "@/lib/otp";
-import { sendOtpTemplate } from "@/lib/whatsAppCloude";
+import { sendWhatsAppText } from "@/lib/whatsappApi";
 import { NextRequest, NextResponse } from "next/server";
 
 interface RequestBody {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SuccessRe
     try {
       // Generate and send OTP
       const otp = generateOtp(cleanedPhone);
-      await sendOtpTemplate(cleanedPhone, otp);
+      await sendWhatsAppText(cleanedPhone, `Your verification code is: ${otp}`);
       
       return NextResponse.json(
         { message: "Verification code sent successfully" },

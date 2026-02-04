@@ -1,7 +1,7 @@
 import { getReseller } from "@/lib/getReseller";
 import { connectDB } from "@/lib/mongodb";
 import { generateOtp } from "@/lib/otp";
-import { sendOtpTemplate } from "@/lib/whatsAppCloude";
+import { sendWhatsAppText } from "@/lib/whatsappApi";
 import Reseller from "@/models/Reseller";
 import { NextResponse } from "next/server";
 
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       }
       try {
         const otp = generateOtp(whatsapp);
-        await sendOtpTemplate(whatsapp, otp);
+       await sendWhatsAppText(whatsapp, `Your verification code is: ${otp}`);
       } catch (error) {
         console.log(error);
       }
