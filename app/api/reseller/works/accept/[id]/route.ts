@@ -82,10 +82,10 @@ export async function POST(
     const poster = await User.findById(post.user);
     if (poster && poster.whatsapp) {
       try {
-        await sendWhatsAppText(
-          poster.whatsapp,
-          `Your work ${post.service.title} has been accepted by ${user.name}`,
-        );
+        // await sendWhatsAppText(
+        //   poster.whatsapp,
+        //   `Your work ${post.service.title} has been accepted by ${user.name}`,
+        // );
       } catch (error) {
         console.log(error);
       }
@@ -95,10 +95,10 @@ export async function POST(
     for (const reseller of resellers) {
       if (reseller.whatsapp) {
         try {
-          await sendWhatsAppText(
-            reseller.whatsapp,
-            `Work ${post.service.title} has been accepted by ${user.name}`,
-          );
+          // await sendWhatsAppText(
+          //   reseller.whatsapp,
+          //   `Work ${post.service.title} has been accepted by ${user.name}`,
+          // );
         } catch (error) {
           console.log(error);
         }

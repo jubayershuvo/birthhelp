@@ -226,12 +226,12 @@ export async function POST(
             waFormData.append("files", file);
           }
 
-          await sendWhatsAppFile(waFormData);
+          // await sendWhatsAppFile(waFormData);
         } else if (deliveryNote) {
-          await sendWhatsAppText(
-            poster.whatsapp,
-            `Delivery note: ${deliveryNote} for ${post.service.title}`,
-          );
+          // await sendWhatsAppText(
+          //   poster.whatsapp,
+          //   `Delivery note: ${deliveryNote} for ${post.service.title}`,
+          // );
         }
       } catch (error) {
         console.log(error);
