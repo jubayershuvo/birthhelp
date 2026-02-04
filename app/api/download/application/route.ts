@@ -23,6 +23,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if(user.balance < 10){
+    return NextResponse.json({ error: "Insufficient balance" }, { status: 402 });
+  }
+
   let dob;
 
   if (appType === "br") {
