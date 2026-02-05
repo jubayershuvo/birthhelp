@@ -2334,7 +2334,7 @@ export default function BirthRegistrationForm() {
           formData.personInfoForBirth.personBirthDate
         ).year;
 
-        if (birthYear >= 2012) {
+        if (birthYear >= 2013) {
           // Father birth registration validation for 2012 and later
           if (!formData.father.ubrn.trim()) {
             errors["father.ubrn"] = "পিতার জন্ম নিবন্ধন নম্বর প্রয়োজন";
@@ -3801,7 +3801,7 @@ export default function BirthRegistrationForm() {
                       পিতার জন্ম নিবন্ধন নম্বর{" "}
                       {parseDateString(
                         formData.personInfoForBirth.personBirthDate
-                      ).year >= 2012 && <span className="text-red-500">*</span>}
+                      ).year >= 2013 && <span className="text-red-500">*</span>}
                     </label>
                     <input
                       type="text"
@@ -3822,7 +3822,7 @@ export default function BirthRegistrationForm() {
                       required={
                         parseDateString(
                           formData.personInfoForBirth.personBirthDate
-                        ).year >= 2012
+                        ).year >= 2013
                       }
                     />
                     {formErrors["father.ubrn"] && (
@@ -3846,7 +3846,7 @@ export default function BirthRegistrationForm() {
                       required={
                         parseDateString(
                           formData.personInfoForBirth.personBirthDate
-                        ).year >= 2012
+                        ).year >= 2013
                       }
                       maxDate={formData.personInfoForBirth.personBirthDate}
                     />
@@ -3961,7 +3961,7 @@ export default function BirthRegistrationForm() {
                       মাতার জন্ম নিবন্ধন নম্বর{" "}
                       {parseDateString(
                         formData.personInfoForBirth.personBirthDate
-                      ).year >= 2012 && <span className="text-red-500">*</span>}
+                      ).year >= 2013 && <span className="text-red-500">*</span>}
                     </label>
                     <input
                       type="text"
@@ -3982,7 +3982,7 @@ export default function BirthRegistrationForm() {
                       required={
                         parseDateString(
                           formData.personInfoForBirth.personBirthDate
-                        ).year >= 2012
+                        ).year >= 2013
                       }
                     />
                     {formErrors["mother.ubrn"] && (
@@ -4006,7 +4006,7 @@ export default function BirthRegistrationForm() {
                       required={
                         parseDateString(
                           formData.personInfoForBirth.personBirthDate
-                        ).year >= 2012
+                        ).year >= 2013
                       }
                       maxDate={formData.personInfoForBirth.personBirthDate}
                     />
@@ -4115,7 +4115,7 @@ export default function BirthRegistrationForm() {
               <div
                 className={`p-4 rounded-lg ${
                   parseDateString(formData.personInfoForBirth.personBirthDate)
-                    .year >= 2012
+                    .year >= 2013
                     ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
                     : "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
                 }`}
@@ -4123,15 +4123,15 @@ export default function BirthRegistrationForm() {
                 <p
                   className={`text-sm ${
                     parseDateString(formData.personInfoForBirth.personBirthDate)
-                      .year >= 2012
+                      .year >= 2013
                       ? "text-blue-700 dark:text-blue-300"
                       : "text-yellow-700 dark:text-yellow-300"
                   }`}
                 >
                   {parseDateString(formData.personInfoForBirth.personBirthDate)
-                    .year >= 2012
-                    ? "২০১২ সাল বা তার পরে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক।"
-                    : "২০১২ সালের আগে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক নয়।"}
+                    .year >= 2013
+                    ? "২০১৩ সাল বা তার পরে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক।"
+                    : "২০১৩ সালের আগে জন্মগ্রহণকারী শিশুর জন্য পিতা-মাতার জন্ম নিবন্ধন নম্বর এবং জন্ম তারিখ বাধ্যতামূলক নয়।"}
                 </p>
               </div>
 
