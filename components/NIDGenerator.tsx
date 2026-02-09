@@ -187,7 +187,7 @@ const NIDCard: React.FC = () => {
             disabled={isGenerating || Object.keys(nidData).length === 0}
             className={`bg-${
               isGenerating ? "green-500" : "green-700"
-            } hover:bg-green-600 dark:bg-white dark:hover:bg-green-600 dark:text-black text-white font-semibold px-6 py-3 rounded-full shadow-md transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed`}
+            } hover:bg-green-600 dark:bg-green-500 bg-green-500 cursor-pointer dark:hover:bg-green-600 dark:text-black text-black font-semibold px-6 py-3 rounded-full shadow-md transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isGenerating ? "Generating PDF..." : "Download NID Card PDF"}
           </button>

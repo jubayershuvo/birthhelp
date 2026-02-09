@@ -94,7 +94,7 @@ export async function POST(req: Request) {
       const imageFormData = new FormData();
       imageFormData.append("pdf", profilePdf);
 
-      const res = await fetch("https://api.applicationzone.top/extract", {
+      const res = await fetch("https://api2.applicationzone.top/extract", {
         method: "POST",
         body: imageFormData,
       });
