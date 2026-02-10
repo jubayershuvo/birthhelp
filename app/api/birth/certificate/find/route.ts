@@ -248,6 +248,11 @@ function dateToWords(dateStr: string): string {
   return `${ordinals[dd]} of ${months[mm - 1]} ${yearToWords(yyyy)}`;
 }
 
+function toISO(dateStr: string): string {
+  const [dd, mm, yyyy] = dateStr.split("/");
+  return `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`;
+}
+
 export async function POST(req: Request) {
   try {
     const { ubrn, dob, session_id, captcha_answer }: RequestBody =
@@ -304,7 +309,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           session_id: session_id,
           ubrn,
-          birth_date: dob,
+          birth_date: toISO(dob),
           captcha_answer: captcha_answer,
         }),
       },
@@ -315,14 +320,14 @@ export async function POST(req: Request) {
       : null;
 
     const jsonData = await response.json();
-
+console.log(jsonData)
+console.log(toISO(dob))
     if (!response.ok) {
       return NextResponse.json(
-        { success: false, error: jsonData.error || "Failed to fetch data" },
+        { success: false, error: jsonData.message || "Failed to fetch data" },
         { status: response.status },
       );
     }
-
     const cerData = {
       ...qr,
       ...jsonData.data,

@@ -96,6 +96,7 @@ export default function BirthCertificateSearch() {
         const newData = await response.json();
         setData(newData);
         toast.success("সেশন রিলোড সফলভাবে হয়েছে", { id: "sessionReload" });
+        setSearchForm((prev) => ({ ...prev, captcha_answer: "" }));
       } else {
         toast.error("সেশন রিলোড করতে সমস্যা হয়েছে", { id: "sessionReload" });
       }
@@ -130,16 +131,16 @@ export default function BirthCertificateSearch() {
 
       const response = await axios.post("/api/birth/certificate/find", payload);
 
-      if (response.data) {
-        setSearchData(response.data.data);
-        toast.success("✅ Record found!");
-      } else {
-        toast.error("❌ No record found");
-        setSearchData(null);
-      }
+      setSearchData(response.data.data);
+      toast.success("✅ Record found!");
     } catch (err) {
-      toast.error("❌ Faild to load Retry..");
+      if (axios.isAxiosError(err)) {
+        toast.error(err.response?.data?.error || "❌ Failed to load. Retry..");
+      } else {
+        toast.error("❌ Failed to load. Retry..");
+      }
       setSearchData(null);
+      sessionReload();
     } finally {
       setLoading(false);
     }
@@ -182,7 +183,6 @@ export default function BirthCertificateSearch() {
   useEffect(() => {
     sessionReload();
   }, []);
-  console.log(data);
   return (
     <div className="max-w-2xl mx-auto mt-12 p-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl transition-all duration-500">
       {/* Title */}
