@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, use, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -54,16 +54,28 @@ interface IFullData {
 interface SearchForm {
   ubrn: string;
   dob: string;
+  captcha_answer: string;
 }
 
 export default function BirthCertificateSearch() {
   const [searchForm, setSearchForm] = useState<SearchForm>({
     ubrn: "",
     dob: "",
+    captcha_answer: "",
   });
   const [searchData, setSearchData] = useState<ISearchData | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchPerformed, setSearchPerformed] = useState(false);
+  const [data, setData] = useState({
+    serviceCost: 0,
+    note: "",
+    data: {
+      captcha_image: null,
+      session_id: "",
+      csrf_token: "",
+      captcha_de_text: "",
+    },
+  });
   const router = useRouter();
 
   // Search form handler
@@ -72,9 +84,23 @@ export default function BirthCertificateSearch() {
       const { name, value } = e.target;
       setSearchForm((prev) => ({ ...prev, [name]: value }));
     },
-    []
+    [],
   );
+  const sessionReload = async () => {
+    if (loading) return;
+    toast.loading("সেশন রিলোড হচ্ছে...", { id: "sessionReload" });
+    try {
+      const response = await fetch("/api/birth/certificate/session");
 
+      if (response.ok) {
+        const newData = await response.json();
+        setData(newData);
+        toast.success("সেশন রিলোড সফলভাবে হয়েছে", { id: "sessionReload" });
+      } else {
+        toast.error("সেশন রিলোড করতে সমস্যা হয়েছে", { id: "sessionReload" });
+      }
+    } catch (error) {}
+  };
   // Search handler
   const handleSearch = useCallback(async () => {
     if (!searchForm.ubrn || !searchForm.dob) {
@@ -98,6 +124,8 @@ export default function BirthCertificateSearch() {
       const payload = {
         ubrn: searchForm.ubrn,
         dob: formattedDob,
+        session_id: data.data.session_id,
+        captcha_answer: searchForm.captcha_answer,
       };
 
       const response = await axios.post("/api/birth/certificate/find", payload);
@@ -134,7 +162,7 @@ export default function BirthCertificateSearch() {
 
   // Reset search
   const handleReset = useCallback(() => {
-    setSearchForm({ ubrn: "", dob: "" });
+    setSearchForm({ ubrn: "", dob: "", captcha_answer: "" });
     setSearchData(null);
     setSearchPerformed(false);
     toast.success("Search form reset");
@@ -148,15 +176,28 @@ export default function BirthCertificateSearch() {
       { label: "Name (Bangla)", key: "personNameBn" as keyof ISearchData },
       { label: "Date of Birth", key: "dateOfBirth" as keyof ISearchData },
     ],
-    []
+    [],
   );
 
+  useEffect(() => {
+    sessionReload();
+  }, []);
+  console.log(data);
   return (
     <div className="max-w-2xl mx-auto mt-12 p-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl transition-all duration-500">
       {/* Title */}
       <h2 className="text-3xl font-semibold text-center mb-8 text-gray-800 dark:text-gray-100">
         Birth Certificate Search
       </h2>
+      <div className="">
+        <p className="text-xl font-semibold text-center mb-8 text-gray-800 dark:text-gray-100">
+          {data.note}
+        </p>
+        {/* price */}
+        <p className="text-xl font-semibold text-center mb-8 text-gray-800 dark:text-gray-100">
+          Price: {data.serviceCost} Taka
+        </p>
+      </div>
 
       {/* Search Form */}
       <div className="space-y-6 mb-8">
@@ -197,6 +238,35 @@ export default function BirthCertificateSearch() {
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Date will be sent as DD/MM/YYYY format to the server
           </p>
+        </div>
+
+        {/* captcha */}
+        <div className="space-x-2 flex">
+          {data.data.captcha_image && (
+            <img
+              src={data.data.captcha_image}
+              alt="captcha"
+              className="border rounded"
+            />
+          )}
+
+          <input
+            type="text"
+            name="captcha_answer"
+            value={searchForm.captcha_answer}
+            onChange={handleSearchChange}
+            placeholder="Enter captcha"
+            className="w-full px-4 py-2 border rounded-lg"
+          />
+
+          <button
+            type="button"
+            onClick={sessionReload}
+            className="p-2 border rounded-md"
+            title="Reload Captcha"
+          >
+            🔄
+          </button>
         </div>
 
         {/* Search Button */}
@@ -262,10 +332,6 @@ export default function BirthCertificateSearch() {
             <p className="text-red-600">
               প্রতি বার {searchData.cost} টাকা করে কাটা হবে
             </p>
-            <p className="">
-              {searchData.note}
-            </p>
-
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
