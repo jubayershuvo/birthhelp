@@ -72,8 +72,8 @@ export interface INidData extends Document {
   father_death_date: string;
   mother_death_date: string;
   spouse_death_date: string;
-  no_finger: number;
-  no_finger_print: number;
+  no_finger: string;
+  no_finger_print: string;
   voter_area: string;
   voter_at: string;
 }
@@ -150,8 +150,8 @@ const NidDataSchema: Schema = new Schema({
   father_death_date: String,
   mother_death_date: String,
   spouse_death_date: String,
-  no_finger: Number,
-  no_finger_print: Number,
+  no_finger: String,
+  no_finger_print: String,
   voter_area: String,
   voter_at: String,
 });
