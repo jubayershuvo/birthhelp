@@ -112,7 +112,7 @@ const isValidDate = (day: number, month: number, year: number): boolean => {
 };
 
 const parseDateString = (
-  dateStr: string
+  dateStr: string,
 ): { day: number; month: number; year: number; valid: boolean } => {
   const parts = dateStr.split("/");
   if (parts.length !== 3) return { day: 0, month: 0, year: 0, valid: false };
@@ -156,7 +156,7 @@ const isFutureDate = (day: number, month: number, year: number): boolean => {
 };
 
 const calculateAgeFromDDMMYYYY = (
-  dateStr: string
+  dateStr: string,
 ): { years: number; months: number; days: number } => {
   const { day, month, year, valid } = parseDateString(dateStr);
   if (!valid) return { years: 0, months: 0, days: 0 };
@@ -173,7 +173,7 @@ const calculateAgeFromDDMMYYYY = (
     const previousMonth = new Date(
       today.getFullYear(),
       today.getMonth(),
-      0
+      0,
     ).getDate();
     days += previousMonth;
   }
@@ -227,7 +227,7 @@ const DateInput: React.FC<{
         const maxDateObj = new Date(
           maxDateParsed.year,
           maxDateParsed.month - 1,
-          maxDateParsed.day
+          maxDateParsed.day,
         );
         if (inputDate > maxDateObj) {
           setError(`তারিখ ${maxDate} এর আগে হতে হবে`);
@@ -372,13 +372,13 @@ const AddressSelectorModal: React.FC<{
     parentId: string,
     order: string,
     type: string,
-    ward = false
+    ward = false,
   ) => {
     const wardParam = ward ? "&ward=true" : "";
     return `${api}&parent=${encodeURIComponent(
-      parentId
+      parentId,
     )}&geoGroup=birthPlace&geoOrder=${order}&geoType=${encodeURIComponent(
-      type
+      type,
     )}${wardParam}`;
   };
 
@@ -387,7 +387,7 @@ const AddressSelectorModal: React.FC<{
     parentId: string,
     order: string,
     type: string,
-    ward = false
+    ward = false,
   ): Promise<GeoLocation[]> => {
     if (!parentId || parentId === "-1") return [];
 
@@ -444,7 +444,7 @@ const AddressSelectorModal: React.FC<{
 
   const handleAddressInputChange = (
     field: keyof typeof addressInputs,
-    value: string
+    value: string,
   ) => {
     setAddressInputs((prev) => ({
       ...prev,
@@ -489,7 +489,7 @@ const AddressSelectorModal: React.FC<{
     if (!value || value === "-1") return;
 
     const params = getParams(
-      refs.division as React.RefObject<HTMLSelectElement>
+      refs.division as React.RefObject<HTMLSelectElement>,
     );
     if (!params) return;
 
@@ -497,7 +497,7 @@ const AddressSelectorModal: React.FC<{
       "district",
       params.parentId,
       params.nextOrder || "1",
-      params.nextType || "1"
+      params.nextType || "1",
     );
   };
 
@@ -517,7 +517,7 @@ const AddressSelectorModal: React.FC<{
     if (!value || value === "-1") return;
 
     const params = getParams(
-      refs.district as React.RefObject<HTMLSelectElement>
+      refs.district as React.RefObject<HTMLSelectElement>,
     );
     if (!params) return;
 
@@ -525,7 +525,7 @@ const AddressSelectorModal: React.FC<{
       "upazila",
       params.parentId,
       params.nextOrder || "2",
-      params.nextType || "2"
+      params.nextType || "2",
     );
   };
 
@@ -544,7 +544,7 @@ const AddressSelectorModal: React.FC<{
     if (!value || value === "-1") return;
 
     const params = getParams(
-      refs.upazila as React.RefObject<HTMLSelectElement>
+      refs.upazila as React.RefObject<HTMLSelectElement>,
     );
     if (!params) return;
 
@@ -573,7 +573,7 @@ const AddressSelectorModal: React.FC<{
               id: item.id.toString(),
               nameBn: (item.nameBn || "").replace(/</g, "&lt;"),
               nameEn: (item.nameEn || "").replace(/</g, "&lt;"),
-            })
+            }),
           );
         });
 
@@ -703,6 +703,43 @@ const AddressSelectorModal: React.FC<{
       onClose();
     }
   };
+  const handleLoadPreset = async () => {
+    try {
+      const response = await fetch(`/api/load-address`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to load address");
+      }
+      const data = await response.json();
+      onApply(data.address);
+      onClose();
+      toast.success("ঠিকানা লোড করা হয়েছে");
+    } catch (error) {
+      toast.error("ঠিকানা লোড করতে সমস্যা হয়েছে");
+    }
+  };
+  const handleSave = async () => {
+    const address = buildAddress();
+    if(!address) {
+      return;
+    }
+    try {
+      const response = await fetch("/api/save-address", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({address}),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save address");
+      }
+      toast.success("ঠিকানা সংরক্ষণ করা হয়েছে");
+    } catch (error) {
+      toast.error("ঠিকানা সংরক্ষণ করতে সমস্যা হয়েছে");
+    }
+  };
 
   // Reset form when modal opens with initial values
   useEffect(() => {
@@ -740,7 +777,7 @@ const AddressSelectorModal: React.FC<{
     isLoading: boolean,
     onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void,
     ref?: React.RefObject<HTMLSelectElement>,
-    includeMeta = true
+    includeMeta = true,
   ) => (
     <div className="space-y-1">
       <label
@@ -920,7 +957,7 @@ const AddressSelectorModal: React.FC<{
             false,
             handleCountry,
             refs.country as React.RefObject<HTMLSelectElement>,
-            false
+            false,
           )}
 
           {selected.country === "1" && (
@@ -932,7 +969,7 @@ const AddressSelectorModal: React.FC<{
                 options.division,
                 loading.division,
                 handleDivision,
-                refs.division as React.RefObject<HTMLSelectElement>
+                refs.division as React.RefObject<HTMLSelectElement>,
               )}
 
               {selected.division &&
@@ -944,7 +981,7 @@ const AddressSelectorModal: React.FC<{
                   options.district,
                   loading.district,
                   handleDistrict,
-                  refs.district as React.RefObject<HTMLSelectElement>
+                  refs.district as React.RefObject<HTMLSelectElement>,
                 )}
 
               {selected.district &&
@@ -956,7 +993,7 @@ const AddressSelectorModal: React.FC<{
                   options.upazila,
                   loading.upazila,
                   handleUpazila,
-                  refs.upazila as React.RefObject<HTMLSelectElement>
+                  refs.upazila as React.RefObject<HTMLSelectElement>,
                 )}
 
               {selected.upazila && selected.upazila !== "-1" && (
@@ -1019,7 +1056,7 @@ const AddressSelectorModal: React.FC<{
                   loading.ward,
                   handleWard,
                   refs.ward as React.RefObject<HTMLSelectElement>,
-                  false
+                  false,
                 )}
             </>
           )}
@@ -1038,6 +1075,20 @@ const AddressSelectorModal: React.FC<{
             className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
           >
             বাতিল
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            সংরক্ষণ করুন
+          </button>
+          <button
+            type="button"
+            onClick={handleLoadPreset}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            প্রিসেট লোড করুন
           </button>
           <button
             type="button"
@@ -1089,7 +1140,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({
     } else {
       // Foreign address
       const country = countriesList.find(
-        (c) => c.id === selectedAddress.country
+        (c) => c.id === selectedAddress.country,
       );
       return `${selectedAddress.vilAreaTownBn}, ${country?.nameBn || "বিদেশ"}`;
     }
@@ -1290,7 +1341,7 @@ const isApplicantInfo = (obj: NestedFormSection): obj is ApplicantInfo => {
 const setNestedValue = <T extends NestedFormSection>(
   obj: T,
   field: keyof T,
-  value: string
+  value: string,
 ): T => {
   return {
     ...obj,
@@ -1513,7 +1564,7 @@ export default function BirthRegistrationForm() {
 
   const handleInputChange = (
     field: keyof FormData,
-    value: string | boolean | Address | null
+    value: string | boolean | Address | null,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -1536,7 +1587,7 @@ export default function BirthRegistrationForm() {
       "personInfoForBirth" | "father" | "mother" | "applicant"
     >,
     field: string,
-    value: string
+    value: string,
   ) => {
     setFormData((prev) => {
       const currentSection = prev[section];
@@ -1548,7 +1599,7 @@ export default function BirthRegistrationForm() {
           [section]: setNestedValue(
             currentSection,
             field as keyof PersonInfo,
-            value
+            value,
           ),
         };
       } else if (
@@ -1560,7 +1611,7 @@ export default function BirthRegistrationForm() {
           [section]: setNestedValue(
             currentSection,
             field as keyof ParentInfo,
-            value
+            value,
           ),
         };
       } else if (section === "applicant" && isApplicantInfo(currentSection)) {
@@ -1569,7 +1620,7 @@ export default function BirthRegistrationForm() {
           [section]: setNestedValue(
             currentSection,
             field as keyof ApplicantInfo,
-            value
+            value,
           ),
         };
       }
@@ -1644,9 +1695,9 @@ export default function BirthRegistrationForm() {
       const response = await fetch("/api/birth/application/registration");
       const data = await response.json();
 
-      if(data.error){
+      if (data.error) {
         toast.error(data.error, { id: "sessionReload" });
-        return
+        return;
       }
       setSessionData(data);
       toast.success("Session data loaded successfully", {
@@ -1702,7 +1753,7 @@ export default function BirthRegistrationForm() {
 
   // BD Mission Office Selection Handlers - UPDATED with dynamic targetGeoOrder
   const handleOfficeCountryChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const countryId = e.target.value;
     handleInputChange("officeAddrCountry", countryId);
@@ -1778,7 +1829,7 @@ export default function BirthRegistrationForm() {
   };
 
   const handleOfficeCityChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const cityId = e.target.value;
     handleInputChange("officeAddrCity", cityId);
@@ -1887,7 +1938,7 @@ export default function BirthRegistrationForm() {
   const handleFilesSelection = (files: File[]) => {
     const validFiles = files.filter((file) => {
       const isValidType = ["image/jpeg", "image/jpg", "image/png"].includes(
-        file.type
+        file.type,
       );
       const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
 
@@ -1914,7 +1965,7 @@ export default function BirthRegistrationForm() {
 
   const updateUploadingFileType = (index: number, fileTypeId: string) => {
     setUploadingFiles((prev) =>
-      prev.map((item, idx) => (idx === index ? { ...item, fileTypeId } : item))
+      prev.map((item, idx) => (idx === index ? { ...item, fileTypeId } : item)),
     );
   };
 
@@ -1935,7 +1986,7 @@ export default function BirthRegistrationForm() {
         {
           method: "POST",
           body: formData,
-        }
+        },
       );
 
       if (!res.ok) {
@@ -1975,14 +2026,14 @@ export default function BirthRegistrationForm() {
 
     // Check if this file type is already uploaded
     const alreadyUploadedFileType = uploadedFiles.find(
-      (file) => file.attachmentTypeId === uploadingFile.fileTypeId
+      (file) => file.attachmentTypeId === uploadingFile.fileTypeId,
     );
 
     if (alreadyUploadedFileType) {
       toast.error(
         `এই ফাইল টাইপ (${
           fileTypes.find((t) => t.id === uploadingFile.fileTypeId)?.name
-        }) ইতিমধ্যে আপলোড করা হয়েছে`
+        }) ইতিমধ্যে আপলোড করা হয়েছে`,
       );
       return;
     }
@@ -1992,7 +2043,7 @@ export default function BirthRegistrationForm() {
 
     if (uploadedFileTypeIds.length >= 2) {
       toast.error(
-        "আপনি সর্বোচ্চ ২টি ফাইল আপলোড করতে পারেন (ফাইল টাইপ ৪০ এবং ৪১)"
+        "আপনি সর্বোচ্চ ২টি ফাইল আপলোড করতে পারেন (ফাইল টাইপ ৪০ এবং ৪১)",
       );
       return;
     }
@@ -2000,29 +2051,29 @@ export default function BirthRegistrationForm() {
     // Update uploading state
     setUploadingFiles((prev) =>
       prev.map((item, idx) =>
-        idx === index ? { ...item, isUploading: true, progress: 0 } : item
-      )
+        idx === index ? { ...item, isUploading: true, progress: 0 } : item,
+      ),
     );
 
     try {
       // Update progress (simulated)
       setUploadingFiles((prev) =>
         prev.map((item, idx) =>
-          idx === index ? { ...item, progress: 30 } : item
-        )
+          idx === index ? { ...item, progress: 30 } : item,
+        ),
       );
 
       // Upload file using the fixed uploadFile function
       const uploadedFile = await uploadFile(
         uploadingFile.file,
-        uploadingFile.fileTypeId
+        uploadingFile.fileTypeId,
       );
 
       // Update progress to complete
       setUploadingFiles((prev) =>
         prev.map((item, idx) =>
-          idx === index ? { ...item, progress: 100 } : item
-        )
+          idx === index ? { ...item, progress: 100 } : item,
+        ),
       );
 
       // Add to uploaded files
@@ -2039,7 +2090,7 @@ export default function BirthRegistrationForm() {
         uploadingFile.fileTypeId,
       ];
       const allRequiredTypesUploaded = ["40", "41"].every((id) =>
-        newUploadedFileTypeIds.includes(id)
+        newUploadedFileTypeIds.includes(id),
       );
 
       if (allRequiredTypesUploaded) {
@@ -2050,8 +2101,8 @@ export default function BirthRegistrationForm() {
       toast.error("ফাইল আপলোড ব্যর্থ হয়েছে");
       setUploadingFiles((prev) =>
         prev.map((item, idx) =>
-          idx === index ? { ...item, isUploading: false, progress: 0 } : item
-        )
+          idx === index ? { ...item, isUploading: false, progress: 0 } : item,
+        ),
       );
     }
   };
@@ -2100,7 +2151,7 @@ export default function BirthRegistrationForm() {
 
       if (!validateMobile(formData.applicant.phone)) {
         toast.error(
-          "মোবাইল নম্বর সঠিকভাবে পূরণ করুন (01 দিয়ে শুরু করে 11 সংখ্যা)"
+          "মোবাইল নম্বর সঠিকভাবে পূরণ করুন (01 দিয়ে শুরু করে 11 সংখ্যা)",
         );
         return;
       }
@@ -2108,7 +2159,7 @@ export default function BirthRegistrationForm() {
       // Check if OTP was already sent and countdown is active
       if (isOtpSent && otpCountdown > 0) {
         toast.error(
-          `আপনি ${formatTime(otpCountdown)} পরে আবার OTP পাঠাতে পারবেন`
+          `আপনি ${formatTime(otpCountdown)} পরে আবার OTP পাঠাতে পারবেন`,
         );
         return;
       }
@@ -2132,7 +2183,12 @@ export default function BirthRegistrationForm() {
           cookies: sessionData.cookies,
           officeAddressType: formData.officeAddressType,
           officeId: formData.officeAddrOffice,
-          geoLocationId: formData.officeAddressType === "BIRTHPLACE" ? formData.birthPlaceAddress?.paurasavaOrUnion : formData.officeAddressType === "PERMANENT" ? formData.permAddrAddress?.paurasavaOrUnion : formData.officeAddrOffice,
+          geoLocationId:
+            formData.officeAddressType === "BIRTHPLACE"
+              ? formData.birthPlaceAddress?.paurasavaOrUnion
+              : formData.officeAddressType === "PERMANENT"
+                ? formData.permAddrAddress?.paurasavaOrUnion
+                : formData.officeAddrOffice,
         }),
       });
 
@@ -2205,7 +2261,7 @@ export default function BirthRegistrationForm() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -2275,7 +2331,7 @@ export default function BirthRegistrationForm() {
           errors["personInfoForBirth.personBirthDate"] = "জন্ম তারিখ প্রয়োজন";
         } else {
           const { valid } = parseDateString(
-            formData.personInfoForBirth.personBirthDate
+            formData.personInfoForBirth.personBirthDate,
           );
           if (!valid) {
             errors["personInfoForBirth.personBirthDate"] =
@@ -2331,7 +2387,7 @@ export default function BirthRegistrationForm() {
 
         // Only validate parent birth registration and dates if person's birth year is 2012 or later
         const birthYear = parseDateString(
-          formData.personInfoForBirth.personBirthDate
+          formData.personInfoForBirth.personBirthDate,
         ).year;
 
         if (birthYear >= 2013) {
@@ -2466,7 +2522,7 @@ export default function BirthRegistrationForm() {
 
         // File upload validation - require exactly 2 files with IDs 40 and 41
         const uploadedFileTypeIds = uploadedFiles.map(
-          (f) => f.attachmentTypeId
+          (f) => f.attachmentTypeId,
         );
         const hasFile40 = uploadedFileTypeIds.includes("40");
         const hasFile41 = uploadedFileTypeIds.includes("41");
@@ -2551,7 +2607,7 @@ export default function BirthRegistrationForm() {
       // Scroll to first error
       const firstErrorKey = Object.keys(errors)[0];
       const errorElement = document.querySelector(
-        `[data-field="${firstErrorKey}"]`
+        `[data-field="${firstErrorKey}"]`,
       );
       if (errorElement) {
         errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -2838,13 +2894,15 @@ export default function BirthRegistrationForm() {
             otp: submissionData.otp,
             email: submissionData.email,
             phone: submissionData.phone,
-            relation:'SELF',
+            relation: "SELF",
             applicantName: submissionData.applicantName,
             officeAddressType: submissionData.officeAddressType,
-            officeId: '0',
-            geoLocationId: submissionData.officeAddrPaurasavaOrUnion ||submissionData.officeAddrOffice
+            officeId: "0",
+            geoLocationId:
+              submissionData.officeAddrPaurasavaOrUnion ||
+              submissionData.officeAddrOffice,
           }),
-        }
+        },
       );
 
       const respData = await response.json();
@@ -3126,13 +3184,16 @@ export default function BirthRegistrationForm() {
       // Send data to API
       try {
         toast.loading("আবেদন জমা দেওয়া হচ্ছে...", { id: "save" });
-        const response = await fetch("/api/birth/application/registration/save", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          "/api/birth/application/registration/save",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(submissionData),
           },
-          body: JSON.stringify(submissionData),
-        });
+        );
 
         const resData = await response.json();
 
@@ -3430,7 +3491,7 @@ export default function BirthRegistrationForm() {
                           onChange={(e) =>
                             handleInputChange(
                               "officeAddrOffice",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3512,7 +3573,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "personInfoForBirth",
                           "personFirstNameBn",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3541,7 +3602,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "personInfoForBirth",
                           "personLastNameBn",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3571,7 +3632,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "personInfoForBirth",
                           "personFirstNameEn",
-                          e.target.value.toUpperCase()
+                          e.target.value.toUpperCase(),
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3600,7 +3661,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "personInfoForBirth",
                           "personLastNameEn",
-                          e.target.value.toUpperCase()
+                          e.target.value.toUpperCase(),
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3646,7 +3707,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "personInfoForBirth",
                           "thChild",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3662,7 +3723,7 @@ export default function BirthRegistrationForm() {
                           <option key={num} value={num}>
                             {num}
                           </option>
-                        )
+                        ),
                       )}
                     </select>
                     {formErrors["personInfoForBirth.thChild"] && (
@@ -3682,7 +3743,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "personInfoForBirth",
                           "gender",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3717,7 +3778,7 @@ export default function BirthRegistrationForm() {
                           handleNestedInputChange(
                             "personInfoForBirth",
                             "personNid",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3800,7 +3861,7 @@ export default function BirthRegistrationForm() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       পিতার জন্ম নিবন্ধন নম্বর{" "}
                       {parseDateString(
-                        formData.personInfoForBirth.personBirthDate
+                        formData.personInfoForBirth.personBirthDate,
                       ).year >= 2013 && <span className="text-red-500">*</span>}
                     </label>
                     <input
@@ -3810,7 +3871,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "father",
                           "ubrn",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3821,7 +3882,7 @@ export default function BirthRegistrationForm() {
                       placeholder="জন্ম নিবন্ধন নম্বর"
                       required={
                         parseDateString(
-                          formData.personInfoForBirth.personBirthDate
+                          formData.personInfoForBirth.personBirthDate,
                         ).year >= 2013
                       }
                     />
@@ -3839,13 +3900,13 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "father",
                           "personBirthDate",
-                          value
+                          value,
                         )
                       }
                       label="জন্ম তারিখ (খ্রিঃ)"
                       required={
                         parseDateString(
-                          formData.personInfoForBirth.personBirthDate
+                          formData.personInfoForBirth.personBirthDate,
                         ).year >= 2013
                       }
                       maxDate={formData.personInfoForBirth.personBirthDate}
@@ -3868,7 +3929,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "father",
                           "personNameBn",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3897,7 +3958,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "father",
                           "personNameEn",
-                          e.target.value.toUpperCase()
+                          e.target.value.toUpperCase(),
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3925,7 +3986,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "father",
                           "personNationality",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3960,7 +4021,7 @@ export default function BirthRegistrationForm() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       মাতার জন্ম নিবন্ধন নম্বর{" "}
                       {parseDateString(
-                        formData.personInfoForBirth.personBirthDate
+                        formData.personInfoForBirth.personBirthDate,
                       ).year >= 2013 && <span className="text-red-500">*</span>}
                     </label>
                     <input
@@ -3970,7 +4031,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "mother",
                           "ubrn",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -3981,7 +4042,7 @@ export default function BirthRegistrationForm() {
                       placeholder="জন্ম নিবন্ধন নম্বর"
                       required={
                         parseDateString(
-                          formData.personInfoForBirth.personBirthDate
+                          formData.personInfoForBirth.personBirthDate,
                         ).year >= 2013
                       }
                     />
@@ -3999,13 +4060,13 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "mother",
                           "personBirthDate",
-                          value
+                          value,
                         )
                       }
                       label="জন্ম তারিখ (খ্রিঃ)"
                       required={
                         parseDateString(
-                          formData.personInfoForBirth.personBirthDate
+                          formData.personInfoForBirth.personBirthDate,
                         ).year >= 2013
                       }
                       maxDate={formData.personInfoForBirth.personBirthDate}
@@ -4028,7 +4089,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "mother",
                           "personNameBn",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -4057,7 +4118,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "mother",
                           "personNameEn",
-                          e.target.value.toUpperCase()
+                          e.target.value.toUpperCase(),
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -4085,7 +4146,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "mother",
                           "personNationality",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
@@ -4174,7 +4235,7 @@ export default function BirthRegistrationForm() {
                       onChange={(e) =>
                         handleInputChange(
                           "copyBirthPlaceToPermAddr",
-                          e.target.checked
+                          e.target.checked,
                         )
                       }
                       className="text-blue-600 focus:ring-blue-500"
@@ -4213,7 +4274,7 @@ export default function BirthRegistrationForm() {
                       onChange={(e) =>
                         handleInputChange(
                           "copyPermAddrToPrsntAddr",
-                          e.target.checked
+                          e.target.checked,
                         )
                       }
                       className="text-blue-600 focus:ring-blue-500"
@@ -4264,7 +4325,7 @@ export default function BirthRegistrationForm() {
                           </span>{" "}
                           {fileType.name}
                           {uploadedFiles.some(
-                            (f) => f.attachmentTypeId === fileType.id
+                            (f) => f.attachmentTypeId === fileType.id,
                           ) && (
                             <span className="ml-2 text-green-600 dark:text-green-400">
                               ✓ আপলোড করা হয়েছে
@@ -4360,7 +4421,7 @@ export default function BirthRegistrationForm() {
                               }
                               className="px-3 md:w-1/2 py-2 border dark:border-gray-600 rounded text-sm dark:bg-gray-600 dark:text-white w-full sm:w-auto"
                               disabled={uploadedFiles.some(
-                                (f) => f.attachmentTypeId === item.fileTypeId
+                                (f) => f.attachmentTypeId === item.fileTypeId,
                               )}
                             >
                               <option value="-1">---টাইপ নির্বাচন---</option>
@@ -4369,12 +4430,12 @@ export default function BirthRegistrationForm() {
                                   key={`filetype-${t.id}`}
                                   value={t.id}
                                   disabled={uploadedFiles.some(
-                                    (f) => f.attachmentTypeId === t.id
+                                    (f) => f.attachmentTypeId === t.id,
                                   )}
                                 >
                                   {t.name}{" "}
                                   {uploadedFiles.some(
-                                    (f) => f.attachmentTypeId === t.id
+                                    (f) => f.attachmentTypeId === t.id,
                                   )
                                     ? "(ইতিমধ্যে আপলোড হয়েছে)"
                                     : ""}
@@ -4390,7 +4451,7 @@ export default function BirthRegistrationForm() {
                                   item.isUploading ||
                                   uploadedFiles.some(
                                     (f) =>
-                                      f.attachmentTypeId === item.fileTypeId
+                                      f.attachmentTypeId === item.fileTypeId,
                                   )
                                 }
                                 className={`px-4 py-2 rounded text-sm flex-1 sm:flex-none transition-colors ${
@@ -4398,7 +4459,7 @@ export default function BirthRegistrationForm() {
                                   item.isUploading ||
                                   uploadedFiles.some(
                                     (f) =>
-                                      f.attachmentTypeId === item.fileTypeId
+                                      f.attachmentTypeId === item.fileTypeId,
                                   )
                                     ? "bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400"
                                     : "bg-green-600 hover:bg-green-700 text-white"
@@ -4618,8 +4679,8 @@ export default function BirthRegistrationForm() {
                           {formData.personInfoForBirth.gender === "MALE"
                             ? "পুরুষ"
                             : formData.personInfoForBirth.gender === "FEMALE"
-                            ? "মহিলা"
-                            : "তৃতীয় লিঙ্গ"}
+                              ? "মহিলা"
+                              : "তৃতীয় লিঙ্গ"}
                         </p>
                       </div>
                       {/* Show NID in review if age is 18+ and NID is provided */}
@@ -4672,7 +4733,7 @@ export default function BirthRegistrationForm() {
                         <p className="font-medium">
                           {
                             nationalityOptions.find(
-                              (n) => n.id === formData.father.personNationality
+                              (n) => n.id === formData.father.personNationality,
                             )?.value
                           }
                         </p>
@@ -4706,7 +4767,7 @@ export default function BirthRegistrationForm() {
                         <p className="font-medium">
                           {
                             nationalityOptions.find(
-                              (n) => n.id === formData.mother.personNationality
+                              (n) => n.id === formData.mother.personNationality,
                             )?.value
                           }
                         </p>
@@ -4838,7 +4899,7 @@ export default function BirthRegistrationForm() {
                         handleNestedInputChange(
                           "applicant",
                           "email",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -4863,7 +4924,7 @@ export default function BirthRegistrationForm() {
                           handleNestedInputChange(
                             "applicant",
                             "phone",
-                            e.target.value
+                            e.target.value,
                           );
                         }}
                         className="flex-1 px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -4917,7 +4978,7 @@ export default function BirthRegistrationForm() {
                           handleNestedInputChange(
                             "applicant",
                             "otp",
-                            e.target.value
+                            e.target.value,
                           );
                         }}
                         className={`flex-1 px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
