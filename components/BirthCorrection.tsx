@@ -626,6 +626,42 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     };
   };
 
+  const handleSave = async () => {
+    const address = buildAddress();
+    if(!address) {
+      return;
+    }
+    try {
+      const response = await fetch("/api/save-address", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({address}),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save address");
+      }
+      toast.success("ঠিকানা সংরক্ষণ করা হয়েছে");
+    } catch (error) {
+      toast.error("ঠিকানা সংরক্ষণ করতে সমস্যা হয়েছে");
+    }
+  };
+  const handleLoadPreset = async () => {
+    try {
+      const response = await fetch(`/api/load-address`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to load address");
+      }
+      const data = await response.json();
+      onApply(data.address);
+      toast.success("ঠিকানা লোড করা হয়েছে");
+    } catch (error) {
+      toast.error("ঠিকানা লোড করতে সমস্যা হয়েছে");
+    }
+  };
   const apply = () => {
     // Validate address inputs first
     if (!validateAddressInputs()) {
@@ -1078,6 +1114,21 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         renderAddressInputs()}
 
       <div className="flex justify-end gap-3 pt-4">
+        <button
+          type="button"
+          onClick={handleSave}
+          className="rounded cursor-pointer bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+        >
+          সংরক্ষণ করুন
+        </button>
+        <button
+          type="button"
+          onClick={handleLoadPreset}
+          className="rounded cursor-pointer bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+        >
+          প্রিসেট লোড করুন
+        </button>
+        
         <button
           type="button"
           onClick={apply}
