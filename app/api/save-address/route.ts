@@ -18,28 +18,21 @@ export async function POST(request: Request) {
     if (!address) {
       return NextResponse.json(
         { error: "Address data is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-
-    // 🔥 Update if exists, otherwise create new
-    const updatedAddress = await AddressPreset.findOneAndUpdate(
-      { user: user._id }, // find by user
-      { address },        // update this
-      {
-        new: true,        // return updated document
-        upsert: true,     // create if not exists
-        runValidators: true,
-      }
-    );
+    //create always a new address preset for the user, do not update existing one
+    const updatedAddress = await AddressPreset.create({
+      user: user._id,
+      address,
+    });
 
     return NextResponse.json(updatedAddress, { status: 200 });
-
   } catch (error) {
     console.error("Address save error:", error);
     return NextResponse.json(
       { error: "Failed to save address data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

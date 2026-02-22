@@ -4,6 +4,11 @@ import BirthRegistration from "@/models/BirthRegistration";
 import CorrectionApplication from "@/models/Currection";
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
+import fs from "fs";
+import path from "path";
+import Spent from "@/models/Use";
+import File from "@/models/ApplicationPDF";
+import Services from "@/models/Services";
 
 export async function GET(request: NextRequest) {
   const urlParams = new URL(request.url);
@@ -23,8 +28,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if(user.balance < 10){
-    return NextResponse.json({ error: "Insufficient balance" }, { status: 402 });
+  const servicePath = "/application/download/pdf";
+  const service = await Services.findOne({ href: servicePath });
+  if (!service) {
+    return NextResponse.json(
+      { success: false, error: "Service not found" },
+      { status: 404 },
+    );
+  }
+
+  if (user.balance < 10) {
+    return NextResponse.json(
+      { error: "Insufficient balance" },
+      { status: 402 },
+    );
   }
 
   let dob;
@@ -57,7 +74,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  if(!dob){
+  if (!dob) {
     return NextResponse.json({ error: "Data not found" }, { status: 404 });
   }
 
@@ -132,7 +149,37 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Folder: /upload/pdf/<user._id>/
+    const folderPath = path.join(process.cwd(), "upload", "pdf", `${user._id}`);
+
+    // Create folder if not exists
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
+    }
+
+    // File path: /upload/pdf/<user._id>/<appId>.pdf
+    const filePath = path.join(folderPath, `${appId}.pdf`);
+
+    // Save file
+    fs.writeFileSync(filePath, pdfBuffer);
+
+    // Deduct balance and create records after successful PDF generation
     user.balance -= 10;
+    const file = await File.create({
+      user: user._id,
+      path: filePath,
+      name: appId,
+      type: "pdf",
+      title: `Application Pdf`,
+    });
+    await Spent.create({
+      user: user._id,
+      service: service._id,
+      amount: 10,
+      data: file._id,
+      dataSchema: "DownloadPDF",
+    });
+
     await user.save();
 
     //send the pdf buffer file

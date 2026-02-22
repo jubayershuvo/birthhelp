@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
+import AddressPresetSelector from "./AddressPresetSelector";
 
 // Mock data for countries and nationalities
 
@@ -322,7 +323,7 @@ const AddressSelectorModal: React.FC<{
     houseRoadBn: initial?.houseRoadBn || "",
     houseRoadEn: initial?.houseRoadEn || "",
   });
-
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [loading, setLoading] = useState<LoadingState>({
     division: false,
     district: false,
@@ -703,21 +704,15 @@ const AddressSelectorModal: React.FC<{
       onClose();
     }
   };
-  const handleLoadPreset = async () => {
-    try {
-      const response = await fetch(`/api/load-address`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to load address");
-      }
-      const data = await response.json();
-      onApply(data.address);
+  const handleCloseSelector = () => {
+    setIsSelectorOpen(false);
+  }
+  const handleSelectAddress = (address: Address) => {
+    console.log(address)
+     onApply(address);
       onClose();
-      toast.success("ঠিকানা লোড করা হয়েছে");
-    } catch (error) {
-      toast.error("ঠিকানা লোড করতে সমস্যা হয়েছে");
-    }
-  };
+  }
+
   const handleSave = async () => {
     const address = buildAddress();
     if(!address) {
@@ -941,6 +936,11 @@ const AddressSelectorModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50">
+          <AddressPresetSelector
+        isOpen={isSelectorOpen}
+        onClose={handleCloseSelector}
+        onSelect={handleSelectAddress}
+      />
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
@@ -1085,7 +1085,7 @@ const AddressSelectorModal: React.FC<{
           </button>
           <button
             type="button"
-            onClick={handleLoadPreset}
+            onClick={() => setIsSelectorOpen(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             প্রিসেট লোড করুন
@@ -3240,6 +3240,7 @@ export default function BirthRegistrationForm() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-4 sm:py-8">
+      
       <div className="max-w-6xl mx-auto px-3 sm:px-4">
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">

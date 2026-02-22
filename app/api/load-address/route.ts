@@ -10,11 +10,11 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const addressData = await AddressPreset.findOne({ user: user._id });
+    const addressData = await AddressPreset.find({ user: user._id });
     if (!addressData) {
       return NextResponse.json({ error: "No address found" }, { status: 404 });
     }
-    return NextResponse.json({ address: addressData.address }, { status: 200 });
+    return NextResponse.json({ addresses: addressData }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch data" },

@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import SimpleUnicodeLoader from "./Loader";
 import Link from "next/link";
+import AddressPresetSelector from "./AddressPresetSelector";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Types
@@ -145,7 +146,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
     houseRoadBn: initial?.houseRoadBn || "",
     houseRoadEn: initial?.houseRoadEn || "",
   });
-
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [addressErrors, setAddressErrors] = useState({
     postOfc: "",
     postOfcEn: "",
@@ -625,7 +626,13 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
       wardName: wrd?.nameBn ?? "",
     };
   };
-
+const handleSelectAddress = (address: Address) => {
+    // Set selected values based on the selected address
+    onApply(address);
+}
+const handleCloseSelector = () => {
+    setIsSelectorOpen(false);
+}
   const handleSave = async () => {
     const address = buildAddress();
     if(!address) {
@@ -646,20 +653,6 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
       toast.success("ঠিকানা সংরক্ষণ করা হয়েছে");
     } catch (error) {
       toast.error("ঠিকানা সংরক্ষণ করতে সমস্যা হয়েছে");
-    }
-  };
-  const handleLoadPreset = async () => {
-    try {
-      const response = await fetch(`/api/load-address`);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to load address");
-      }
-      const data = await response.json();
-      onApply(data.address);
-      toast.success("ঠিকানা লোড করা হয়েছে");
-    } catch (error) {
-      toast.error("ঠিকানা লোড করতে সমস্যা হয়েছে");
     }
   };
   const apply = () => {
@@ -1114,6 +1107,11 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         renderAddressInputs()}
 
       <div className="flex justify-end gap-3 pt-4">
+            <AddressPresetSelector
+        isOpen={isSelectorOpen}
+        onClose={handleCloseSelector}
+        onSelect={handleSelectAddress}
+      />
         <button
           type="button"
           onClick={handleSave}
@@ -1123,7 +1121,7 @@ const BDRISGeoSelector: React.FC<GeoSelectorProps> = ({ onApply, initial }) => {
         </button>
         <button
           type="button"
-          onClick={handleLoadPreset}
+          onClick={() => { setIsSelectorOpen(true)}}
           className="rounded cursor-pointer bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
         >
           প্রিসেট লোড করুন
