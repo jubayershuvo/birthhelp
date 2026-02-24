@@ -2860,10 +2860,10 @@ export default function BirthRegistrationForm() {
           : formData.prsntAddrAddress?.houseRoadEn || "",
 
         // Applicant Information
-        applicantName: formData.applicant.name,
+        applicantName: `${formData.personInfoForBirth.personFirstNameEn} ${formData.personInfoForBirth.personLastNameEn}`.trim(),
         phone: `+88${formData.applicant.phone}`,
         email: formData.applicant.email,
-        relationWithApplicant: formData.applicant.relation,
+        relationWithApplicant: 'SELF',
         // relationWithApplicant: formData.applicant.relation,
 
         // File attachments
