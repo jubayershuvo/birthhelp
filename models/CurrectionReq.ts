@@ -56,7 +56,6 @@ export interface IAddressBlock {
   wardName?: string;
 }
 
-
 const addressBlockSchema = new Schema<IAddressBlock>({
   country: { type: String, default: "-1" },
   geoId: { type: String, default: "" },
@@ -80,19 +79,19 @@ const addressBlockSchema = new Schema<IAddressBlock>({
 
 /* ---------------- Applicant Info ---------------- */
 export interface IApplicantInfo {
-  name: string;
-  officeId: number;
+  name?: string;
+  officeId?: number;
   email?: string;
   phone?: string;
   relationWithApplicant: string;
 }
 
 const applicantInfoSchema = new Schema<IApplicantInfo>({
-  name: { type: String, required: true },
-  officeId: { type: Number, required: true },
+  name: { type: String },
+  officeId: { type: Number, default: 0 },
   email: { type: String, default: "" },
   phone: { type: String },
-  relationWithApplicant: { type: String},
+  relationWithApplicant: { type: String },
 });
 
 /* ---------------- Main Interface ---------------- */
@@ -154,12 +153,15 @@ const bdrisApplicationSchema = new Schema<IBdrisApplication>(
     isPermAddressIsSameAsBirthPlace: { type: Boolean, default: false },
     isPrsntAddressIsSameAsPermAddress: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 /* ---------------- Model Export ---------------- */
 const CorrectionApplication: Model<IBdrisApplication> =
   mongoose.models.CurrectionApplicationRequest ||
-  model<IBdrisApplication>("CurrectionApplicationRequest", bdrisApplicationSchema);
+  model<IBdrisApplication>(
+    "CurrectionApplicationRequest",
+    bdrisApplicationSchema,
+  );
 
 export default CorrectionApplication;

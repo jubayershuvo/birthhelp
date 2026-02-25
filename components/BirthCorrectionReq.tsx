@@ -2007,14 +2007,7 @@ export default function BirthCorrectionForm() {
       toast.error("প্রথমে UBRN অনুসন্ধান করুন");
       return;
     }
-    if (!formData.otp) {
-      toast.error("OTP যাচাই করুন");
-      return;
-    }
-    if (!formData.phone) {
-      toast.error("দয়া করে মোবাইল নম্বর পূরণ করুন");
-      return;
-    }
+
 
     setIsLoading(true);
     toast.loading("আবেদন জমা হচ্ছে...", {
@@ -2046,31 +2039,9 @@ export default function BirthCorrectionForm() {
     };
 
     try {
-      const response = await fetch(
-        "/api/birth/application/correction/otp-verify",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            personUbrn: formData.ubrn,
-            cookies: submissionData.cookies,
-            csrf: submissionData.csrf,
-            otp: submissionData.otp,
-            email: submissionData.applicantInfo.email,
-            phone: submissionData.applicantInfo.phone,
-          }),
-        }
-      );
-      const respData = await response.json();
-      if (respData.data.isVerified !== true) {
-        toast.error("OTP যাচাই ব্যর্থ হয়েছে", { id: "submission" });
-        return;
-      }
-
+   
       try {
-        const resp = await fetch("/api/birth/application/correction", {
+        const resp = await fetch("/api/birth/application/correction/req-submit", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -2084,7 +2055,7 @@ export default function BirthCorrectionForm() {
         }
 
         toast.success("আবেদন সফলভাবে জমা হয়েছে", { id: "submission" });
-        router.push(`/birth/application/correction/view/${data._id}`);
+        router.push(`/birth/application/correction/req-history`);
       } catch (error) {
         console.log(error)
         toast.error("আবেদন জমা করতে সমস্যা হয়েছে", { id: "submission" });
@@ -3212,106 +3183,6 @@ export default function BirthCorrectionForm() {
                   )}
                 </div>
 
-                {/* ---------- Applicant Information ---------- */}
-                <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg border dark:border-gray-700">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-                    আবেদনকারীর তথ্য *
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        আবেদনকারীর নাম *
-                      </label>
-                      <input
-                        type="text"
-                        value={birthRecord.personNameBn}
-                        className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        readOnly
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        ইমেইল
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          handleInputChange("email", e.target.value)
-                        }
-                        className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        placeholder="example@email.com"
-                      />
-                    </div>
-
-                    {/* Phone input with Send button on the right */}
-                    <div className="mb-4 w-full">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        ফোন নম্বর *
-                      </label>
-                      <div className="flex flex-col sm:flex-row w-full">
-                        <input
-                          type="tel"
-                          value={formData.phone || ""}
-                          onChange={(e) => {
-                            setOtpCountdown(0);
-                            setIsOtpSent(false);
-                            handleInputChange("phone", e.target.value);
-                          }}
-                          className="flex-1 px-3 py-2 border rounded-md sm:rounded-l-md sm:rounded-r-none w-full mb-2 sm:mb-0 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                          placeholder="01XXXXXXXXX"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={sendOTP}
-                          disabled={isOtpSent && otpCountdown > 0}
-                          className={`font-bold px-4 py-2 rounded-md sm:rounded-l-none sm:rounded-r-md w-full sm:w-auto transition-colors ${
-                            isOtpSent && otpCountdown > 0
-                              ? "bg-gray-400 text-gray-700 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400"
-                              : "bg-green-500 hover:bg-green-700 text-white dark:bg-green-600 dark:hover:bg-green-700"
-                          }`}
-                        >
-                          {isOtpSent && otpCountdown > 0 ? (
-                            <span className="flex items-center justify-center">
-                              <span className="mr-1">⌛</span>
-                              {formatTime(otpCountdown)}
-                            </span>
-                          ) : (
-                            "Send"
-                          )}
-                        </button>
-                      </div>
-                      {isOtpSent && otpCountdown > 0 && (
-                        <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                          OTP পাঠানো হয়েছে। {formatTime(otpCountdown)} পরে আবার
-                          পাঠাতে পারবেন
-                        </p>
-                      )}
-                    </div>
-
-                    {/* OTP input with Verify button on the right */}
-                    <div className="w-full">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        OTP *
-                      </label>
-                      <div className="flex flex-col sm:flex-row w-full">
-                        <input
-                          type="text"
-                          value={formData.otp}
-                          onChange={(e) =>
-                            handleInputChange("otp", e.target.value)
-                          }
-                          className="flex-1 px-3 py-2 border rounded-md sm:rounded-l-md sm:rounded w-full mb-2 sm:mb-0 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                          placeholder="Enter OTP"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 {/* ---------- Navigation ---------- */}
                 <div
@@ -3328,15 +3199,6 @@ export default function BirthCorrectionForm() {
                   </button>
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:gap-2">
-                    <button
-                      onClick={handleSave}
-                      type="button"
-                      className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded 
-                 hover:bg-blue-700 disabled:opacity-50 
-                 dark:bg-blue-700 dark:hover:bg-blue-800"
-                    >
-                      Keep Pending
-                    </button>
 
                     <button
                       type="submit"
