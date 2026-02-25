@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+    <meta content="width=device-width,initial-scale=1,shrink-to-fit=no" name="viewport"/>
+    <link rel="icon" sizes="16x16" href="/assets/img/favicon.ico" type="image/png"/>
+    <title>Login</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/style.css" type="text/css"/>
+
+    <style>
+        .profile-page {
+            overflow: hidden;
+        }
+
+        .profile-page .login-center {
+            padding-left: 2em !important;
+            padding-right: 2em !important;
+        }
+
+        .v-center-half {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 5rem;
+            margin-bottom: 5rem;
+        }
+
+        .center-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: left;
+            min-height: 100vh;
+        }
+    </style>
+
+<script type="text/javascript">
+(function(){
+window["loaderConfig"] = "/TSPD/?type=21";
+})();
+
+</script>
+
+<script type="text/javascript" src="/TSPD/?type=18"></script>
+</head>
+
+<body class="body-bg-full profile-page" style="background: #dfe6e9">
+<div class="row" id="wrapper" style="margin-top: 4rem">
+    <div class="col-10 col-sm-6 col-md-4"></div>
+    <div class="col-10 col-sm-6 col-md-4">
+        
+        <!--<div
+                th:if="${session[SPRING_SECURITY_LAST_EXCEPTION] == null or session[SPRING_SECURITY_LAST_EXCEPTION].message == null or session[SPRING_SECURITY_LAST_EXCEPTION].message == 'Bad credentials'}">
+            <section th:replace="~{components/success-and-error-message}"></section>
+        </div>-->
+
+        <form class="" id="loginForm" method="post" action="/login"><input type="hidden" name="_csrf" value="0hNho6T4GR1vqseBbq46AAzhe3M1p3VK_RZiUDYWMTjzS-o05SBWlMbALHxCyKG1DIMONTTRVksFlEZnz3cBM1VzAQ3BKdMM"/>
+            <div class="card">
+                <div class="card-header">
+                    <!--<div class="header-text">লগইন টু বিডিআরআইএস</div>-->
+                    <div class="header-text">Login To BDRIS</div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="row px-4">
+                        <div class="col-md-4" style="border-right: 1px solid #dfe6e9">
+                            <div class="row text-center">
+                                <div class="col-md-12 v-center-half">
+                                    <img alt="logo" class="logo-expand" height="130" style="max-width: initial;"
+                                         src="/images/logo/logo.png"
+                                         width="130"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div id="usernamePassDiv">
+                                <div class="form-group">
+                                    <label class="">ইউজারনেম</label>
+                                    <input class="form-control form-control-line" id="username" name="username"
+                                           placeholder="username" required/>
+                                </div>
+                                <div class="form-group">
+                                    <label class="">পাসওয়ার্ড</label>
+                                    <input class="form-control form-control-line" id="password" name="password"
+                                           placeholder="password" required type="password"/>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-form-label"></label>
+                                    <div class="img-responsive">
+                                        <img alt="captcha" id="captcha" src="data:image/png;base64,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"/>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-form-label" for="answer"></label>
+                                    <input class="form-control" id="answer" name="answer"
+                                           placeholder="Enter the above text"
+                                           required
+                                           type="text" value=""/>
+
+                                </div>
+                            </div>
+
+                            <div id="otpDiv" style="display: none">
+                                <div class="form-group">
+                                    <label class="">ওটিপি</label>
+                                    <input class="form-control form-control-line" id="otp" name="otp"
+                                           placeholder="OTP"
+                                           type="text"/>
+                                    <span></span>
+                                    <span class="otpIntervalText">An otp has been sent to your mobile or email. Please wait <span
+                                            class="otpInterval" style="color: red"></span> (Minutes) before requesting another otp </span>
+
+                                    <!--<span th:if="${lang == 'bn'}" class="otpIntervalText">আপনার মোবাইল/ইমেলে একটি ওটিপি পাঠানো হয়েছে।  আরেকটি ওটিপি অনুরোধ করার আগে অনুগ্রহ করে <span
+                                            class="otpInterval" style="color: red"></span> (মিনিট) অপেক্ষা করুন।</span>-->
+                                    <br/>
+                                    <button class="btn btn-success btn-sm sendOtpBtn" id="sendOtpAgain"
+                                            style="display: none"
+                                            type="button">Send OTP Again
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <input class="btn btn-block btn-lg btn-color-scheme ripple sendOtpBtn" id="sendOtpBtn"
+                                       type="button"
+                                       value="ওটিপি পাঠান"/>
+                                <input class="btn btn-block btn-lg btn-color-scheme ripple" id="loginBtn"
+                                       style="display: none"
+                                       type="submit"
+                                       value="লগইন"/>
+                                
+                            </div>
+                            <div class="row"></div>
+                            <div class="form-group no-gutters mb-0">
+                                <div class="col-md-12 d-flex">
+                                    <a class="my-auto pb-2 text-right" id="to-recover"
+                                       href="/user/forgot-password">পাসওয়ার্ড ভুলে গেছেন?</a>
+                                </div>
+                                <div class="col-md-12 d-flex">
+                                    <p><a class="my-auto pb-2 text-right" href="/user/create">নতুন ব্যবহারকারীর
+                                        জন্য (ওটিপি প্রাপ্তির পর)</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">Birth and Death Registration Information System</p>
+                </div>
+            </div>
+        </form>
+        <footer class="col-sm-12 text-center"></footer>
+    </div>
+    <div class="col-10 col-sm-6 col-md-4"></div>
+</div>
+
+<div class="modal" id="modalInstruction" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width: 1000px !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="col-md-9 col-sm-12">
+                            <h5 class="modal-title">নির্দেশনা</h5>
+                        </div>
+                    </div>
+                </div>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div>
+                    <h4 class="text-center">লগইন নির্দেশনা</h4>
+                    <ul style="font-weight: bold; line-height: 2">
+                        <li>লগইনের সময় সঠিক ইউজারনেইম, পাসওয়ার্ড ও ক্যাপচা প্রদান করুন।</li>
+                        <li>০৩ বার ইউজারনেইম ও পাসওয়ার্ড ভুল প্রদান করা হলে উক্ত আইডি সিস্টেম হতে ৩০ মিনিটের জন্য স্থগিত
+                            করা হয় এবং ৩০ মিনিট পর পুনরায় সঠিক পাসওয়ার্ড প্রদান পূর্বক লগইন করুন।
+                        </li>
+                        <li>লগইনের সময় ০৫ মিনিটের জন্য ওটিপির মেয়াদ থাকে। বার বার ওটিপি পুনরায় না পাঠিয়ে সর্বোচ্চ ০৫
+                            মিনিট অপেক্ষা করুন। ওটিপি না আসলে ০৫ মিনিট পর পুনরায় লগইনের চেষ্টা করুন।
+                        </li>
+                        <li>প্রতিবার লগইনের সময় কী বোর্ডের <code>Ctrl + Shift + R</code> press করে ব্রাওজারের পূর্বের
+                            ক্যাশ ক্লিয়ার করুন।
+                        </li>
+                        <li>যেকোনো ধরনের সমস্যার জন্য ১৬১৫২ (কল সেন্টার) তে যোগাযোগ করুন।</li>
+                        <li>রেজিস্ট্রার জেনারেল কার্যালয়ের হালনাগাদ তথ্য পেতে <a href="https://orgbdr.gov.bd"
+                                                                                 target="_blank">এই
+                            লিংক</a> এ ভিজিট করুন।
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/jquery/3.7.1/jquery.min.js"></script>
+<script src="/js/bootstrap/3.3.7/bootstrap.min.js"></script>
+<script src="/js/jquery-validate/jquery.validate.min.js"></script>
+<script>
+    const otpLogin = "true";
+    const context = "";
+    const csrf = "0hNho6T4GR1vqseBbq46AAzhe3M1p3VK_RZiUDYWMTjzS-o05SBWlMbALHxCyKG1DIMONTTRVksFlEZnz3cBM1VzAQ3BKdMM";
+    const otpLoginExpirationTime = "300";
+    // const otpExpirationTime = /*null*/ null;
+    const csrfParamName = "_csrf";
+
+    function otpSuccess(data) {
+        if (data && data['error']) {
+            toastDanger('Error', data['message']);
+            return;
+        }
+        // alert(data['message']);
+        $("#usernamePassDiv").hide();
+        $("#sendOtpBtn").hide();
+        $("#otpDiv").show();
+        $("#loginBtn").show();
+        $('.otpIntervalText').show();
+        $("#sendOtpAgain").hide();
+        countdown()
+    }
+
+    function otpError(data) {
+        alert(data['responseJSON']['message']);
+        location.reload();
+    }
+
+    function countdown() {
+        let timer2 = (parseInt(otpLoginExpirationTime) / 60) + ":01";
+        const interval = setInterval(function () {
+            const timer = timer2.split(':');
+            //by parsing integer, I avoid all extra string processing
+            let minutes = parseInt(timer[0], 10);
+            let seconds = parseInt(timer[1], 10);
+            --seconds;
+            minutes = (seconds < 0) ? --minutes : minutes;
+            if (minutes < 0) clearInterval(interval);
+            seconds = (seconds < 0) ? 59 : seconds;
+            seconds = (seconds < 10) ? '0' + seconds : seconds;
+            $('.otpInterval').html(minutes + ':' + seconds);
+            if (minutes < 0) {
+                clearInterval(interval);
+            }
+            //check if both minutes and seconds are 0
+            if ((seconds <= 0) && (minutes <= 0)) {
+                clearInterval(interval);
+                $(".otpInterval").hide();
+                $(".otpIntervalText").hide();
+                $("#sendOtpAgain").show();
+            }
+            timer2 = minutes + ':' + seconds;
+        }, 1000);
+    }
+
+
+    $(document).on("submit", "#loginForm", function (e) {
+        const form = $(this);
+        const otp = $('#otp').val();
+        if (otpLogin && typeof otp !== "undefined" && !otp) {
+            $('#otp').after('<div class="invalid-feedback">OTP required</div>');
+            return false;
+        }
+        form.submit();
+    });
+
+    $(document).on("click", ".sendOtpBtn", function () {
+        const form = $("#loginForm");
+        form.validate({
+            submitHandler: function (form) {
+                // do other things for a valid form
+                form.submit();
+            }
+        });
+        if (!form.valid()) {
+            return;
+        }
+        $("#sendOtpAgain").hide();
+        $("#sendOtpBtn").val('অপেক্ষা করুন...').prop('disabled', true);
+        const url = context + "/login/send-otp";
+        const param = {};
+        param['username'] = $("#username").val();
+        param['password'] = $("#password").val();
+        param['answer'] = $("#answer").val();
+        param[csrfParamName] = csrf;
+        callAjax(url, param, "POST", otpSuccess, otpError);
+    });
+
+    function callAjax(url, param, method, successCallback, errorCallback) {
+        $.ajax({
+            url: url,
+            data: param,
+            method: method,
+            beforeSend: function (request) {
+                request.setRequestHeader("client", "bris");
+            },
+            complete: function () {
+                $("#sendOtpBtn").val('ওটিপি পাঠান').prop('disabled', false);
+            },
+            success: function (data) {
+                successCallback(data);
+            },
+            error: function (data) {
+                errorCallback(data);
+                $("#sendOtpBtn").val('ওটিপি পাঠান').prop('disabled', false);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#loginForm").validate({
+            focusInvalid: false,
+            ignore: [],
+            errorElement: 'div',
+            errorClass: 'invalid-feedback',
+            highlight: function (element, errorClass, validClass) {
+                $(element).removeClass("is-valid").addClass("is-invalid");
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).removeClass("is-invalid").addClass("is-valid");
+            },
+            rules: {
+                username: {required: true},
+                password: {required: true},
+                answer: {required: true},
+                otp: {required: otpLogin}
+            }
+        });
+
+        $("#modalInstruction").modal("show");
+        const usernameInp = document.getElementById('username');
+        const passInp = document.getElementById('password');
+        usernameInp.onpaste = function (e) {
+            e.preventDefault();
+        }
+        passInp.onpaste = function (e) {
+            e.preventDefault();
+        }
+    });
+
+</script>
+</body>
+</html>
