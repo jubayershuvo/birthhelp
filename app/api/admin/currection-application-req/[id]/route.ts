@@ -1,9 +1,12 @@
 import { bdrisCurrectionCookies } from "@/lib/bdrisCurrectionCookies";
 import { connectDB } from "@/lib/mongodb";
 import { saveHtmlDebug } from "@/lib/saveHtmlDebug";
+import { verifyOtp } from "@/lib/verifyOtp";
+import { sendWhatsAppText } from "@/lib/whatsappApi";
 import CorrectionApplication from "@/models/CurrectionReq";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
+import User from "@/models/User";
 
 function isHTML(str: string): boolean {
   return str.trim().startsWith("<!DOCTYPE") || str.trim().startsWith("<html");
@@ -13,13 +16,14 @@ async function safeParseResponse(response: Response) {
 
   // console.log(`HTML page saved to: ${filePath}`);
   if (isHTML(text)) {
-    const path = saveHtmlDebug(text); 
+    const path = saveHtmlDebug(text);
     console.warn(`Received HTML response. Saved to: ${path}`);
-    
+
     // First, check if this is an OTP error page and extract the error message
-    const errorSpanRegex = /<div[^>]*class="alert alert-icon alert-danger[^>]*>[\s\S]*?<span>(.*?)<\/span>/;
+    const errorSpanRegex =
+      /<div[^>]*class="alert alert-icon alert-danger[^>]*>[\s\S]*?<span>(.*?)<\/span>/;
     const errorMatch = text.match(errorSpanRegex);
-    
+
     if (errorMatch) {
       const errorMessage = errorMatch[1].trim();
       // Check if it's an OTP related error
@@ -176,6 +180,24 @@ export async function POST(
       );
     }
 
+    const otpResult = await verifyOtp(
+      {
+        otp: body.otp,
+        phone: body.applicant.phone,
+        personUbrn: currection.ubrn,
+        relation: "GUARDIAN",
+        applicantName: body.applicant.applicantName,
+        applicantBrn: body.applicant.applicantBrn,
+        applicantDob: body.applicant.applicantDob,
+      },
+      {
+        cookieString: body.session.cookieString,
+        csrf: body.session.csrf,
+      },
+    );
+
+    console.log(otpResult);
+
     // Build correctionInfoJson array (similar to PHP logic)
     const correctionInfoArray = [];
 
@@ -277,8 +299,8 @@ export async function POST(
     formData.append("brSearchDob", currection.dob);
     formData.append("captchaAns", body.captchaAns);
     formData.append("otp", body.otp);
-    formData.append('applicantBrn', body.applicant.applicantBrn || "");
-    formData.append('applicantDob', body.applicant.applicantDob || "");
+    formData.append("applicantBrn", body.applicant.applicantBrn || "");
+    formData.append("applicantDob", body.applicant.applicantDob || "");
 
     // Add specific personal info corrections
 
@@ -463,10 +485,7 @@ export async function POST(
     }
 
     // Add applicant information
-    formData.append(
-      "relationWithApplicant",
-      "GUARDIAN",
-    );
+    formData.append("relationWithApplicant", "GUARDIAN");
     formData.append("applicantFatherBrn", "");
     formData.append("applicantFatherNid", "");
     formData.append("applicantMotherBrn", "");
@@ -478,7 +497,6 @@ export async function POST(
     formData.append("email", body.applicant.applicantEmail || "");
 
     // Format phone number (similar to PHP logic)
-  
 
     // Add the correction info JSON (important!)
     formData.append("correctionInfoJson", JSON.stringify(correctionInfoArray));
@@ -511,7 +529,6 @@ export async function POST(
     const result = await safeParseResponse(response);
 
     if (!result.success) {
-
       return NextResponse.json(
         {
           success: false,
@@ -525,9 +542,18 @@ export async function POST(
     currection.printLink = result.printLink;
     await currection.save();
 
+    const user = await User.findById(currection.user);
+
+    if (user && user.whatsapp) {
+      await sendWhatsAppText(
+        user.whatsapp,
+        `Your correction application has been submitted successfully!\nApplication ID: ${currection.applicationId}\nAnd DOB: ${currection.dob}`,
+      );
+    }
+
     return NextResponse.json({ currection, body }, { status: 200 });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return NextResponse.json(
       {
         error:
