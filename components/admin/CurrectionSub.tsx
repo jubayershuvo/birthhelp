@@ -167,9 +167,13 @@ const CorrectionDetailsPage = ({ params }: CorrectionDetailsProps) => {
       fetchApplication();
       router.refresh();
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to submit application",
-      );
+      const errorMessage =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : error instanceof Error
+            ? error.message
+            : "Failed to submit application";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

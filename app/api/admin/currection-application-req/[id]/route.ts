@@ -1,5 +1,6 @@
 import { bdrisCurrectionCookies } from "@/lib/bdrisCurrectionCookies";
 import { connectDB } from "@/lib/mongodb";
+import { saveHtmlDebug } from "@/lib/saveHtmlDebug";
 import CorrectionApplication from "@/models/CurrectionReq";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
@@ -12,11 +13,22 @@ async function safeParseResponse(response: Response) {
 
   // console.log(`HTML page saved to: ${filePath}`);
   if (isHTML(text)) {
-    if (text.includes("OTP NOT VERIFIED")) {
-      return {
-        success: false,
-        message: "OTP not verified. Please check the OTP and try again.",
-      };
+    // const path = saveHtmlDebug(text); 
+    // console.warn(`Received HTML response. Saved to: ${path}`);
+    
+    // First, check if this is an OTP error page and extract the error message
+    const errorSpanRegex = /<div[^>]*class="alert alert-icon alert-danger[^>]*>[\s\S]*?<span>(.*?)<\/span>/;
+    const errorMatch = text.match(errorSpanRegex);
+    
+    if (errorMatch) {
+      const errorMessage = errorMatch[1].trim();
+      // Check if it's an OTP related error
+      if (errorMessage) {
+        return {
+          success: false,
+          message: errorMessage, // Return the actual Bengali error message
+        };
+      }
     }
 
     const bdrisLink = "https://bdris.gov.bd";
@@ -52,11 +64,12 @@ async function safeParseResponse(response: Response) {
       return extracted;
     }
 
-    // Check for common HTML error patterns
+    // Check for other common HTML error patterns
     if (
       text.includes("login") ||
       text.includes("session") ||
-      text.includes("expired")
+      text.includes("expired") ||
+      text.includes("লগইন")
     ) {
       return {
         success: false,
