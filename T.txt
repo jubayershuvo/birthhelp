@@ -1,0 +1,108 @@
+curl --location 'https://bdris.gov.bd/br/correction' \
+--header 'sec-ch-ua: "Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"' \
+--header 'sec-ch-ua-mobile: ?0' \
+--header 'sec-ch-ua-platform: "Windows"' \
+--header 'Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryA7qQ3tF7AMlb1kvg' \
+--header 'Upgrade-Insecure-Requests: 1' \
+--header 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36' \
+--header 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
+--header 'Sec-Fetch-Site: same-origin' \
+--header 'Sec-Fetch-Mode: navigate' \
+--header 'Sec-Fetch-User: ?1' \
+--header 'Sec-Fetch-Dest: document' \
+--header 'host: bdris.gov.bd' \
+--header 'Cookie: SESSION=NjhmYmU1ZmUtNTQwMS00MDUxLThhYzUtNTVhZjI5M2UzZGFh' \
+--form '_csrf="cIzQdwXjH3faSSFKi2vPUjJGXLrGcU2ntxRuLw4VbYX3dap7Q7-0RGHbLE73exh_vEb7YgYlcdulEn6KhCNZGTZ3WuPOFp1C"' \
+--form 'applicantBrn=""' \
+--form 'applicantBrn=""' \
+--form 'applicantBrn="19989312886003840"' \
+--form 'applicantDob=""' \
+--form 'applicantDob=""' \
+--form 'applicantDob="01/02/1998"' \
+--form 'applicantName="MST MOSLIMA AKTER IMA"' \
+--form 'attachments="4396967654"' \
+--form 'attachments="4396969804"' \
+--form 'birthPlaceArea="-1"' \
+--form 'birthPlaceBn=" চন্দ্রিমা সুবিদ বাজার, সিলেট-৩১০০"' \
+--form 'birthPlaceCityCorpCantOrUpazila="6527"' \
+--form 'birthPlaceCorrectionCheckbox="yes"' \
+--form 'birthPlaceCountry="1"' \
+--form 'birthPlaceDist="71"' \
+--form 'birthPlaceDiv="7"' \
+--form 'birthPlaceEn=" Chandrima , Subid Bazar, Sylhet Sadar-3100"' \
+--form 'birthPlaceHouseRoadBn=""' \
+--form 'birthPlaceHouseRoadEn=""' \
+--form 'birthPlaceLocationId="950"' \
+--form 'birthPlacePaurasavaOrUnion="-1"' \
+--form 'birthPlacePostCode=""' \
+--form 'birthPlacePostOfc="সিলেট-৩১০০"' \
+--form 'birthPlacePostOfcEn="Sylhet Sadar-3100"' \
+--form 'birthPlaceVilAreaTownBn="চন্দ্রিমা সুবিদ বাজার,"' \
+--form 'birthPlaceVilAreaTownEn="Chandrima , Subid Bazar,"' \
+--form 'birthPlaceWardInCityCorp="950"' \
+--form 'birthPlaceWardInPaurasavaOrUnion="3006"' \
+--form 'birthRegisterId=""' \
+--form 'brSearchAliveBrnCorr="19939195009003344"' \
+--form 'brSearchDob="02/11/1993"' \
+--form 'captchaAns="rnenn"' \
+--form 'copyPermAddrToPrsntAddr="yes"' \
+--form 'correctionInfoJson="[{\"id\":\"personFirstNameBn\",\"val\":\"মোহাম্মদ কিবরিয়া\",\"cause\":\"2\"},{\"id\":\"personLastNameBn\",\"val\":\"আহমদ\",\"cause\":\"2\"},{\"id\":\"personFirstNameEn\",\"val\":\"MOHAMMAD KIBRIA\",\"cause\":\"2\"},{\"id\":\"personLastNameEn\",\"val\":\"AHMED\",\"cause\":\"2\"},{\"id\":\"thChild\",\"val\":\"1\",\"cause\":\"2\"},{\"id\":\"fatherNameBn\",\"val\":\"মুফিজ উদ্দিন\",\"cause\":\"2\"},{\"id\":\"fatherNameEn\",\"val\":\"MUFIZ UDDIN\",\"cause\":\"2\"},{\"id\":\"motherNameBn\",\"val\":\"জাকিরা বেগম\",\"cause\":\"2\"},{\"id\":\"motherNameEn\",\"val\":\"ZAKIRA BEGUM\",\"cause\":\"2\"},{\"id\":\"birthPlaceLocationId\",\"val\":\"950\"},{\"id\":\"birthPlaceWardInPaurasavaOrUnion\",\"val\":\"3006\"},{\"id\":\"birthPlaceEn\",\"val\":\" Chandrima , Subid Bazar, Sylhet Sadar-3100\"},{\"id\":\"birthPlaceBn\",\"val\":\" চন্দ্রিমা সুবিদ বাজার, সিলেট-৩১০০\"},{\"id\":\"permAddrLocationId\",\"val\":\"5325\"},{\"id\":\"permAddrWardInPaurasavaOrUnion\",\"val\":\"15719\"},{\"id\":\"permAddrEn\",\"val\":\" KUORGORI, kanaighat-3180\"},{\"id\":\"permAddrBn\",\"val\":\" কুওরঘড়ি, কানাইঘাট -৩১৮০\"},{\"id\":\"prsntAddrLocationId\",\"val\":\"5325\"},{\"id\":\"prsntAddrWardInPaurasavaOrUnion\",\"val\":\"15719\"},{\"id\":\"prsntAddrEn\",\"val\":\" KUORGORI, kanaighat-3180\"},{\"id\":\"prsntAddrBn\",\"val\":\" কুওরঘড়ি, কানাইঘাট -৩১৮০\"}]"' \
+--form 'fatherNameBn="মুফিজ উদ্দিন"' \
+--form 'fatherNameBn_cause="2"' \
+--form 'fatherNameEn="MUFIZ UDDIN"' \
+--form 'fatherNameEn_cause="2"' \
+--form 'files=""' \
+--form 'motherNameBn="জাকিরা বেগম"' \
+--form 'motherNameBn_cause="2"' \
+--form 'motherNameEn="ZAKIRA BEGUM"' \
+--form 'motherNameEn_cause="2"' \
+--form 'otp="141246"' \
+--form 'permAddrArea="-1"' \
+--form 'permAddrBn=" কুওরঘড়ি, কানাইঘাট -৩১৮০"' \
+--form 'permAddrCityCorpCantOrUpazila="585"' \
+--form 'permAddrCorrectionCheckbox="yes"' \
+--form 'permAddrCountry="1"' \
+--form 'permAddrDist="71"' \
+--form 'permAddrDiv="7"' \
+--form 'permAddrEn=" KUORGORI, kanaighat-3180"' \
+--form 'permAddrHouseRoadBn=""' \
+--form 'permAddrHouseRoadEn=""' \
+--form 'permAddrLocationId="5325"' \
+--form 'permAddrPaurasavaOrUnion="5325"' \
+--form 'permAddrPostCode=""' \
+--form 'permAddrPostOfc="কানাইঘাট -৩১৮০"' \
+--form 'permAddrPostOfcEn="kanaighat-3180"' \
+--form 'permAddrVilAreaTownBn="কুওরঘড়ি,"' \
+--form 'permAddrVilAreaTownEn="KUORGORI,"' \
+--form 'permAddrWardInCityCorp="-1"' \
+--form 'permAddrWardInPaurasavaOrUnion="15719"' \
+--form 'personFirstNameBn="মোহাম্মদ কিবরিয়া"' \
+--form 'personFirstNameBn_cause="2"' \
+--form 'personFirstNameEn="MOHAMMAD KIBRIA"' \
+--form 'personFirstNameEn_cause="2"' \
+--form 'personLastNameBn="আহমদ"' \
+--form 'personLastNameBn_cause="2"' \
+--form 'personLastNameEn="AHMED"' \
+--form 'personLastNameEn_cause="2"' \
+--form 'prsntAddrArea="-1"' \
+--form 'prsntAddrBn=" কুওরঘড়ি, কানাইঘাট -৩১৮০"' \
+--form 'prsntAddrCityCorpCantOrUpazila="585"' \
+--form 'prsntAddrCorrectionCheckbox="yes"' \
+--form 'prsntAddrCountry="1"' \
+--form 'prsntAddrDist="71"' \
+--form 'prsntAddrDiv="7"' \
+--form 'prsntAddrEn=" KUORGORI, kanaighat-3180"' \
+--form 'prsntAddrHouseRoadBn=""' \
+--form 'prsntAddrHouseRoadEn=""' \
+--form 'prsntAddrLocationId="5325"' \
+--form 'prsntAddrPaurasavaOrUnion="5325"' \
+--form 'prsntAddrPostCode=""' \
+--form 'prsntAddrPostOfc="কানাইঘাট -৩১৮০"' \
+--form 'prsntAddrPostOfcEn="kanaighat-3180"' \
+--form 'prsntAddrVilAreaTownBn="কুওরঘড়ি,"' \
+--form 'prsntAddrVilAreaTownEn="KUORGORI,"' \
+--form 'prsntAddrWardInCityCorp="-1"' \
+--form 'prsntAddrWardInPaurasavaOrUnion="15719"' \
+--form 'relationWithApplicant="GUARDIAN"' \
+--form 'thChild="1"' \
+--form 'thChild_cause="2"'

@@ -158,9 +158,9 @@ const bdrisApplicationSchema = new Schema<IBdrisApplication>(
 
 /* ---------------- Model Export ---------------- */
 const CorrectionApplication: Model<IBdrisApplication> =
-  mongoose.models.CurrectionApplicationRequest ||
+  mongoose.models.CorrectionApplicationRequest ||
   model<IBdrisApplication>(
-    "CurrectionApplicationRequest",
+    "CorrectionApplicationRequest",
     bdrisApplicationSchema,
   );
 

@@ -2214,7 +2214,7 @@ export default function BirthCorrectionForm() {
     if (loading) return;
     try {
       toast.loading("সেশন রিলোড হচ্ছে...", { id: "sessionReload" });
-      const response = await fetch("/api/birth/application/correction");
+      const response = await fetch("/api/birth/application/correction/session");
 
       if (response.ok) {
         const newData = await response.json();
@@ -2377,7 +2377,7 @@ export default function BirthCorrectionForm() {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <Link href="/birth/application/correction/history">
+                  <Link href="/birth/application/correction/req-history">
                     <button type="button" className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-500 transition">
                       History
                     </button>

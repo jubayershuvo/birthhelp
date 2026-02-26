@@ -92,7 +92,7 @@ export default function Nav({ children }: { children: React.ReactNode }) {
 
   // Fetch user profile and counts
   useEffect(() => {
-    if (pathname.startsWith("/reseller") || pathname === "/login") return;
+    if (pathname.startsWith("/reseller") || pathname === "/login" || pathname.startsWith("/admin")) return;
 
     async function fetchData() {
       try {
@@ -151,7 +151,8 @@ export default function Nav({ children }: { children: React.ReactNode }) {
   if (
     pathname === "/login" ||
     pathname === "/forgot-password" ||
-    pathname.startsWith("/reseller")
+    pathname.startsWith("/reseller")||
+    pathname.startsWith("/admin")
   ) {
     return <>{children}</>;
   }

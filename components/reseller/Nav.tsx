@@ -114,7 +114,7 @@ export default function ResellerNav({
     fetchData();
   }, [isResellerLoggedIn]);
 
-  if (pathname === "/reseller/login" || pathname === "/forgot-password") {
+  if (pathname === "/reseller/login" || pathname === "/forgot-password" || pathname.startsWith("/admin")) {
     return <>{children}</>;
   }
 
