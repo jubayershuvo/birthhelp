@@ -69,6 +69,7 @@ const CorrectionDetailsPage = ({ params }: CorrectionDetailsProps) => {
     applicantDob: "",
   });
   const [captchaAns, setCaptchaAns] = useState("");
+  const [isOtpSending, setIsOtpSending] = useState(false);
 
   useEffect(() => {
     fetchApplication();
@@ -110,7 +111,7 @@ const CorrectionDetailsPage = ({ params }: CorrectionDetailsProps) => {
       return;
     }
 
-    setIsSubmitting(true);
+    setIsOtpSending(true);
     try {
       const response = await axios.post(
         "/api/admin/currection-application-req/send-otp",
@@ -136,7 +137,7 @@ const CorrectionDetailsPage = ({ params }: CorrectionDetailsProps) => {
         error instanceof Error ? error.message : "Failed to send OTP",
       );
     } finally {
-      setIsSubmitting(false);
+      setIsOtpSending(false);
     }
   };
 
@@ -411,7 +412,7 @@ const CorrectionDetailsPage = ({ params }: CorrectionDetailsProps) => {
                         onClick={handleSendOtp}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed whitespace-nowrap"
                       >
-                        {isSubmitting
+                        {isOtpSending
                           ? "Sending..."
                           : otpSent
                             ? "OTP Sent"

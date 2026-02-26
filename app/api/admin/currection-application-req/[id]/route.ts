@@ -264,6 +264,8 @@ export async function POST(
     formData.append("brSearchDob", currection.dob);
     formData.append("captchaAns", body.captchaAns);
     formData.append("otp", body.otp);
+    formData.append('applicantBrn', body.applicant.applicantBrn || "");
+    formData.append('applicantDob', body.applicant.applicantDob || "");
 
     // Add specific personal info corrections
 
@@ -463,11 +465,7 @@ export async function POST(
     formData.append("email", body.applicant.applicantEmail || "");
 
     // Format phone number (similar to PHP logic)
-    let phone = body.applicantInfo.phone;
-    if (phone.length === 11 && phone.startsWith("01")) {
-      phone = "+88" + phone;
-    }
-    formData.append("phone", phone);
+  
 
     // Add the correction info JSON (important!)
     formData.append("correctionInfoJson", JSON.stringify(correctionInfoArray));
@@ -500,9 +498,7 @@ export async function POST(
     const result = await safeParseResponse(response);
 
     if (!result.success) {
-      console.log(result);
-      currection.submit_status = "failed";
-      await currection.save();
+
       return NextResponse.json(
         {
           success: false,
@@ -518,10 +514,11 @@ export async function POST(
 
     return NextResponse.json({ currection, body }, { status: 200 });
   } catch (error) {
+    console.log(error)
     return NextResponse.json(
       {
         error:
-          "An error occurred while fetching correction application requests.",
+          "An error occurred while fetching correction application requests.!",
       },
       { status: 500 },
     );
