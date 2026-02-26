@@ -16,8 +16,8 @@ async function safeParseResponse(response: Response) {
 
   // console.log(`HTML page saved to: ${filePath}`);
   if (isHTML(text)) {
-    const path = saveHtmlDebug(text);
-    console.warn(`Received HTML response. Saved to: ${path}`);
+    // const path = saveHtmlDebug(text);
+    // console.warn(`Received HTML response. Saved to: ${path}`);
 
     // First, check if this is an OTP error page and extract the error message
     const errorSpanRegex =
