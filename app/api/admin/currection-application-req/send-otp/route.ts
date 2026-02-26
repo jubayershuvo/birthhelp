@@ -22,6 +22,15 @@ export async function POST(request: Request) {
         csrf: data.session.csrf,
       }
     );
+    
+    if (!aplicant.success) {
+    
+      return NextResponse.json(
+        { error: aplicant.message || "Failed to fetch applicant information." },
+        { status: 404 },
+      );
+
+    }
     if (!aplicant.phone) {
       return NextResponse.json(
         { error: "Failed to fetch applicant information." },

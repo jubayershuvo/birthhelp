@@ -124,18 +124,16 @@ const CorrectionDetailsPage = ({ params }: CorrectionDetailsProps) => {
           session,
         },
       );
-
-      if (response.data.success) {
-        toast.success(response.data.message);
-        setOtpSent(true);
-        setTimer(10000); // 10 minutes timer
-      } else {
-        toast.error(response.data.message || "Failed to send OTP");
-      }
+      toast.success(response.data.message);
+      setOtpSent(true);
+      setTimer(10000); // 10 minutes timer
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to send OTP",
-      );
+      console.log(error)
+      const errorMessage =
+        axios.isAxiosError(error) && error.response?.data?.error
+          ? error.response.data.error
+          : "Failed to send OTP";
+      toast.error(errorMessage);
     } finally {
       setIsOtpSending(false);
     }

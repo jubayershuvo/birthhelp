@@ -46,7 +46,7 @@ export async function applicantInfo(
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Applicant API Failed: ${res.status} - ${text}`);
+    return JSON.parse(text); // returns error response as JSON
   }
 
   return res.json(); // returns JSON response
