@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
   if (appType === "br") {
     const application = await BirthRegistration.findOne({
       applicationId: appId,
-    }) || await CorrectionApplicationrReq.findOne({ applicationId: appId });
+    }) 
     if (!application) {
       return NextResponse.json({ error: "Data not found" }, { status: 404 });
     }
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
   if (appType === "br_correction") {
     const application = await CorrectionApplication.findOne({
       applicationId: appId,
-    });
+    }) || await CorrectionApplicationrReq.findOne({ applicationId: appId });;
     if (!application || !application.dob || !application.user) {
       return NextResponse.json({ error: "Data not found" }, { status: 404 });
     }
