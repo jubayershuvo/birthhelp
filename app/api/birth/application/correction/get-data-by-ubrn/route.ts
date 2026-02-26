@@ -36,38 +36,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const servicePath = "/birth/application/correction";
-
-    const service = await Services.findOne({ href: servicePath });
-    if (!service) {
-      return NextResponse.json(
-        { success: false, error: "Service not found" },
-        { status: 404 },
-      );
-    }
-
-    const userService = user.services.find(
-      (s: { service: string }) =>
-        s.service.toString() === service._id.toString(),
-    );
-
-    if (!userService) {
-      return NextResponse.json(
-        { success: false, error: "User does not have access to this service" },
-        { status: 403 },
-      );
-    }
-    const serviceCost = user.isSpecialUser
-      ? userService.fee
-      : userService.fee + service.fee;
-
-    if (user.balance < serviceCost) {
-      return NextResponse.json(
-        { success: false, error: "Insufficient balance" },
-        { status: 402 },
-      );
-    }
-
     const url = `${process.env.BDRIS_PROXY}/api/br/search-by-ubrn-and-dob`;
 
     const headers = new Headers();
@@ -124,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     if (html && html.includes("<html")) {
       const debugFilePath = saveHtmlDebug(html);
-      console.log(debugFilePath)
+      console.log(debugFilePath);
       if (html.includes("Login To BDRIS")) {
         return NextResponse.json(
           { success: false, error: "BDRIS error" },
@@ -140,11 +108,10 @@ export async function POST(req: NextRequest) {
 
     const parsedData = JSON.parse(html);
 
-
     // const jsonData = await response?.json(); // JSON response
     if (parsedData.success === false) {
       return NextResponse.json(
-        { success: false, error:  parsedData || "No data found" },
+        { success: false, error: parsedData || "No data found" },
         { status: 404 },
       );
     }

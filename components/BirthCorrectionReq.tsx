@@ -2039,6 +2039,19 @@ export default function BirthCorrectionForm() {
     };
 
     try {
+         const resp = await fetch("/api/birth/application/correction/is-valid", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      const res = await resp.json();
+      if (res.success !== true) {
+        toast.error(res.error.message || res.message, { id: "submission" });
+        return;
+      }
    
       try {
         const resp = await fetch("/api/birth/application/correction/req-submit", {
