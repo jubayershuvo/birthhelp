@@ -2,6 +2,7 @@ import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
 import BirthRegistration from "@/models/BirthRegistration";
 import CorrectionApplication from "@/models/Currection";
+import CorrectionApplicationrReq from "@/models/CurrectionReq";
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import fs from "fs";
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
   if (appType === "br") {
     const application = await BirthRegistration.findOne({
       applicationId: appId,
-    });
+    }) || await CorrectionApplicationrReq.findOne({ applicationId: appId });
     if (!application) {
       return NextResponse.json({ error: "Data not found" }, { status: 404 });
     }
