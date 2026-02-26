@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       }
     );
     
-    if (!aplicant.success) {
+    if (aplicant.message) {
     
       return NextResponse.json(
         { error: aplicant.message || "Failed to fetch applicant information." },
