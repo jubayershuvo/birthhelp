@@ -196,7 +196,12 @@ export async function POST(
       },
     );
 
-    console.log(otpResult);
+    if (!otpResult.isVerified) {
+      return NextResponse.json(
+        { error: "OTP is invalid." },
+        { status: 400 },
+      );
+    }
 
     // Build correctionInfoJson array (similar to PHP logic)
     const correctionInfoArray = [];
