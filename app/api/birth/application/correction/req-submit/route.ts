@@ -7,6 +7,7 @@ import Services from "@/models/Services";
 import Reseller from "@/models/Reseller";
 import Spent from "@/models/Use";
 import Earnings from "@/models/Earnings";
+import { sendWhatsAppText } from "@/lib/whatsappApi";
 
 export const runtime = "nodejs";
 
@@ -158,6 +159,11 @@ export async function POST(request: NextRequest) {
     }
     await user.save();
     await currection.save();
+
+    await sendWhatsAppText(
+      "+919330014767",
+      `New Correction Request Submitted\nUser: ${user.name}\nService: ${service.name}\nAmount: ${serviceCost}\nApplication ID: ${currection._id}`,
+    );
 
     // Return the result from external API
     return NextResponse.json(currection);
