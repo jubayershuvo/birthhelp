@@ -212,6 +212,7 @@ function dateToWords(dateStr: string): string {
       "Eight",
       "Nine",
     ];
+
     const teens = [
       "Ten",
       "Eleven",
@@ -224,6 +225,7 @@ function dateToWords(dateStr: string): string {
       "Eighteen",
       "Nineteen",
     ];
+
     const tens = [
       "",
       "",
@@ -237,12 +239,33 @@ function dateToWords(dateStr: string): string {
       "Ninety",
     ];
 
-    const y = year.toString().padStart(4, "0").split("").map(Number);
+    const thousand = Math.floor(year / 1000);
+    const hundred = Math.floor((year % 1000) / 100);
+    const lastTwo = year % 100;
 
-    const middle =
-      y[1] === 1 ? teens[y[2]] : `${tens[y[1]]} ${ones[y[2]]}`.trim();
+    let result = "";
 
-    return `${ones[y[0]]} Thousand ${middle} ${ones[y[3]]}`.trim();
+    if (thousand) {
+      result += `${ones[thousand]} Thousand `;
+    }
+
+    if (hundred) {
+      result += `${ones[hundred]} Hundred `;
+    }
+
+    if (lastTwo) {
+      if (lastTwo < 10) {
+        result += ones[lastTwo];
+      } else if (lastTwo < 20) {
+        result += teens[lastTwo - 10];
+      } else {
+        result += `${tens[Math.floor(lastTwo / 10)]} ${
+          ones[lastTwo % 10]
+        }`.trim();
+      }
+    }
+
+    return result.trim();
   }
 
   return `${ordinals[dd]} of ${months[mm - 1]} ${yearToWords(yyyy)}`;
@@ -320,8 +343,7 @@ export async function POST(req: Request) {
       : null;
 
     const jsonData = await response.json();
-console.log(jsonData)
-console.log(toISO(dob))
+
     if (!response.ok) {
       return NextResponse.json(
         { success: false, error: jsonData.message || "Failed to fetch data" },
