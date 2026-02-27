@@ -1,9 +1,8 @@
 import { getUser } from "@/lib/getUser";
 import { connectDB } from "@/lib/mongodb";
+import { verifyOtp } from "@/lib/verifyOtp";
 import { NextRequest, NextResponse } from "next/server";
 
-const userAgentString =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +11,7 @@ export async function POST(req: NextRequest) {
     if (!personUbrn || !phone || !csrf) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -21,72 +20,23 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    const result = await verifyOtp(
+      {
+        otp,
+        phone,
+        personUbrn,
+        relation: "GUARDIAN",
+        applicantName: "RABEYA AKTER",
+        applicantBrn: "19979612886030271",
+        applicantDob: "05/07/1997",
+      },
+      {
+        cookieString: cookies.join("; "),
+        csrf,
+      },
+    );
 
-    // Build query parameters safely
-    const params = new URLSearchParams({
-      appType: "BIRTH_INFORMATION_CORRECTION_APPLICATION",
-      otp,
-      phone,
-      officeId: "0",
-      personUbrn,
-      geoLocationId: "0",
-      ubrn: "",
-      nid: "",
-      officeAddressType: "",
-    });
-
-    if (email) params.append("email", email);
-
-    const url = `${process.env.BDRIS_PROXY}/api/otp/verify?${params.toString()}`;
-
-    // Build headers
-    const headers = new Headers({
-      "User-Agent": userAgentString,
-      Accept: "*/*",
-      "X-Requested-With": "XMLHttpRequest",
-      Referer: "https://bdris.gov.bd/br/correction",
-    });
-
-    if (cookies?.length) {
-      headers.set("Cookie", cookies.join("; "));
-    }
-
-    // Build form data
-    const formData = new FormData();
-    formData.append("_csrf", csrf);
-
-    // Make the request
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: formData,
-    });
-
-    const textResponse = await response.text();
-
-    // Try to parse JSON safely
-    let jsonData;
-    try {
-      jsonData = JSON.parse(textResponse);
-    } catch {
-      console.error("Invalid JSON response:", textResponse);
-      return NextResponse.json(
-        { success: false, error: "Invalid JSON response from BDRIS" },
-        { status: 502 }
-      );
-    }
-
-    if (!response.ok) {
-      console.error("BDRIS error:", jsonData);
-      return NextResponse.json(
-        { success: false, error: jsonData?.error || "BDRIS request failed" },
-        { status: response.status }
-      );
-    }
-
-    console.log("BDRIS response:", jsonData);
-
-    return NextResponse.json({ success: true, data: jsonData });
+    return NextResponse.json({ success: true, data: result });
   } catch (err: unknown) {
     console.error("BDRIS request error:", err);
 
@@ -94,12 +44,12 @@ export async function POST(req: NextRequest) {
       err instanceof Error
         ? err.message
         : typeof err === "string"
-        ? err
-        : "Internal server error";
+          ? err
+          : "Internal server error";
 
     return NextResponse.json(
       { success: false, error: message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

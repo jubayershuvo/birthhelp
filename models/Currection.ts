@@ -81,7 +81,7 @@ const addressBlockSchema = new Schema<IAddressBlock>({
 /* ---------------- Applicant Info ---------------- */
 export interface IApplicantInfo {
   name: string;
-  officeId: number;
+  officeId?: number;
   email?: string;
   phone: string;
   relationWithApplicant: string;
@@ -89,7 +89,7 @@ export interface IApplicantInfo {
 
 const applicantInfoSchema = new Schema<IApplicantInfo>({
   name: { type: String, required: true },
-  officeId: { type: Number, required: true },
+  officeId: { type: Number },
   email: { type: String, default: "" },
   phone: { type: String },
   relationWithApplicant: { type: String},

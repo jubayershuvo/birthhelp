@@ -90,18 +90,28 @@ interface CorrectionRequestBody {
 function isHTML(str: string): boolean {
   return str.trim().startsWith("<!DOCTYPE") || str.trim().startsWith("<html");
 }
-
-// Helper function to parse response safely
 async function safeParseResponse(response: Response) {
   const text = await response.text();
 
   // console.log(`HTML page saved to: ${filePath}`);
   if (isHTML(text)) {
-    if (text.includes("OTP NOT VERIFIED")) {
-      return {
-        success: false,
-        message: "OTP not verified. Please check the OTP and try again.",
-      };
+    // const path = saveHtmlDebug(text);
+    // console.warn(`Received HTML response. Saved to: ${path}`);
+
+    // First, check if this is an OTP error page and extract the error message
+    const errorSpanRegex =
+      /<div[^>]*class="alert alert-icon alert-danger[^>]*>[\s\S]*?<span>(.*?)<\/span>/;
+    const errorMatch = text.match(errorSpanRegex);
+
+    if (errorMatch) {
+      const errorMessage = errorMatch[1].trim();
+      // Check if it's an OTP related error
+      if (errorMessage) {
+        return {
+          success: false,
+          message: errorMessage, // Return the actual Bengali error message
+        };
+      }
     }
 
     const bdrisLink = "https://bdris.gov.bd";
@@ -137,11 +147,12 @@ async function safeParseResponse(response: Response) {
       return extracted;
     }
 
-    // Check for common HTML error patterns
+    // Check for other common HTML error patterns
     if (
       text.includes("login") ||
       text.includes("session") ||
-      text.includes("expired")
+      text.includes("expired") ||
+      text.includes("লগইন")
     ) {
       return {
         success: false,
@@ -195,19 +206,19 @@ export async function POST(request: NextRequest) {
     if (!service) {
       return NextResponse.json(
         { success: false, error: "Service not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const userService = user.services.find(
       (s: { service: string }) =>
-        s.service.toString() === service._id.toString()
+        s.service.toString() === service._id.toString(),
     );
 
     if (!userService) {
       return NextResponse.json(
         { success: false, error: "User does not have access to this service" },
-        { status: 403 }
+        { status: 403 },
       );
     }
     const serviceCost = user.isSpecialUser
@@ -217,7 +228,7 @@ export async function POST(request: NextRequest) {
     if (user.balance < serviceCost) {
       return NextResponse.json(
         { success: false, error: "User does not have enough balance" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -238,7 +249,7 @@ export async function POST(request: NextRequest) {
           error: "Missing required fields",
           message: "অনুগ্রহ করে সকল আবশ্যক তথ্য প্রদান করুন।",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -257,7 +268,7 @@ export async function POST(request: NextRequest) {
           error: "Error creating correction application",
           message: "অনুগ্রহ করে সকল আবশ্যক তথ্য প্রদান করুন।",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -268,7 +279,7 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "আবেদনকারীর নাম নির্বাচন করুন, না হলে আবেদন জমা হবে না।",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -310,7 +321,7 @@ export async function POST(request: NextRequest) {
         {
           id: "birthPlaceBn",
           val: `${birthPlace.houseRoadBn} ${birthPlace.vilAreaTownBn} ${birthPlace.postOfc}`.trim(),
-        }
+        },
       );
     }
 
@@ -335,7 +346,7 @@ export async function POST(request: NextRequest) {
         {
           id: "permAddrBn",
           val: `${permAddress.houseRoadBn} ${permAddress.vilAreaTownBn} ${permAddress.postOfc}`.trim(),
-        }
+        },
       );
     }
     if (prsntAddress && prsntAddress.country !== "-1") {
@@ -358,7 +369,7 @@ export async function POST(request: NextRequest) {
         {
           id: "prsntAddrBn",
           val: `${prsntAddress.houseRoadBn} ${prsntAddress.vilAreaTownBn} ${prsntAddress.postOfc}`.trim(),
-        }
+        },
       );
     }
 
@@ -391,17 +402,17 @@ export async function POST(request: NextRequest) {
       formData.append("birthPlaceDist", birthPlace.district.toString());
       formData.append(
         "birthPlaceCityCorpCantOrUpazila",
-        birthPlace.cityCorpCantOrUpazila.toString()
+        birthPlace.cityCorpCantOrUpazila.toString(),
       );
       formData.append(
         "birthPlacePaurasavaOrUnion",
-        birthPlace.paurasavaOrUnion.toString()
+        birthPlace.paurasavaOrUnion.toString(),
       );
       formData.append("birthPlaceWardInCityCorp", "-1");
       formData.append("birthPlaceArea", "-1");
       formData.append(
         "birthPlaceWardInPaurasavaOrUnion",
-        birthPlace.ward.toString()
+        birthPlace.ward.toString(),
       );
 
       // Add ALL birth place address fields
@@ -409,11 +420,11 @@ export async function POST(request: NextRequest) {
       formData.append("birthPlacePostOfcEn", birthPlace.postOfcEn || "");
       formData.append(
         "birthPlaceVilAreaTownBn",
-        birthPlace.vilAreaTownBn || ""
+        birthPlace.vilAreaTownBn || "",
       );
       formData.append(
         "birthPlaceVilAreaTownEn",
-        birthPlace.vilAreaTownEn || ""
+        birthPlace.vilAreaTownEn || "",
       );
       formData.append("birthPlaceHouseRoadBn", birthPlace.houseRoadBn || "");
       formData.append("birthPlaceHouseRoadEn", birthPlace.houseRoadEn || "");
@@ -422,17 +433,17 @@ export async function POST(request: NextRequest) {
         "birthPlaceLocationId",
         birthPlace.geoId !== "0"
           ? birthPlace.country
-          : birthPlace.paurasavaOrUnion.toString()
+          : birthPlace.paurasavaOrUnion.toString(),
       );
       formData.append(
         "birthPlaceEn",
         `${birthPlace.houseRoadEn} ${birthPlace.vilAreaTownEn} ${birthPlace.postOfcEn}`.trim() ||
-          ""
+          "",
       );
       formData.append(
         "birthPlaceBn",
         `${birthPlace.houseRoadBn} ${birthPlace.vilAreaTownBn} ${birthPlace.postOfc}`.trim() ||
-          ""
+          "",
       );
     }
 
@@ -445,17 +456,17 @@ export async function POST(request: NextRequest) {
       formData.append("permAddrDist", permAddress.district.toString());
       formData.append(
         "permAddrCityCorpCantOrUpazila",
-        permAddress.cityCorpCantOrUpazila.toString()
+        permAddress.cityCorpCantOrUpazila.toString(),
       );
       formData.append(
         "permAddrPaurasavaOrUnion",
-        permAddress.paurasavaOrUnion.toString()
+        permAddress.paurasavaOrUnion.toString(),
       );
       formData.append("permAddrWardInCityCorp", "-1");
       formData.append("permAddrArea", "-1");
       formData.append(
         "permAddrWardInPaurasavaOrUnion",
-        permAddress.ward.toString()
+        permAddress.ward.toString(),
       );
 
       // Add ALL permanent address fields
@@ -470,17 +481,17 @@ export async function POST(request: NextRequest) {
         "permAddrLocationId",
         permAddress.geoId !== "0"
           ? permAddress.country
-          : permAddress.paurasavaOrUnion.toString()
+          : permAddress.paurasavaOrUnion.toString(),
       );
       formData.append(
         "permAddrEn",
         `${permAddress.houseRoadEn} ${permAddress.vilAreaTownEn} ${permAddress.postOfcEn}`.trim() ||
-          ""
+          "",
       );
       formData.append(
         "permAddrBn",
         `${permAddress.houseRoadBn} ${permAddress.vilAreaTownBn} ${permAddress.postOfc}`.trim() ||
-          ""
+          "",
       );
     }
 
@@ -493,17 +504,17 @@ export async function POST(request: NextRequest) {
       formData.append("prsntAddrDist", prsntAddress.district.toString());
       formData.append(
         "prsntAddrCityCorpCantOrUpazila",
-        prsntAddress.cityCorpCantOrUpazila.toString()
+        prsntAddress.cityCorpCantOrUpazila.toString(),
       );
       formData.append(
         "prsntAddrPaurasavaOrUnion",
-        prsntAddress.paurasavaOrUnion.toString()
+        prsntAddress.paurasavaOrUnion.toString(),
       );
       formData.append("prsntAddrWardInCityCorp", "-1");
       formData.append("prsntAddrArea", "-1");
       formData.append(
         "prsntAddrWardInPaurasavaOrUnion",
-        prsntAddress.ward.toString()
+        prsntAddress.ward.toString(),
       );
 
       // Add ALL present address fields
@@ -511,11 +522,11 @@ export async function POST(request: NextRequest) {
       formData.append("prsntAddrPostOfcEn", prsntAddress.postOfcEn || "");
       formData.append(
         "prsntAddrVilAreaTownBn",
-        prsntAddress.vilAreaTownBn || ""
+        prsntAddress.vilAreaTownBn || "",
       );
       formData.append(
         "prsntAddrVilAreaTownEn",
-        prsntAddress.vilAreaTownEn || ""
+        prsntAddress.vilAreaTownEn || "",
       );
       formData.append("prsntAddrHouseRoadBn", prsntAddress.houseRoadBn || "");
       formData.append("prsntAddrHouseRoadEn", prsntAddress.houseRoadEn || "");
@@ -524,26 +535,26 @@ export async function POST(request: NextRequest) {
         "prsntAddrLocationId",
         prsntAddress.geoId !== "0"
           ? prsntAddress.country
-          : prsntAddress.paurasavaOrUnion.toString()
+          : prsntAddress.paurasavaOrUnion.toString(),
       );
       formData.append(
         "prsntAddrEn",
         `${prsntAddress.houseRoadEn} ${prsntAddress.vilAreaTownEn} ${prsntAddress.postOfcEn}`.trim() ||
-          ""
+          "",
       );
       formData.append(
         "prsntAddrBn",
         `${prsntAddress.houseRoadBn} ${prsntAddress.vilAreaTownBn} ${prsntAddress.postOfc}`.trim() ||
-          ""
+          "",
       );
     }
     formData.append(
       "copyBirthPlaceToPermAddr",
-      body.isPermAddressIsSameAsBirthPlace ? "yes" : "no"
+      body.isPermAddressIsSameAsBirthPlace ? "yes" : "no",
     );
     formData.append(
       "copyPermAddrToPrsntAddr",
-      body.isPrsntAddressIsSameAsPermAddress ? "yes" : "no"
+      body.isPrsntAddressIsSameAsPermAddress ? "yes" : "no",
     );
     // Add files/attachments
     if (body.files && body.files.length > 0) {
@@ -553,10 +564,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add applicant information
-    formData.append(
-      "relationWithApplicant",
-      body.applicantInfo.relationWithApplicant || "SELF"
-    );
+    formData.append("relationWithApplicant", "GUARDIAN");
     formData.append("applicantFatherBrn", "");
     formData.append("applicantFatherNid", "");
     formData.append("applicantMotherBrn", "");
@@ -564,14 +572,17 @@ export async function POST(request: NextRequest) {
     formData.append("applicantNotParentsBrn", "");
     formData.append("applicantNotParentsDob", "");
     formData.append("applicantNotParentsNid", "");
-    formData.append("applicantName", body.applicantInfo.name);
+    formData.append("applicantName", "RABEYA AKTER");
     formData.append("email", body.applicantInfo.email || "");
+    formData.append("applicantBrn", "19979612886030271");
+    formData.append("applicantDob", "05/07/1997");
 
     // Format phone number (similar to PHP logic)
     let phone = body.applicantInfo.phone;
     if (phone.length === 11 && phone.startsWith("01")) {
       phone = "+88" + phone;
     }
+    console.log(phone)
     formData.append("phone", phone);
 
     // Add the correction info JSON (important!)
@@ -613,7 +624,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: result.message || "Something went wrong",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
     currection.submit_status = "submitted";
@@ -659,7 +670,7 @@ export async function POST(request: NextRequest) {
           error ||
           "আপনার আবেদনের সেশনের মেয়াদ শেষ অথবা নিবন্ধন সার্ভার সমস্যা। দয়া করে আবার চেষ্টা করুন।",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -679,19 +690,19 @@ export async function GET() {
       console.log("service missing");
       return NextResponse.json(
         { success: false, error: "Service not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     const userService = user.services.find(
       (s: { service: string }) =>
-        s.service.toString() === service._id.toString()
+        s.service.toString() === service._id.toString(),
     );
 
     if (!userService) {
       return NextResponse.json(
         { success: false, error: "User does not have access to this service" },
-        { status: 403 }
+        { status: 403 },
       );
     }
     const serviceCost = user.isSpecialUser
@@ -746,7 +757,7 @@ export async function GET() {
     if (!csrf || !captchaSrc || !cookiesArr) {
       return NextResponse.json(
         { success: false, error: "Captcha not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -763,7 +774,7 @@ export async function GET() {
     console.log(error);
     return NextResponse.json(
       { message: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
